@@ -1,57 +1,56 @@
-# Testing for version with separate tools file
 tools:
   - Name: "SQLECmd"
-    # RepoUrl: "https://download.ericzimmermanstools.com/SQLECmd.zip" 				# .Net4
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/SQLECmd.zip"      # .Net6
-    # RepoUrl: "https://download.ericzimmermanstools.com/net9/SQLECmd.zip" 	  # .Net9
+    # RepoUrl: "https://download.ericzimmermanstools.com/SQLECmd.zip" # .Net4
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/SQLECmd.zip" # .Net6
+    # RepoUrl: "https://download.ericzimmermanstools.com/net9/SQLECmd.zip" # .Net9
     DownloadMethod: "specificFile"
     OutputFolder: "Database"
 
   - Name: "JLECmd"
-    # RepoUrl: "https://download.ericzimmermanstools.com/JLECmd.zip"     			# .Net4
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/JLECmd.zip"       # .Net6
-    # RepoUrl: "https://download.ericzimmermanstools.com/net9/JLECmd.zip" 	  # .Net9
+    # RepoUrl: "https://download.ericzimmermanstools.com/JLECmd.zip" # .Net4
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/JLECmd.zip" # .Net6
+    # RepoUrl: "https://download.ericzimmermanstools.com/net9/JLECmd.zip" # .Net9
     DownloadMethod: "specificFile"
     OutputFolder: "LNK-JMP"
 
   - Name: "JumpListExplorer"
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/JumpListExplorer.zip"   # .Net6
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/JumpListExplorer.zip" # .Net6
     # RepoUrl: "https://download.ericzimmermanstools.com/net9/JumpListExplorer.zip" # .Net9
     DownloadMethod: "specificFile"
     OutputFolder: "LNK-JMP"
 
   - Name: "LECmd"
-    # RepoUrl: "https://download.ericzimmermanstools.com/LECmd.zip"     			# .Net4
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/LECmd.zip"        # .Net6
-    # RepoUrl: "https://download.ericzimmermanstools.com/net9/LECmd.zip" 			# .Net9
+    # RepoUrl: "https://download.ericzimmermanstools.com/LECmd.zip" # .Net4
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/LECmd.zip" # .Net6
+    # RepoUrl: "https://download.ericzimmermanstools.com/net9/LECmd.zip" # .Net9
     DownloadMethod: "specificFile"
     OutputFolder: "LNK-JMP"
 
   - Name: "EZViewer"
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/EZViewer.zip"       # .Net6
-    # RepoUrl: "https://download.ericzimmermanstools.com/net9/EZViewer.zip" 		# .Net9
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/EZViewer.zip" # .Net6
+    # RepoUrl: "https://download.ericzimmermanstools.com/net9/EZViewer.zip" # .Net9
     DownloadMethod: "specificFile"
     OutputFolder: "MISC"
 
   - Name: "hasher"
-    RepoUrl: "https://download.ericzimmermanstools.com/hasher.zip"                # .Net4
+    RepoUrl: "https://download.ericzimmermanstools.com/hasher.zip" # .Net4
     DownloadMethod: "specificFile"
     OutputFolder: "MISC"
 
   - Name: "iisGeolocate"
-    # RepoUrl: "https://download.ericzimmermanstools.com/iisGeolocate.zip"     		# .Net4
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/iisGeolocate.zip"     # .Net6
-    # RepoUrl: "https://download.ericzimmermanstools.com/net9/iisGeolocate.zip" 	# .Net9
+    # RepoUrl: "https://download.ericzimmermanstools.com/iisGeolocate.zip" # .Net4
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/iisGeolocate.zip" # .Net6
+    # RepoUrl: "https://download.ericzimmermanstools.com/net9/iisGeolocate.zip" # .Net9
     DownloadMethod: "specificFile"
     OutputFolder: "MISC"
 
   - Name: "TimeApp"
-    RepoUrl: "https://download.ericzimmermanstools.com/TimeApp.zip"                 # .Net4
+    RepoUrl: "https://download.ericzimmermanstools.com/TimeApp.zip" # .Net4
     DownloadMethod: "specificFile"
     OutputFolder: "MISC"
 
   - Name: "TimelineExplorer"
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/TimelineExplorer.zip"   # .Net6
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/TimelineExplorer.zip" # .Net6
     # RepoUrl: "https://download.ericzimmermanstools.com/net9/TimelineExplorer.zip" # .Net9
     DownloadMethod: "specificFile"
     OutputFolder: "MISC"
@@ -88,15 +87,15 @@ tools:
     OutputFolder: "NTFS"
 
   - Name: "MFTECmd"
-    # RepoUrl: "https://download.ericzimmermanstools.com/MFTECmd.zip"     			# .Net4
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/MFTECmd.zip"        # .Net6
-    # RepoUrl: "https://download.ericzimmermanstools.com/net9/MFTECmd.zip" 			# .Net9
+    # RepoUrl: "https://download.ericzimmermanstools.com/MFTECmd.zip" # .Net4
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/MFTECmd.zip" # .Net6
+    # RepoUrl: "https://download.ericzimmermanstools.com/net9/MFTECmd.zip" # .Net9
     DownloadMethod: "specificFile"
     OutputFolder: "NTFS"
 
   - Name: "MFTExplorer"
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/MFTExplorer.zip"      # .Net6
-    # RepoUrl: "https://download.ericzimmermanstools.com/net9/MFTExplorer.zip" 		# .Net9
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/MFTExplorer.zip" # .Net6
+    # RepoUrl: "https://download.ericzimmermanstools.com/net9/MFTExplorer.zip" # .Net9
     DownloadMethod: "specificFile"
     OutputFolder: "NTFS"
 
@@ -107,76 +106,76 @@ tools:
     OutputFolder: "NTFS"
 
   - Name: "PECmd"
-    # RepoUrl: "https://download.ericzimmermanstools.com/PECmd.zip"     			# .Net4
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/PECmd.zip"        # .Net6
-    # RepoUrl: "https://download.ericzimmermanstools.com/net9/PECmd.zip" 			# .Net9
+    # RepoUrl: "https://download.ericzimmermanstools.com/PECmd.zip" # .Net4
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/PECmd.zip" # .Net6
+    # RepoUrl: "https://download.ericzimmermanstools.com/net9/PECmd.zip" # .Net9
     DownloadMethod: "specificFile"
     OutputFolder: "Prefetch"
 
   - Name: "AmcacheParser"
-    # RepoUrl: "https://download.ericzimmermanstools.com/AmcacheParser.zip"     	# .Net4
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/AmcacheParser.zip"    # .Net6
-    # RepoUrl: "https://download.ericzimmermanstools.com/net9/AmcacheParser.zip" 	# .Net9
+    # RepoUrl: "https://download.ericzimmermanstools.com/AmcacheParser.zip"  # .Net4
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/AmcacheParser.zip" # .Net6
+    # RepoUrl: "https://download.ericzimmermanstools.com/net9/AmcacheParser.zip" # .Net9
     DownloadMethod: "specificFile"
     OutputFolder: "Registry"
 
   - Name: "AppCompatCacheParser"
-    # RepoUrl: "https://download.ericzimmermanstools.com/AppCompatCacheParser.zip"     	# .Net4
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/AppCompatCacheParser.zip"   # .Net6
+    # RepoUrl: "https://download.ericzimmermanstools.com/AppCompatCacheParser.zip"  # .Net4
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/AppCompatCacheParser.zip" # .Net6
     # RepoUrl: "https://download.ericzimmermanstools.com/net9/AppCompatCacheParser.zip" # .Net9
     DownloadMethod: "specificFile"
     OutputFolder: "Registry"
 
   - Name: "RBCmd"
-    # RepoUrl: "https://download.ericzimmermanstools.com/RBCmd.zip"     			# .Net4
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/RBCmd.zip"              # .Net6
-    # RepoUrl: "https://download.ericzimmermanstools.com/net9/RBCmd.zip" 			# .Net9
+    # RepoUrl: "https://download.ericzimmermanstools.com/RBCmd.zip" # .Net4
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/RBCmd.zip" # .Net6
+    # RepoUrl: "https://download.ericzimmermanstools.com/net9/RBCmd.zip" # .Net9
     DownloadMethod: "specificFile"
     OutputFolder: "RecycleBin"
 
   - Name: "RecentFileCacheParser"
-    # RepoUrl: "https://download.ericzimmermanstools.com/RecentFileCacheParser.zip"     	# .Net4
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/RecentFileCacheParser.zip"    # .Net6
-    # RepoUrl: "https://download.ericzimmermanstools.com/net9/RecentFileCacheParser.zip" 	# .Net9
+    # RepoUrl: "https://download.ericzimmermanstools.com/RecentFileCacheParser.zip"  # .Net4
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/RecentFileCacheParser.zip" # .Net6
+    # RepoUrl: "https://download.ericzimmermanstools.com/net9/RecentFileCacheParser.zip" # .Net9
     DownloadMethod: "specificFile"
     OutputFolder: "Registry"
 
   - Name: "RECmd"
-    # RepoUrl: "https://download.ericzimmermanstools.com/RECmd.zip"     			# .Net4
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/RECmd.zip"        # .Net6
-    # RepoUrl: "https://download.ericzimmermanstools.com/net9/RECmd.zip" 			# .Net9
+    # RepoUrl: "https://download.ericzimmermanstools.com/RECmd.zip" # .Net4
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/RECmd.zip" # .Net6
+    # RepoUrl: "https://download.ericzimmermanstools.com/net9/RECmd.zip" # .Net9
     DownloadMethod: "specificFile"
     OutputFolder: "Registry"
 
   - Name: "RegistryExplorer"
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/RegistryExplorer.zip"   # .Net6
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/RegistryExplorer.zip" # .Net6
     # RepoUrl: "https://download.ericzimmermanstools.com/net9/RegistryExplorer.zip" # .Net9
     DownloadMethod: "specificFile"
     OutputFolder: "Registry"
 
   - Name: "rla"
-    # RepoUrl: "https://download.ericzimmermanstools.com/rla.zip"     				# .Net4
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/rla.zip"                # .Net6
-    # RepoUrl: "https://download.ericzimmermanstools.com/net9/rla.zip" 				# .Net9
+    # RepoUrl: "https://download.ericzimmermanstools.com/rla.zip" # .Net4
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/rla.zip" # .Net6
+    # RepoUrl: "https://download.ericzimmermanstools.com/net9/rla.zip" # .Net9
     DownloadMethod: "specificFile"
     OutputFolder: "Registry"
 
   - Name: "SBECmd"
-    # RepoUrl: "https://download.ericzimmermanstools.com/SBECmd.zip"     			# .Net4
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/SBECmd.zip"         # .Net6
-    # RepoUrl: "https://download.ericzimmermanstools.com/net9/SBECmd.zip" 			# .Net9
+    # RepoUrl: "https://download.ericzimmermanstools.com/SBECmd.zip" # .Net4
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/SBECmd.zip" # .Net6
+    # RepoUrl: "https://download.ericzimmermanstools.com/net9/SBECmd.zip" # .Net9
     DownloadMethod: "specificFile"
     OutputFolder: "Registry"
 
   - Name: "SDBExplorer"
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/SDBExplorer.zip"      # .Net6
-    # RepoUrl: "https://download.ericzimmermanstools.com/net9/SDBExplorer.zip" 		# .Net9
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/SDBExplorer.zip" # .Net6
+    # RepoUrl: "https://download.ericzimmermanstools.com/net9/SDBExplorer.zip" # .Net9
     DownloadMethod: "specificFile"
     OutputFolder: "Registry"
 
   - Name: "ShellBagsExplorer"
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/ShellBagsExplorer.zip"    # .Net6
-    # RepoUrl: "https://download.ericzimmermanstools.com/net9/ShellBagsExplorer.zip" 	# .Net9
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/ShellBagsExplorer.zip" # .Net6
+    # RepoUrl: "https://download.ericzimmermanstools.com/net9/ShellBagsExplorer.zip" # .Net9
     DownloadMethod: "specificFile"
     OutputFolder: "Registry"
 
@@ -187,16 +186,16 @@ tools:
     OutputFolder: "SUM-UAL"
 
   - Name: "SumECmd"
-    # RepoUrl: "https://download.ericzimmermanstools.com/SumECmd.zip"     			# .Net4
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/SumECmd.zip"        # .Net6
-    # RepoUrl: "https://download.ericzimmermanstools.com/net9/SumECmd.zip" 			# .Net9
+    # RepoUrl: "https://download.ericzimmermanstools.com/SumECmd.zip" # .Net4
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/SumECmd.zip" # .Net6
+    # RepoUrl: "https://download.ericzimmermanstools.com/net9/SumECmd.zip" # .Net9
     DownloadMethod: "specificFile"
     OutputFolder: "SUM-UAL"
 
   - Name: "SumECmd"
-    # RepoUrl: "https://download.ericzimmermanstools.com/SumECmd.zip"     			# .Net4
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/SumECmd.zip"        # .Net6
-    # RepoUrl: "https://download.ericzimmermanstools.com/net9/SumECmd.zip" 			# .Net9
+    # RepoUrl: "https://download.ericzimmermanstools.com/SumECmd.zip" # .Net4
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/SumECmd.zip" # .Net6
+    # RepoUrl: "https://download.ericzimmermanstools.com/net9/SumECmd.zip" # .Net9
     DownloadMethod: "specificFile"
     OutputFolder: "SUM-UAL"
 
@@ -213,15 +212,15 @@ tools:
     OutputFolder: "SymantecLogs"
 
   - Name: "VSCMount"
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/VSCMount.zip"       # .Net6
-    # RepoUrl: "https://download.ericzimmermanstools.com/net9/VSCMount.zip" 		# .Net9
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/VSCMount.zip" # .Net6
+    # RepoUrl: "https://download.ericzimmermanstools.com/net9/VSCMount.zip" # .Net9
     DownloadMethod: "specificFile"
     OutputFolder: "VSC"
 
   - Name: "WxTCmd"
-    # RepoUrl: "https://download.ericzimmermanstools.com/WxTCmd.zip"     			# .Net4
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/WxTCmd.zip"       # .Net6
-    # RepoUrl: "https://download.ericzimmermanstools.com/net9/WxTCmd.zip" 		# .Net9
+    # RepoUrl: "https://download.ericzimmermanstools.com/WxTCmd.zip" # .Net4
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/WxTCmd.zip" # .Net6
+    # RepoUrl: "https://download.ericzimmermanstools.com/net9/WxTCmd.zip" # .Net9
     DownloadMethod: "specificFile"
     OutputFolder: "Win10Timeline"
 
@@ -269,8 +268,8 @@ tools:
     OutputFolder: "WinEventlogs"
 
   - Name: "EvtxECmd"
-    # RepoUrl: "https://download.ericzimmermanstools.com/EvtxECmd.zip"     	# .Net4
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/EvtxECmd.zip"   # .Net6
+    # RepoUrl: "https://download.ericzimmermanstools.com/EvtxECmd.zip"  # .Net4
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/EvtxECmd.zip" # .Net6
     # RepoUrl: "https://download.ericzimmermanstools.com/net9/EvtxECmd.zip" # .Net9
     DownloadMethod: "specificFile"
     OutputFolder: "WinEventlogs"
@@ -306,7 +305,7 @@ tools:
     OutputFolder: "WMI"
 
   - Name: "XWFIM"
-    RepoUrl: "https://download.ericzimmermanstools.com/XWFIM.zip"           # .Net4
+    RepoUrl: "https://download.ericzimmermanstools.com/XWFIM.zip" # .Net4
     DownloadMethod: "specificFile"
     OutputFolder: "XWays"
 
