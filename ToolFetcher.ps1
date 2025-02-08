@@ -14,7 +14,7 @@
 
 # Folder where all tools will be stored.
 # If you leave this variable empty, the script will prompt you for a folder location.
-$toolsFolder = ""  	# <-- Change this as needed. Example: c:\tools
+$toolsFolder = "F:\PowerAutomate\testdownload7"  	# <-- Change this as needed.
 
 # Set this to $true to force re-download and overwrite any existing tool output directories.
 $ForceDownload = $false  	# <-- Set to $true to force re-download.
@@ -24,7 +24,7 @@ $VerboseOutput = $false
 
 # GitHub Personal Access Token – recommended to avoid rate limits.
 # If you leave this empty, the script will work unauthenticated.
-$GitHubPAT = ""          	# Only use if you have rate limit issues, probably rare.
+$GitHubPAT = ""          	# Only needed if you have rate limit issues, probably rare.
 
 # =====================================================
 # Asset Pattern Mapping
@@ -202,6 +202,13 @@ $tools = @(
 		OutputFolder   = "NTFS"
     },
     @{
+        Name           = "RustyUsn"
+        RepoUrl        = "https://github.com/forensicmatt/RustyUsn"
+        DownloadMethod = "latestRelease"
+        DownloadName   = "rusty_usn-v1.5.0-x86_64-pc-windows-msvc.zip"
+		OutputFolder   = "NTFS"
+    },
+    @{
         Name           = "PECmd"
         # RepoUrl      = "https://download.ericzimmermanstools.com/PECmd.zip" 		# .Net4
         RepoUrl        = "https://download.ericzimmermanstools.com/net6/PECmd.zip" 	# .Net6
@@ -287,12 +294,19 @@ $tools = @(
 		OutputFolder   = "Registry"
     },
     @{
-        Name           = "SrumECmd"
-        # RepoUrl      = "https://download.ericzimmermanstools.com/SrumECmd.zip" 		# .Net4
-        RepoUrl        = "https://download.ericzimmermanstools.com/net6/SrumECmd.zip" 	# .Net6
-        # RepoUrl      = "https://download.ericzimmermanstools.com/net9/SrumECmd.zip" 	# .Net9
+        Name           = "KStrike"
+        RepoUrl        = "https://github.com/brimorlabs/KStrike"
+        DownloadMethod = "branchZip"
+        Branch         = "master"
+		OutputFolder   = "SUM-UAL"
+    },
+    @{
+        Name           = "SumECmd"
+        # RepoUrl      = "https://download.ericzimmermanstools.com/SumECmd.zip" 		# .Net4
+        RepoUrl        = "https://download.ericzimmermanstools.com/net6/SumECmd.zip" 	# .Net6
+        # RepoUrl      = "https://download.ericzimmermanstools.com/net9/SumECmd.zip" 	# .Net9
         DownloadMethod = "specificFile"
-		OutputFolder   = "SRUM"
+		OutputFolder   = "SUM-UAL"
     },
     @{
         Name           = "SumECmd"
@@ -429,6 +443,14 @@ $tools = @(
         RepoUrl        = "https://download.ericzimmermanstools.com/XWFIM.zip" # .Net4
         DownloadMethod = "specificFile"
 		OutputFolder   = "XWays"
+    },
+    @{
+        Name           = "Plist_Time_Dump"
+        RepoUrl        = "https://github.com/kev365/plist_time_dump"
+        DownloadMethod = "branchZip"
+        Branch         = "master"
+		OutputFolder   = "Apple"
+		skipdownload   = $true
     }
 )
 
