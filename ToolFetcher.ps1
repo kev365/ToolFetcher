@@ -217,22 +217,6 @@ $tools = @(
 		OutputFolder   = "Prefetch"
     },
     @{
-        Name           = "AmcacheParser"
-        # RepoUrl      = "https://download.ericzimmermanstools.com/AmcacheParser.zip" 		# .Net4
-        RepoUrl        = "https://download.ericzimmermanstools.com/net6/AmcacheParser.zip" 	# .Net6
-        # RepoUrl      = "https://download.ericzimmermanstools.com/net9/AmcacheParser.zip" 	# .Net9
-        DownloadMethod = "specificFile"
-		OutputFolder   = "Registry"
-    },
-    @{
-        Name           = "AppCompatCacheParser"
-        # RepoUrl      = "https://download.ericzimmermanstools.com/AppCompatCacheParser.zip" 		# .Net4
-        RepoUrl        = "https://download.ericzimmermanstools.com/net6/AppCompatCacheParser.zip" 	# .Net6
-        # RepoUrl      = "https://download.ericzimmermanstools.com/net9/AppCompatCacheParser.zip" 	# .Net9
-        DownloadMethod = "specificFile"
-		OutputFolder   = "Registry"
-    },
-    @{
         Name           = "RBCmd"
         # RepoUrl      = "https://download.ericzimmermanstools.com/RBCmd.zip" 		# .Net4
         RepoUrl        = "https://download.ericzimmermanstools.com/net6/RBCmd.zip" 	# .Net6
@@ -241,12 +225,28 @@ $tools = @(
 		OutputFolder   = "RecycleBin"
     },
     @{
+        Name           = "AmcacheParser"
+        # RepoUrl      = "https://download.ericzimmermanstools.com/AmcacheParser.zip" 		# .Net4
+        RepoUrl        = "https://download.ericzimmermanstools.com/net6/AmcacheParser.zip" 	# .Net6
+        # RepoUrl      = "https://download.ericzimmermanstools.com/net9/AmcacheParser.zip" 	# .Net9
+        DownloadMethod = "specificFile"
+		OutputFolder   = "WinRegistry"
+    },
+    @{
+        Name           = "AppCompatCacheParser"
+        # RepoUrl      = "https://download.ericzimmermanstools.com/AppCompatCacheParser.zip" 		# .Net4
+        RepoUrl        = "https://download.ericzimmermanstools.com/net6/AppCompatCacheParser.zip" 	# .Net6
+        # RepoUrl      = "https://download.ericzimmermanstools.com/net9/AppCompatCacheParser.zip" 	# .Net9
+        DownloadMethod = "specificFile"
+		OutputFolder   = "WinRegistry"
+    },
+    @{
         Name           = "RecentFileCacheParser"
         # RepoUrl      = "https://download.ericzimmermanstools.com/RecentFileCacheParser.zip" 		# .Net4
         RepoUrl        = "https://download.ericzimmermanstools.com/net6/RecentFileCacheParser.zip" 	# .Net6
         # RepoUrl      = "https://download.ericzimmermanstools.com/net9/RecentFileCacheParser.zip" 	# .Net9
         DownloadMethod = "specificFile"
-		OutputFolder   = "Registry"
+		OutputFolder   = "WinRegistry"
     },
     @{
         Name           = "RECmd"
@@ -254,14 +254,14 @@ $tools = @(
         RepoUrl        = "https://download.ericzimmermanstools.com/net6/RECmd.zip" 	# .Net6
         # RepoUrl      = "https://download.ericzimmermanstools.com/net9/RECmd.zip" 	# .Net9
         DownloadMethod = "specificFile"
-		OutputFolder   = "Registry"
+		OutputFolder   = "WinRegistry"
     },
     @{
         Name           = "RegistryExplorer"
         RepoUrl        = "https://download.ericzimmermanstools.com/net6/RegistryExplorer.zip" # .Net6
         # RepoUrl      = "https://download.ericzimmermanstools.com/net9/RegistryExplorer.zip" # .Net9
         DownloadMethod = "specificFile"
-		OutputFolder   = "Registry"
+		OutputFolder   = "WinRegistry"
     },
     @{
         Name           = "rla"
@@ -269,7 +269,7 @@ $tools = @(
         RepoUrl        = "https://download.ericzimmermanstools.com/net6/rla.zip" 	# .Net6
         # RepoUrl      = "https://download.ericzimmermanstools.com/net9/rla.zip" 	# .Net9
         DownloadMethod = "specificFile"
-		OutputFolder   = "Registry"
+		OutputFolder   = "WinRegistry"
     },
     @{
         Name           = "SBECmd"
@@ -277,21 +277,21 @@ $tools = @(
         RepoUrl        = "https://download.ericzimmermanstools.com/net6/SBECmd.zip" # .Net6
         # RepoUrl      = "https://download.ericzimmermanstools.com/net9/SBECmd.zip" # .Net9
         DownloadMethod = "specificFile"
-		OutputFolder   = "Registry"
+		OutputFolder   = "WinRegistry"
     },
     @{
         Name           = "SDBExplorer"
         RepoUrl        = "https://download.ericzimmermanstools.com/net6/SDBExplorer.zip" # .Net6
         # RepoUrl      = "https://download.ericzimmermanstools.com/net9/SDBExplorer.zip" # .Net9
         DownloadMethod = "specificFile"
-		OutputFolder   = "Registry"
+		OutputFolder   = "WinRegistry"
     },
     @{
         Name           = "ShellBagsExplorer"
         RepoUrl        = "https://download.ericzimmermanstools.com/net6/ShellBagsExplorer.zip" # .Net6
         # RepoUrl      = "https://download.ericzimmermanstools.com/net9/ShellBagsExplorer.zip" # .Net9
         DownloadMethod = "specificFile"
-		OutputFolder   = "Registry"
+		OutputFolder   = "WinRegistry"
     },
     @{
         Name           = "KStrike"
