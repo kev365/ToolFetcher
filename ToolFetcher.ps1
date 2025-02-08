@@ -4,13 +4,20 @@
 # A tool for fetching DFIR and other GitHub tools.
 #
 # Author: Kevin Stokes (https://www.linkedin.com/in/dfir-kev/)
-# Version: 1.0.0
+# Version: 1.1.0
 # License: MIT
 # =====================================================
 
 # =====================================================
 # User Configurable Variables
 # =====================================================
+
+[CmdletBinding()]
+param(
+    # Supply a local file (e.g., "tools.yaml") or a URL (e.g., a GitHub raw URL).
+    [Parameter(Mandatory=$false)]
+    [string]$ToolsFile = "https://raw.githubusercontent.com/kev365/ToolFetcher/refs/heads/main/tools.yaml"
+)
 
 # Folder where all tools will be stored.
 # If you leave this variable empty, the script will prompt you for a folder location.
@@ -38,426 +45,8 @@ $AssetPatterns = @{
 }
 
 # =====================================================
-# Tools Configuration Array
-# =====================================================
-# Each tool is represented by a hashtable with these properties:
-#
-# Required:
-#   Name           - A friendly name for the tool.
-#   RepoUrl        - The URL of the GitHub repository or direct file URL.
-#   DownloadMethod - How to download the tool. Valid values:
-#                    • "gitClone"     – Clone the repository using Git.
-#                    • "latestRelease"– Download the latest release asset via the GitHub API.
-#                    • "branchZip"    – Download the branch ZIP archive (without a .git folder).
-#                    • "specificFile" – Download a specific file.
-#
-# Optional properties (vary by DownloadMethod):
-#
-# • For "gitClone":
-#      Branch         - The branch to clone.
-#
-# • For "latestRelease":
-#      DownloadName   - (Optional) Exact asset name to filter by (overrides AssetType if provided).
-#      AssetType      - (Optional) A key (e.g., "win64") mapping to a regex in $AssetPatterns.
-#                       Used when DownloadName isn’t provided.
-#      AssetFilename  - (Optional) Specify the asset name exactly.
-#      Extract        - (Optional) Set to $false to disable extraction (default extracts ".zip" files).
-#
-# • For "branchZip":
-#      Branch         - (Optional) The branch to download (defaults to "master" if omitted).
-#      Extract        - (Optional) Set to $false to disable extraction.
-#
-# • For "specificFile":
-#      SpecificFilePath - The relative path (e.g., starting with "/raw/...") to the file in the repo.
-#
-# Global for all methods:
-#   OutputFolder   - (Optional) A custom subfolder (under $toolsFolder) to group this tool.
-#                    Default output paths:
-#                      • For gitClone, latestRelease, and branchZip:
-#                          Join-Path($toolsFolder, $OutputFolder, $Name)
-#                      • For specificFile:
-#                          Join-Path($toolsFolder, $OutputFolder)
-#                    If not provided:
-#                      • gitClone/latestRelease/branchZip default to Join-Path($toolsFolder, $Name)
-#                      • specificFile defaults to $toolsFolder.
-#
-# Additional flag:
-#   skipdownload   - Set to $true to skip downloading this tool.
-#
-$tools = @(
-    @{
-        Name           = "SQLECmd"
-        # RepoUrl      = "https://download.ericzimmermanstools.com/SQLECmd.zip" 	# .Net4
-        RepoUrl        = "https://download.ericzimmermanstools.com/net6/SQLECmd.zip" # .Net6
-        # RepoUrl      = "https://download.ericzimmermanstools.com/net9/SQLECmd.zip" # .Net9
-        DownloadMethod = "specificFile"
-		OutputFolder   = "Database"
-    },
-    @{
-        Name           = "JLECmd"
-        # RepoUrl      = "https://download.ericzimmermanstools.com/JLECmd.zip" 		# .Net4
-        RepoUrl        = "https://download.ericzimmermanstools.com/net6/JLECmd.zip" # .Net6
-        # RepoUrl      = "https://download.ericzimmermanstools.com/net9/JLECmd.zip" # .Net9
-        DownloadMethod = "specificFile"
-		OutputFolder   = "LNK-JMP"
-    },
-    @{
-        Name           = "JumpListExplorer"
-        RepoUrl        = "https://download.ericzimmermanstools.com/net6/JumpListExplorer.zip" # .Net6
-        # RepoUrl      = "https://download.ericzimmermanstools.com/net9/JumpListExplorer.zip" # .Net9
-        DownloadMethod = "specificFile"
-		OutputFolder   = "LNK-JMP"
-    },
-    @{
-        Name           = "LECmd"
-        # RepoUrl      = "https://download.ericzimmermanstools.com/LECmd.zip" 		# .Net4
-        RepoUrl        = "https://download.ericzimmermanstools.com/net6/LECmd.zip" 	# .Net6
-        # RepoUrl      = "https://download.ericzimmermanstools.com/net9/LECmd.zip" 	# .Net9
-        DownloadMethod = "specificFile"
-		OutputFolder   = "LNK-JMP"
-    },
-    @{
-        Name           = "EZViewer"
-        RepoUrl        = "https://download.ericzimmermanstools.com/net6/EZViewer.zip" # .Net6
-        # RepoUrl      = "https://download.ericzimmermanstools.com/net9/EZViewer.zip" # .Net9
-        DownloadMethod = "specificFile"
-		OutputFolder   = "MISC"
-    },
-    @{
-        Name           = "hasher"
-        RepoUrl        = "https://download.ericzimmermanstools.com/hasher.zip" # .Net4
-        DownloadMethod = "specificFile"
-		OutputFolder   = "MISC"
-    },
-    @{
-        Name           = "iisGeolocate"
-        # RepoUrl      = "https://download.ericzimmermanstools.com/iisGeolocate.zip" 		# .Net4
-        RepoUrl        = "https://download.ericzimmermanstools.com/net6/iisGeolocate.zip" 	# .Net6
-        # RepoUrl      = "https://download.ericzimmermanstools.com/net9/iisGeolocate.zip" 	# .Net9
-        DownloadMethod = "specificFile"
-		OutputFolder   = "MISC"
-    },
-    @{
-        Name           = "TimeApp"
-        RepoUrl        = "https://download.ericzimmermanstools.com/TimeApp.zip" # .Net4
-        DownloadMethod = "specificFile"
-		OutputFolder   = "MISC"
-    },
-    @{
-        Name           = "TimelineExplorer"
-        RepoUrl        = "https://download.ericzimmermanstools.com/net6/TimelineExplorer.zip" # .Net6
-        # RepoUrl      = "https://download.ericzimmermanstools.com/net9/TimelineExplorer.zip" # .Net9
-        DownloadMethod = "specificFile"
-		OutputFolder   = "MISC"
-    },
-    @{
-        Name           = "BackstageParser"
-        RepoUrl        = "https://github.com/ArsenalRecon/BackstageParser"
-        DownloadMethod = "branchZip"
-        Branch         = "master"
-		OutputFolder   = "MSOffice"
-		# skipdownload   = $true
-    },
-    @{
-        Name           = "forensicsim"
-        RepoUrl        = "https://github.com/lxndrblz/forensicsim"
-        DownloadMethod = "latestRelease"
-        DownloadName   = "forensicsim.zip"
-		OutputFolder   = "MSOffice"
-    },
-    @{
-        Name           = "LevelDBDumper"
-        RepoUrl        = "https://github.com/mdawsonuk/LevelDBDumper"
-        DownloadMethod = "latestRelease"
-        DownloadName   = "LevelDBDumper.exe" # 64-bit
-		OutputFolder   = "MSOffice"
-    },
-    @{
-        Name           = "OneDriveExplorer"
-        RepoUrl        = "https://github.com/Beercow/OneDriveExplorer"
-        DownloadMethod = "latestRelease"
-        DownloadName   = "ODE.zip"
-		OutputFolder   = "MSOffice"
-    },
-    @{
-        Name           = "INDXRipper"
-        RepoUrl        = "https://github.com/harelsegev/INDXRipper"
-        DownloadMethod = "latestRelease"
-        DownloadName   = "INDXRipper-20231117-py3.12-amd64.zip"
-		OutputFolder   = "NTFS"
-    },
-    @{
-        Name           = "MFTECmd"
-        # RepoUrl      = "https://download.ericzimmermanstools.com/MFTECmd.zip" 		# .Net4
-        RepoUrl        = "https://download.ericzimmermanstools.com/net6/MFTECmd.zip" 	# .Net6
-        # RepoUrl      = "https://download.ericzimmermanstools.com/net9/MFTECmd.zip" 	# .Net9
-        DownloadMethod = "specificFile"
-		OutputFolder   = "NTFS"
-    },
-    @{
-        Name           = "MFTExplorer"
-        RepoUrl        = "https://download.ericzimmermanstools.com/net6/MFTExplorer.zip" # .Net6
-        # RepoUrl      = "https://download.ericzimmermanstools.com/net9/MFTExplorer.zip" # .Net9
-        DownloadMethod = "specificFile"
-		OutputFolder   = "NTFS"
-    },
-    @{
-        Name           = "RustyUsn"
-        RepoUrl        = "https://github.com/forensicmatt/RustyUsn"
-        DownloadMethod = "latestRelease"
-        DownloadName   = "rusty_usn-v1.5.0-x86_64-pc-windows-msvc.zip"
-		OutputFolder   = "NTFS"
-    },
-    @{
-        Name           = "PECmd"
-        # RepoUrl      = "https://download.ericzimmermanstools.com/PECmd.zip" 		# .Net4
-        RepoUrl        = "https://download.ericzimmermanstools.com/net6/PECmd.zip" 	# .Net6
-        # RepoUrl      = "https://download.ericzimmermanstools.com/net9/PECmd.zip" 	# .Net9
-        DownloadMethod = "specificFile"
-		OutputFolder   = "Prefetch"
-    },
-    @{
-        Name           = "RBCmd"
-        # RepoUrl      = "https://download.ericzimmermanstools.com/RBCmd.zip" 		# .Net4
-        RepoUrl        = "https://download.ericzimmermanstools.com/net6/RBCmd.zip" 	# .Net6
-        # RepoUrl      = "https://download.ericzimmermanstools.com/net9/RBCmd.zip" 	# .Net9
-        DownloadMethod = "specificFile"
-		OutputFolder   = "RecycleBin"
-    },
-    @{
-        Name           = "AmcacheParser"
-        # RepoUrl      = "https://download.ericzimmermanstools.com/AmcacheParser.zip" 		# .Net4
-        RepoUrl        = "https://download.ericzimmermanstools.com/net6/AmcacheParser.zip" 	# .Net6
-        # RepoUrl      = "https://download.ericzimmermanstools.com/net9/AmcacheParser.zip" 	# .Net9
-        DownloadMethod = "specificFile"
-		OutputFolder   = "WinRegistry"
-    },
-    @{
-        Name           = "AppCompatCacheParser"
-        # RepoUrl      = "https://download.ericzimmermanstools.com/AppCompatCacheParser.zip" 		# .Net4
-        RepoUrl        = "https://download.ericzimmermanstools.com/net6/AppCompatCacheParser.zip" 	# .Net6
-        # RepoUrl      = "https://download.ericzimmermanstools.com/net9/AppCompatCacheParser.zip" 	# .Net9
-        DownloadMethod = "specificFile"
-		OutputFolder   = "WinRegistry"
-    },
-    @{
-        Name           = "RecentFileCacheParser"
-        # RepoUrl      = "https://download.ericzimmermanstools.com/RecentFileCacheParser.zip" 		# .Net4
-        RepoUrl        = "https://download.ericzimmermanstools.com/net6/RecentFileCacheParser.zip" 	# .Net6
-        # RepoUrl      = "https://download.ericzimmermanstools.com/net9/RecentFileCacheParser.zip" 	# .Net9
-        DownloadMethod = "specificFile"
-		OutputFolder   = "WinRegistry"
-    },
-    @{
-        Name           = "RECmd"
-        # RepoUrl      = "https://download.ericzimmermanstools.com/RECmd.zip" 		# .Net4
-        RepoUrl        = "https://download.ericzimmermanstools.com/net6/RECmd.zip" 	# .Net6
-        # RepoUrl      = "https://download.ericzimmermanstools.com/net9/RECmd.zip" 	# .Net9
-        DownloadMethod = "specificFile"
-		OutputFolder   = "WinRegistry"
-    },
-    @{
-        Name           = "RegistryExplorer"
-        RepoUrl        = "https://download.ericzimmermanstools.com/net6/RegistryExplorer.zip" # .Net6
-        # RepoUrl      = "https://download.ericzimmermanstools.com/net9/RegistryExplorer.zip" # .Net9
-        DownloadMethod = "specificFile"
-		OutputFolder   = "WinRegistry"
-    },
-    @{
-        Name           = "rla"
-        # RepoUrl      = "https://download.ericzimmermanstools.com/rla.zip" 		# .Net4
-        RepoUrl        = "https://download.ericzimmermanstools.com/net6/rla.zip" 	# .Net6
-        # RepoUrl      = "https://download.ericzimmermanstools.com/net9/rla.zip" 	# .Net9
-        DownloadMethod = "specificFile"
-		OutputFolder   = "WinRegistry"
-    },
-    @{
-        Name           = "SBECmd"
-        # RepoUrl      = "https://download.ericzimmermanstools.com/SBECmd.zip" 		# .Net4
-        RepoUrl        = "https://download.ericzimmermanstools.com/net6/SBECmd.zip" # .Net6
-        # RepoUrl      = "https://download.ericzimmermanstools.com/net9/SBECmd.zip" # .Net9
-        DownloadMethod = "specificFile"
-		OutputFolder   = "WinRegistry"
-    },
-    @{
-        Name           = "SDBExplorer"
-        RepoUrl        = "https://download.ericzimmermanstools.com/net6/SDBExplorer.zip" # .Net6
-        # RepoUrl      = "https://download.ericzimmermanstools.com/net9/SDBExplorer.zip" # .Net9
-        DownloadMethod = "specificFile"
-		OutputFolder   = "WinRegistry"
-    },
-    @{
-        Name           = "ShellBagsExplorer"
-        RepoUrl        = "https://download.ericzimmermanstools.com/net6/ShellBagsExplorer.zip" # .Net6
-        # RepoUrl      = "https://download.ericzimmermanstools.com/net9/ShellBagsExplorer.zip" # .Net9
-        DownloadMethod = "specificFile"
-		OutputFolder   = "WinRegistry"
-    },
-    @{
-        Name           = "KStrike"
-        RepoUrl        = "https://github.com/brimorlabs/KStrike"
-        DownloadMethod = "branchZip"
-        Branch         = "master"
-		OutputFolder   = "SUM-UAL"
-    },
-    @{
-        Name           = "SumECmd"
-        # RepoUrl      = "https://download.ericzimmermanstools.com/SumECmd.zip" 		# .Net4
-        RepoUrl        = "https://download.ericzimmermanstools.com/net6/SumECmd.zip" 	# .Net6
-        # RepoUrl      = "https://download.ericzimmermanstools.com/net9/SumECmd.zip" 	# .Net9
-        DownloadMethod = "specificFile"
-		OutputFolder   = "SUM-UAL"
-    },
-    @{
-        Name           = "SumECmd"
-        # RepoUrl      = "https://download.ericzimmermanstools.com/SumECmd.zip" 		# .Net4
-        RepoUrl        = "https://download.ericzimmermanstools.com/net6/SumECmd.zip" 	# .Net6
-        # RepoUrl      = "https://download.ericzimmermanstools.com/net9/SumECmd.zip" 	# .Net9
-        DownloadMethod = "specificFile"
-		OutputFolder   = "SUM-UAL"
-    },
-    @{
-        Name           = "SEPparser_cmd"
-        RepoUrl        = "https://github.com/Beercow/SEPparser"
-        DownloadMethod = "latestRelease"
-        DownloadName   = "SEPparser.exe"
-		OutputFolder   = "SymantecLogs"
-    },
-    @{
-        Name           = "SEPparser_gui"
-        RepoUrl        = "https://github.com/Beercow/SEPparser"
-        DownloadMethod = "latestRelease"
-        DownloadName   = "SEPparser_GUI.exe"
-		OutputFolder   = "SymantecLogs"
-    },
-    @{
-        Name           = "VSCMount"
-        RepoUrl        = "https://download.ericzimmermanstools.com/net6/VSCMount.zip" # .Net6
-        # RepoUrl      = "https://download.ericzimmermanstools.com/net9/VSCMount.zip" # .Net9
-        DownloadMethod = "specificFile"
-		OutputFolder   = "VSC"
-    },
-    @{
-        Name           = "WxTCmd"
-        # RepoUrl      = "https://download.ericzimmermanstools.com/WxTCmd.zip" 		# .Net4
-        RepoUrl        = "https://download.ericzimmermanstools.com/net6/WxTCmd.zip" # .Net6
-        # RepoUrl      = "https://download.ericzimmermanstools.com/net9/WxTCmd.zip" # .Net9
-        DownloadMethod = "specificFile"
-		OutputFolder   = "Win10Timeline"
-    },
-    @{
-        Name           = "hindsight"
-        RepoUrl        = "https://github.com/obsidianforensics/hindsight"
-        DownloadMethod = "latestRelease"
-        DownloadName   = "hindsight.exe"
-		OutputFolder   = "WebHistory"
-    },
-    @{
-        Name           = "hindsight_gui"
-        RepoUrl        = "https://github.com/obsidianforensics/hindsight"
-        DownloadMethod = "latestRelease"
-        DownloadName   = "hindsight_gui.exe"
-		OutputFolder   = "WebHistory"
-    },
-    @{
-        Name           = "BitsParser"
-        RepoUrl        = "https://github.com/fireeye/BitsParser"
-        DownloadMethod = "branchZip"
-        Branch         = "master"
-		OutputFolder   = "WinBITS"
-    },
-    @{
-        Name             = "DHParser"
-        RepoUrl          = "https://github.com/jklepsercyber/defender-detectionhistory-parser"
-        DownloadMethod   = "specificFile"
-        SpecificFilePath = "/raw/refs/heads/main/dhparser.exe"
-        DownloadName     = "dhparser.exe"
-		OutputFolder     = "WinDefender"
-    },
-    @{
-        Name           = "RegRipper3.0"
-        RepoUrl        = "https://github.com/keydet89/RegRipper3.0"
-        DownloadMethod = "branchZip"
-        Branch         = "master"
-		OutputFolder   = "WinRegistry"
-    },
-    @{
-        Name           = "APT-Hunter"
-        RepoUrl        = "https://github.com/ahmedkhlief/APT-Hunter"
-        DownloadMethod = "latestRelease"
-        DownloadName   = "APT-Hunter.zip"
-        OutputFolder   = "WinEventlogs"
-    },
-    @{
-        Name           = "chainsaw"
-        RepoUrl        = "https://github.com/WithSecureLabs/chainsaw"
-        DownloadMethod = "latestRelease"
-        DownloadName   = "chainsaw_x86_64-pc-windows-msvc.zip"
-        OutputFolder   = "WinEventlogs"
-    },
-    @{
-        Name           = "EvtxECmd"
-        # RepoUrl      = "https://download.ericzimmermanstools.com/EvtxECmd.zip" 		# .Net4
-        RepoUrl        = "https://download.ericzimmermanstools.com/net6/EvtxECmd.zip" 	# .Net6
-        # RepoUrl      = "https://download.ericzimmermanstools.com/net9/EvtxECmd.zip" 	# .Net9
-        DownloadMethod = "specificFile"
-		OutputFolder   = "WinEventlogs"
-    },
-    @{
-        Name           = "hayabusa"
-        RepoUrl        = "https://github.com/Yamato-Security/hayabusa"
-        DownloadMethod = "latestRelease"
-        AssetType      = "win64"
-		OutputFolder   = "WinEventlogs"
-    },
-    @{
-        Name           = "EvtxHussar"
-        RepoUrl        = "https://github.com/yarox24/EvtxHussar"
-        DownloadMethod = "latestRelease"
-        AssetType      = "win64"
-		OutputFolder   = "WinEventlogs"
-    },
-    @{
-        Name           = "hayabusa-rules"
-        RepoUrl        = "https://github.com/Yamato-Security/hayabusa-rules"
-        DownloadMethod = "branchZip"
-        Branch         = "main"
-		OutputFolder   = "WinEventlogs"
-    },
-    @{
-        Name           = "sidr"
-        RepoUrl        = "https://github.com/strozfriedberg/sidr"
-        DownloadMethod = "latestRelease"
-        DownloadName   = "sidr.exe"
-		OutputFolder   = "WinSearchIndex"
-    },
-    @{
-        Name           = "wmi-parser"
-        RepoUrl        = "https://github.com/woanware/wmi-parser"
-        DownloadMethod = "latestRelease"
-        DownloadName   = "wmi-parser.v0.0.2.zip"
-		OutputFolder   = "WMI"
-    },
-    @{
-        Name           = "XWFIM"
-        RepoUrl        = "https://download.ericzimmermanstools.com/XWFIM.zip" # .Net4
-        DownloadMethod = "specificFile"
-		OutputFolder   = "XWays"
-    },
-    @{
-        Name           = "Plist_Time_Dump"
-        RepoUrl        = "https://github.com/kev365/plist_time_dump"
-        DownloadMethod = "branchZip"
-        Branch         = "master"
-		OutputFolder   = "Apple"
-		skipdownload   = $true
-    }
-)
-
-# =====================================================
 # Global Logging Setup
 # =====================================================
-
 function Log-Debug {
     param([string]$Message)
     if ($VerboseOutput) { Write-Host "[DEBUG] $Message" -ForegroundColor DarkGray }
@@ -473,6 +62,80 @@ function Log-Warning {
 function Log-Error {
     param([string]$Message)
     Write-Host "[ERROR] $Message" -ForegroundColor Red
+}
+
+# =====================================================
+# Tools Configuration: Load from YAML File
+# =====================================================
+# This block replaces the hard-coded $tools array.
+# The YAML file is expected to contain the same structure as your previous tools configuration.
+# It can either be a top-level array or an object with a "tools" key.
+if ($ToolsFile -match '^https?://') {
+    Log-Info "Fetching tools configuration from URL: $ToolsFile"
+    try {
+        $yamlContent = (Invoke-WebRequest -Uri $ToolsFile -UseBasicParsing).Content
+    }
+    catch {
+        Log-Error "Failed to fetch YAML from URL: $ToolsFile. Exception: $_"
+        exit 1
+    }
+}
+else {
+    # If not an absolute path, try the same folder as the script.
+    if (-not (Test-Path $ToolsFile)) {
+        if ($PSScriptRoot) {
+            $localPath = Join-Path $PSScriptRoot $ToolsFile
+        }
+        else {
+            $localPath = $ToolsFile
+        }
+        if (Test-Path $localPath) {
+            $ToolsFile = $localPath
+        }
+        else {
+            Log-Error "YAML configuration file not found: $ToolsFile"
+            exit 1
+        }
+    }
+    try {
+        $yamlContent = Get-Content -Path $ToolsFile -Raw
+    }
+    catch {
+        Log-Error "Failed to read YAML file at: $ToolsFile. Exception: $_"
+        exit 1
+    }
+}
+
+# Check for the powershell-yaml module and install if not found.
+if (-not (Get-Module -ListAvailable -Name powershell-yaml)) {
+    Write-Host "[INFO] The 'powershell-yaml' module is not installed. Attempting to install it..." -ForegroundColor Cyan
+    try {
+        # Install the module for the current user to avoid permission issues.
+        Install-Module -Name powershell-yaml -Scope CurrentUser -Force -AllowClobber
+        Write-Host "[INFO] Successfully installed the 'powershell-yaml' module." -ForegroundColor Green
+    }
+    catch {
+        Write-Host "[ERROR] Failed to install the 'powershell-yaml' module. Please install it manually using: Install-Module powershell-yaml" -ForegroundColor Red
+        exit 1
+    }
+}
+
+# Import the module
+Import-Module powershell-yaml -ErrorAction Stop
+
+try {
+    $toolsConfig = $yamlContent | ConvertFrom-Yaml
+    if ($toolsConfig.tools) {
+        $tools = $toolsConfig.tools
+    }
+    else {
+        $tools = $toolsConfig
+    }
+    Log-Debug "Loaded $($tools.Count) tools from configuration file."
+}
+catch {
+    Log-Error "Failed to parse YAML configuration. Exception: $_"
+    exit 1
 }
 
 # =====================================================
@@ -525,7 +188,6 @@ function Write-MarkerFile {
 # =====================================================
 # Functions for Download Methods
 # =====================================================
-
 function Download-GitCloneTool {
     param (
         [Parameter(Mandatory)] $ToolConfig,
