@@ -14,7 +14,7 @@
 
 # Folder where all tools will be stored.
 # If you leave this variable empty, the script will prompt you for a folder location.
-$toolsFolder = "F:\PowerAutomate\testdownload7"  	# <-- Change this as needed.
+$toolsFolder = ""  	# <-- Change this as needed.
 
 # Set this to $true to force re-download and overwrite any existing tool output directories.
 $ForceDownload = $false  	# <-- Set to $true to force re-download.
