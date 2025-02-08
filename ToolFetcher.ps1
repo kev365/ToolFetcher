@@ -439,7 +439,7 @@ $tools = @(
 		OutputFolder   = "WMI"
     },
     @{
-        Name           = "XWFIM.zip"
+        Name           = "XWFIM"
         RepoUrl        = "https://download.ericzimmermanstools.com/XWFIM.zip" # .Net4
         DownloadMethod = "specificFile"
 		OutputFolder   = "XWays"
