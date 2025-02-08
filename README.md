@@ -80,6 +80,11 @@ The script includes a `$tools` array where each tool is defined with properties 
 3. **Monitor the Process:**  
    The script logs progress information and debug output (if enabled) for each tool. Check the output folder for a `.downloaded.json` file, which contains details about the download and extraction.
 
+## Future considerations
+
+- **tools.yml file**
+  Use of a separate yaml file for tools list
+
 ## Limitations
 
 - **GitHub API Rate Limits:**  
