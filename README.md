@@ -82,8 +82,10 @@ The script includes a `$tools` array where each tool is defined with properties 
 
 ## Future considerations
 
-- **tools.yml file**
+- **tools.yml file** (In process)
   Use of a separate yaml file for tools list
+- **Download and extraction as separate processes**
+  Could speed up the tool a bit by spinning up a process for the zip extractions
 
 ## Limitations
 
