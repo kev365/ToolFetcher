@@ -112,72 +112,12 @@ tools:
     DownloadMethod: "specificFile"
     OutputFolder: "Prefetch"
 
-  - Name: "AmcacheParser"
-    # RepoUrl: "https://download.ericzimmermanstools.com/AmcacheParser.zip"  # .Net4
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/AmcacheParser.zip" # .Net6
-    # RepoUrl: "https://download.ericzimmermanstools.com/net9/AmcacheParser.zip" # .Net9
-    DownloadMethod: "specificFile"
-    OutputFolder: "Registry"
-
-  - Name: "AppCompatCacheParser"
-    # RepoUrl: "https://download.ericzimmermanstools.com/AppCompatCacheParser.zip"  # .Net4
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/AppCompatCacheParser.zip" # .Net6
-    # RepoUrl: "https://download.ericzimmermanstools.com/net9/AppCompatCacheParser.zip" # .Net9
-    DownloadMethod: "specificFile"
-    OutputFolder: "Registry"
-
   - Name: "RBCmd"
     # RepoUrl: "https://download.ericzimmermanstools.com/RBCmd.zip" # .Net4
     RepoUrl: "https://download.ericzimmermanstools.com/net6/RBCmd.zip" # .Net6
     # RepoUrl: "https://download.ericzimmermanstools.com/net9/RBCmd.zip" # .Net9
     DownloadMethod: "specificFile"
     OutputFolder: "RecycleBin"
-
-  - Name: "RecentFileCacheParser"
-    # RepoUrl: "https://download.ericzimmermanstools.com/RecentFileCacheParser.zip"  # .Net4
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/RecentFileCacheParser.zip" # .Net6
-    # RepoUrl: "https://download.ericzimmermanstools.com/net9/RecentFileCacheParser.zip" # .Net9
-    DownloadMethod: "specificFile"
-    OutputFolder: "Registry"
-
-  - Name: "RECmd"
-    # RepoUrl: "https://download.ericzimmermanstools.com/RECmd.zip" # .Net4
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/RECmd.zip" # .Net6
-    # RepoUrl: "https://download.ericzimmermanstools.com/net9/RECmd.zip" # .Net9
-    DownloadMethod: "specificFile"
-    OutputFolder: "Registry"
-
-  - Name: "RegistryExplorer"
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/RegistryExplorer.zip" # .Net6
-    # RepoUrl: "https://download.ericzimmermanstools.com/net9/RegistryExplorer.zip" # .Net9
-    DownloadMethod: "specificFile"
-    OutputFolder: "Registry"
-
-  - Name: "rla"
-    # RepoUrl: "https://download.ericzimmermanstools.com/rla.zip" # .Net4
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/rla.zip" # .Net6
-    # RepoUrl: "https://download.ericzimmermanstools.com/net9/rla.zip" # .Net9
-    DownloadMethod: "specificFile"
-    OutputFolder: "Registry"
-
-  - Name: "SBECmd"
-    # RepoUrl: "https://download.ericzimmermanstools.com/SBECmd.zip" # .Net4
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/SBECmd.zip" # .Net6
-    # RepoUrl: "https://download.ericzimmermanstools.com/net9/SBECmd.zip" # .Net9
-    DownloadMethod: "specificFile"
-    OutputFolder: "Registry"
-
-  - Name: "SDBExplorer"
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/SDBExplorer.zip" # .Net6
-    # RepoUrl: "https://download.ericzimmermanstools.com/net9/SDBExplorer.zip" # .Net9
-    DownloadMethod: "specificFile"
-    OutputFolder: "Registry"
-
-  - Name: "ShellBagsExplorer"
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/ShellBagsExplorer.zip" # .Net6
-    # RepoUrl: "https://download.ericzimmermanstools.com/net9/ShellBagsExplorer.zip" # .Net9
-    DownloadMethod: "specificFile"
-    OutputFolder: "Registry"
 
   - Name: "KStrike"
     RepoUrl: "https://github.com/brimorlabs/KStrike"
@@ -249,12 +189,6 @@ tools:
     DownloadName: "dhparser.exe"
     OutputFolder: "WinDefender"
 
-  - Name: "RegRipper3.0"
-    RepoUrl: "https://github.com/keydet89/RegRipper3.0"
-    DownloadMethod: "branchZip"
-    Branch: "master"
-    OutputFolder: "WinRegistry"
-
   - Name: "APT-Hunter"
     RepoUrl: "https://github.com/ahmedkhlief/APT-Hunter"
     DownloadMethod: "latestRelease"
@@ -291,6 +225,72 @@ tools:
     DownloadMethod: "branchZip"
     Branch: "main"
     OutputFolder: "WinEventlogs"
+
+  - Name: "AmcacheParser"
+    # RepoUrl: "https://download.ericzimmermanstools.com/AmcacheParser.zip"  # .Net4
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/AmcacheParser.zip" # .Net6
+    # RepoUrl: "https://download.ericzimmermanstools.com/net9/AmcacheParser.zip" # .Net9
+    DownloadMethod: "specificFile"
+    OutputFolder: "WinRegistry"
+
+  - Name: "AppCompatCacheParser"
+    # RepoUrl: "https://download.ericzimmermanstools.com/AppCompatCacheParser.zip"  # .Net4
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/AppCompatCacheParser.zip" # .Net6
+    # RepoUrl: "https://download.ericzimmermanstools.com/net9/AppCompatCacheParser.zip" # .Net9
+    DownloadMethod: "specificFile"
+    OutputFolder: "WinRegistry"
+
+  - Name: "RecentFileCacheParser"
+    # RepoUrl: "https://download.ericzimmermanstools.com/RecentFileCacheParser.zip"  # .Net4
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/RecentFileCacheParser.zip" # .Net6
+    # RepoUrl: "https://download.ericzimmermanstools.com/net9/RecentFileCacheParser.zip" # .Net9
+    DownloadMethod: "specificFile"
+    OutputFolder: "WinRegistry"
+
+  - Name: "RECmd"
+    # RepoUrl: "https://download.ericzimmermanstools.com/RECmd.zip" # .Net4
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/RECmd.zip" # .Net6
+    # RepoUrl: "https://download.ericzimmermanstools.com/net9/RECmd.zip" # .Net9
+    DownloadMethod: "specificFile"
+    OutputFolder: "WinRegistry"
+
+  - Name: "RegistryExplorer"
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/RegistryExplorer.zip" # .Net6
+    # RepoUrl: "https://download.ericzimmermanstools.com/net9/RegistryExplorer.zip" # .Net9
+    DownloadMethod: "specificFile"
+    OutputFolder: "WinRegistry"
+
+  - Name: "RegRipper3.0"
+    RepoUrl: "https://github.com/keydet89/RegRipper3.0"
+    DownloadMethod: "branchZip"
+    Branch: "master"
+    OutputFolder: "WinRegistry"
+
+  - Name: "rla"
+    # RepoUrl: "https://download.ericzimmermanstools.com/rla.zip" # .Net4
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/rla.zip" # .Net6
+    # RepoUrl: "https://download.ericzimmermanstools.com/net9/rla.zip" # .Net9
+    DownloadMethod: "specificFile"
+    OutputFolder: "WinRegistry"
+
+  - Name: "SBECmd"
+    # RepoUrl: "https://download.ericzimmermanstools.com/SBECmd.zip" # .Net4
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/SBECmd.zip" # .Net6
+    # RepoUrl: "https://download.ericzimmermanstools.com/net9/SBECmd.zip" # .Net9
+    DownloadMethod: "specificFile"
+    OutputFolder: "WinRegistry"
+
+  - Name: "SDBExplorer"
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/SDBExplorer.zip" # .Net6
+    # RepoUrl: "https://download.ericzimmermanstools.com/net9/SDBExplorer.zip" # .Net9
+    DownloadMethod: "specificFile"
+    OutputFolder: "WinRegistry"
+
+  - Name: "ShellBagsExplorer"
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/ShellBagsExplorer.zip" # .Net6
+    # RepoUrl: "https://download.ericzimmermanstools.com/net9/ShellBagsExplorer.zip" # .Net9
+    DownloadMethod: "specificFile"
+    OutputFolder: "WinRegistry"
 
   - Name: "sidr"
     RepoUrl: "https://github.com/strozfriedberg/sidr"
