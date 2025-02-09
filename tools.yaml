@@ -132,13 +132,6 @@ tools:
     DownloadMethod: "specificFile"
     OutputFolder: "SUM-UAL"
 
-  - Name: "SumECmd"
-    # RepoUrl: "https://download.ericzimmermanstools.com/SumECmd.zip" # .Net4
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/SumECmd.zip" # .Net6
-    # RepoUrl: "https://download.ericzimmermanstools.com/net9/SumECmd.zip" # .Net9
-    DownloadMethod: "specificFile"
-    OutputFolder: "SUM-UAL"
-
   - Name: "SEPparser_cmd"
     RepoUrl: "https://github.com/Beercow/SEPparser"
     DownloadMethod: "latestRelease"
