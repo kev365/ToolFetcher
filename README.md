@@ -109,6 +109,12 @@ https://raw.githubusercontent.com/kev365/ToolFetcher/refs/heads/main/tools.yaml
 - **Support for Additional Archive Formats:**  
   Expand beyond ZIP archives to include other formats.
 
+- **Support for downloading tools to WSL instance:**  
+  Adding the ability to use the host PowerShell console to manage both your Windows and WSL tools.
+
+- **Linux version:**  
+  Adding a linux script to perform similar functions for your linux tools.
+
 ## Limitations
 
 - **GitHub API Rate Limits:**  
