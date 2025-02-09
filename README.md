@@ -132,5 +132,6 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 ## Author
 
-Kevin Stokes  
+Kevin Stokes
+[Blog write-up](https://dfir-kev.medium.com/tool-fetcher-499c99aaa9fa)
 [LinkedIn Profile](https://www.linkedin.com/in/dfir-kev/)
