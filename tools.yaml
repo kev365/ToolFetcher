@@ -310,11 +310,13 @@ tools:
     skipdownload: $true
     
   - Name: "Windows MBox Viewer"
-    RepoUrl: "https://sourceforge.net/projects/mbox-viewer/files/latest/download"
-    DownloadMethod: "specificFile"
+    RepoUrl: "https://github.com/eneam/mboxviewer"
+    DownloadMethod: "latestRelease"
+    DownloadName: "mbox-viewer.exe-v1.0.3.47.zip"
     OutputFolder: "Email"
-    
-  - Name: "XstReader "
+
+  - Name: "XstReader"
     RepoUrl: "https://github.com/iluvadev/XstReader"
     DownloadMethod: "latestRelease"
+    DownloadName: "XstReader.v.1.15.0.zip"
     OutputFolder: "Email"
