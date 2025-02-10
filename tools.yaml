@@ -1,4 +1,18 @@
 tools:
+  # -Template-
+   # Documentation: https://dfir-kev.medium.com/tool-fetcher-499c99aaa9fa
+ - # Name: "ToolName"      # Tool identifier, also used to name the parent folder for the tool
+   # RepoUrl: ""           # URL goes here
+   # DownloadMethod: ""    # Options: gitClone | latestRelease | branchZip | specificFile
+   # OutputFolder: ""      # Appends a subdirectory to $toolsFolder
+   # Branch: ""            # Defaults to master if not provided
+   # DownloadName: ""      # Used to download a particular file from the from the latestRelease
+   # AssetFilename: ""     # same as DownloadName, may be removed
+   # AssetType: ""         # Options: win64 | win32 | linux | macos
+   # SpecificFilePath: ""  # Optional: Used with the 'specificFile" DownloadMethod.
+   # Extract:              # Options: $true | $false (default is $true)
+   # skipdownload:         # Options: $true | $false (default is $false)
+   
   - Name: "SQLECmd"
     RepoUrl: "https://download.ericzimmermanstools.com/net6/SQLECmd.zip" # .Net6
     # RepoUrl: "https://download.ericzimmermanstools.com/net9/SQLECmd.zip" # .Net9
