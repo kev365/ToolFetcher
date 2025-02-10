@@ -1,4 +1,12 @@
 tools:
+    # Template
+  - # Name: "ToolName"
+    # RepoUrl: "" # URL goes here
+    # DownloadMethod: "" Options: gitClone | latestRelease | branchZip | specificFile
+    # OutputFolder: "" # Appends a subdirectory to $toolsFolder
+    # Branch: "" # Defaults to master if not provided
+    # DownloadName
+
   - Name: "SQLECmd"
     # RepoUrl: "https://download.ericzimmermanstools.com/SQLECmd.zip" # .Net4
     RepoUrl: "https://download.ericzimmermanstools.com/net6/SQLECmd.zip" # .Net6
