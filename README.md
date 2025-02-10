@@ -117,6 +117,9 @@ https://raw.githubusercontent.com/kev365/ToolFetcher/refs/heads/main/tools.yaml
 
 ## Limitations
 
+- **non-Github support:**  
+  Focus has been on GitHub downloads.
+
 - **GitHub API Rate Limits:**  
   Downloads using the GitHub API (`latestRelease`) may be rate limited unless a GitHub PAT is provided. Likely rare.
 
