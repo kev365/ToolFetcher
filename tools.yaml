@@ -1,7 +1,7 @@
 tools:
-  # -Template-
-   # Documentation: https://dfir-kev.medium.com/tool-fetcher-499c99aaa9fa
- - # Name: "ToolName"      # Tool identifier, also used to name the parent folder for the tool
+# Documentation: https://dfir-kev.medium.com/tool-fetcher-499c99aaa9fa
+# -Template-
+   # Name: "ToolName"      # Tool identifier, also used to name the parent folder for the tool
    # RepoUrl: ""           # URL goes here
    # DownloadMethod: ""    # Options: gitClone | latestRelease | branchZip | specificFile
    # OutputFolder: ""      # Appends a subdirectory to $toolsFolder
