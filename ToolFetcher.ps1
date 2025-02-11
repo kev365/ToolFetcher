@@ -165,7 +165,7 @@ catch
 # =====================================================
 if ([string]::IsNullOrEmpty($toolsFolder)) 
 {
-    	$toolsFolder = (Read-Host "The 'toolsFolder' variable is empty. Please provide a location for the tools folder").Trim()
+    	$toolsFolder = (Read-Host "The 'toolsFolder' variable is empty. Please provide a location for the tools folder")
 }
 
 if (-not (Test-Path -Path $toolsFolder))
