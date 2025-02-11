@@ -1,13 +1,25 @@
 tools:
+  # -Template-
+   # Documentation: https://dfir-kev.medium.com/tool-fetcher-499c99aaa9fa
+ - # Name: "ToolName"      # Tool identifier, also used to name the parent folder for the tool
+   # RepoUrl: ""           # URL goes here
+   # DownloadMethod: ""    # Options: gitClone | latestRelease | branchZip | specificFile
+   # OutputFolder: ""      # Appends a subdirectory to $toolsFolder
+   # Branch: ""            # Defaults to master if not provided
+   # DownloadName: ""      # Used to download a particular file from the from the latestRelease
+   # AssetFilename: ""     # same as DownloadName, may be removed
+   # AssetType: ""         # Options: win64 | win32 | linux | macos
+   # SpecificFilePath: ""  # Optional: Used with the 'specificFile" DownloadMethod.
+   # Extract:              # Options: $true | $false (default is $true)
+   # skipdownload:         # Options: $true | $false (default is $false)
+   
   - Name: "SQLECmd"
-    # RepoUrl: "https://download.ericzimmermanstools.com/SQLECmd.zip" # .Net4
     RepoUrl: "https://download.ericzimmermanstools.com/net6/SQLECmd.zip" # .Net6
     # RepoUrl: "https://download.ericzimmermanstools.com/net9/SQLECmd.zip" # .Net9
     DownloadMethod: "specificFile"
     OutputFolder: "Database"
 
   - Name: "JLECmd"
-    # RepoUrl: "https://download.ericzimmermanstools.com/JLECmd.zip" # .Net4
     RepoUrl: "https://download.ericzimmermanstools.com/net6/JLECmd.zip" # .Net6
     # RepoUrl: "https://download.ericzimmermanstools.com/net9/JLECmd.zip" # .Net9
     DownloadMethod: "specificFile"
@@ -20,7 +32,6 @@ tools:
     OutputFolder: "LNK-JMP"
 
   - Name: "LECmd"
-    # RepoUrl: "https://download.ericzimmermanstools.com/LECmd.zip" # .Net4
     RepoUrl: "https://download.ericzimmermanstools.com/net6/LECmd.zip" # .Net6
     # RepoUrl: "https://download.ericzimmermanstools.com/net9/LECmd.zip" # .Net9
     DownloadMethod: "specificFile"
@@ -38,7 +49,6 @@ tools:
     OutputFolder: "MISC"
 
   - Name: "iisGeolocate"
-    # RepoUrl: "https://download.ericzimmermanstools.com/iisGeolocate.zip" # .Net4
     RepoUrl: "https://download.ericzimmermanstools.com/net6/iisGeolocate.zip" # .Net6
     # RepoUrl: "https://download.ericzimmermanstools.com/net9/iisGeolocate.zip" # .Net9
     DownloadMethod: "specificFile"
@@ -87,7 +97,6 @@ tools:
     OutputFolder: "NTFS"
 
   - Name: "MFTECmd"
-    # RepoUrl: "https://download.ericzimmermanstools.com/MFTECmd.zip" # .Net4
     RepoUrl: "https://download.ericzimmermanstools.com/net6/MFTECmd.zip" # .Net6
     # RepoUrl: "https://download.ericzimmermanstools.com/net9/MFTECmd.zip" # .Net9
     DownloadMethod: "specificFile"
@@ -106,14 +115,12 @@ tools:
     OutputFolder: "NTFS"
 
   - Name: "PECmd"
-    # RepoUrl: "https://download.ericzimmermanstools.com/PECmd.zip" # .Net4
     RepoUrl: "https://download.ericzimmermanstools.com/net6/PECmd.zip" # .Net6
     # RepoUrl: "https://download.ericzimmermanstools.com/net9/PECmd.zip" # .Net9
     DownloadMethod: "specificFile"
     OutputFolder: "Prefetch"
 
   - Name: "RBCmd"
-    # RepoUrl: "https://download.ericzimmermanstools.com/RBCmd.zip" # .Net4
     RepoUrl: "https://download.ericzimmermanstools.com/net6/RBCmd.zip" # .Net6
     # RepoUrl: "https://download.ericzimmermanstools.com/net9/RBCmd.zip" # .Net9
     DownloadMethod: "specificFile"
@@ -126,7 +133,6 @@ tools:
     OutputFolder: "SUM-UAL"
 
   - Name: "SumECmd"
-    # RepoUrl: "https://download.ericzimmermanstools.com/SumECmd.zip" # .Net4
     RepoUrl: "https://download.ericzimmermanstools.com/net6/SumECmd.zip" # .Net6
     # RepoUrl: "https://download.ericzimmermanstools.com/net9/SumECmd.zip" # .Net9
     DownloadMethod: "specificFile"
@@ -151,7 +157,6 @@ tools:
     OutputFolder: "VSC"
 
   - Name: "WxTCmd"
-    # RepoUrl: "https://download.ericzimmermanstools.com/WxTCmd.zip" # .Net4
     RepoUrl: "https://download.ericzimmermanstools.com/net6/WxTCmd.zip" # .Net6
     # RepoUrl: "https://download.ericzimmermanstools.com/net9/WxTCmd.zip" # .Net9
     DownloadMethod: "specificFile"
@@ -195,7 +200,6 @@ tools:
     OutputFolder: "WinEventlogs"
 
   - Name: "EvtxECmd"
-    # RepoUrl: "https://download.ericzimmermanstools.com/EvtxECmd.zip"  # .Net4
     RepoUrl: "https://download.ericzimmermanstools.com/net6/EvtxECmd.zip" # .Net6
     # RepoUrl: "https://download.ericzimmermanstools.com/net9/EvtxECmd.zip" # .Net9
     DownloadMethod: "specificFile"
@@ -220,28 +224,24 @@ tools:
     OutputFolder: "WinEventlogs"
 
   - Name: "AmcacheParser"
-    # RepoUrl: "https://download.ericzimmermanstools.com/AmcacheParser.zip"  # .Net4
     RepoUrl: "https://download.ericzimmermanstools.com/net6/AmcacheParser.zip" # .Net6
     # RepoUrl: "https://download.ericzimmermanstools.com/net9/AmcacheParser.zip" # .Net9
     DownloadMethod: "specificFile"
     OutputFolder: "WinRegistry"
 
   - Name: "AppCompatCacheParser"
-    # RepoUrl: "https://download.ericzimmermanstools.com/AppCompatCacheParser.zip"  # .Net4
     RepoUrl: "https://download.ericzimmermanstools.com/net6/AppCompatCacheParser.zip" # .Net6
     # RepoUrl: "https://download.ericzimmermanstools.com/net9/AppCompatCacheParser.zip" # .Net9
     DownloadMethod: "specificFile"
     OutputFolder: "WinRegistry"
 
   - Name: "RecentFileCacheParser"
-    # RepoUrl: "https://download.ericzimmermanstools.com/RecentFileCacheParser.zip"  # .Net4
     RepoUrl: "https://download.ericzimmermanstools.com/net6/RecentFileCacheParser.zip" # .Net6
     # RepoUrl: "https://download.ericzimmermanstools.com/net9/RecentFileCacheParser.zip" # .Net9
     DownloadMethod: "specificFile"
     OutputFolder: "WinRegistry"
 
   - Name: "RECmd"
-    # RepoUrl: "https://download.ericzimmermanstools.com/RECmd.zip" # .Net4
     RepoUrl: "https://download.ericzimmermanstools.com/net6/RECmd.zip" # .Net6
     # RepoUrl: "https://download.ericzimmermanstools.com/net9/RECmd.zip" # .Net9
     DownloadMethod: "specificFile"
@@ -260,14 +260,12 @@ tools:
     OutputFolder: "WinRegistry"
 
   - Name: "rla"
-    # RepoUrl: "https://download.ericzimmermanstools.com/rla.zip" # .Net4
     RepoUrl: "https://download.ericzimmermanstools.com/net6/rla.zip" # .Net6
     # RepoUrl: "https://download.ericzimmermanstools.com/net9/rla.zip" # .Net9
     DownloadMethod: "specificFile"
     OutputFolder: "WinRegistry"
 
   - Name: "SBECmd"
-    # RepoUrl: "https://download.ericzimmermanstools.com/SBECmd.zip" # .Net4
     RepoUrl: "https://download.ericzimmermanstools.com/net6/SBECmd.zip" # .Net6
     # RepoUrl: "https://download.ericzimmermanstools.com/net9/SBECmd.zip" # .Net9
     DownloadMethod: "specificFile"
@@ -291,12 +289,12 @@ tools:
     DownloadName: "sidr.exe"
     OutputFolder: "WinSearchIndex"
 
-  - Name: "wmi-parser"
-    RepoUrl: "https://github.com/woanware/wmi-parser"
+  - Name: "WMI-Parser"
+    RepoUrl: "https://github.com/AndrewRathbun/WMI-Parser"
     DownloadMethod: "latestRelease"
-    DownloadName: "wmi-parser.v0.0.2.zip"
+    DownloadName: "WMI-Parser.zip"
     OutputFolder: "WMI"
-
+    
   - Name: "XWFIM"
     RepoUrl: "https://download.ericzimmermanstools.com/XWFIM.zip" # .Net4
     DownloadMethod: "specificFile"
@@ -308,3 +306,15 @@ tools:
     Branch: "master"
     OutputFolder: "Apple"
     skipdownload: $true
+    
+  - Name: "Windows MBox Viewer"
+    RepoUrl: "https://github.com/eneam/mboxviewer"
+    DownloadMethod: "latestRelease"
+    DownloadName: "mbox-viewer.exe-v1.0.3.47.zip"
+    OutputFolder: "Email"
+
+  - Name: "XstReader"
+    RepoUrl: "https://github.com/iluvadev/XstReader"
+    DownloadMethod: "latestRelease"
+    DownloadName: "XstReader.v.1.15.0.zip"
+    OutputFolder: "Email"
