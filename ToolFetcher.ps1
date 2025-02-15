@@ -709,6 +709,13 @@ function Download-SpecificFileTool {
                      -Manifest $manifest
 }
 
+$AssetPatterns = @{
+    win64 = '(?i)win(?:dows)?[-_](x64|amd64)(?![-_](live|aarch64))'
+    win32 = '(?i)(win(dows)?).*?(32|x86)'
+    linux = '(?i)(linux|lin)'
+    macos = '(?i)(mac|osx|darwin)'
+}
+
 # -----------------------------------------------
 # Dispatcher: Loop Through Tools and Download
 # -----------------------------------------------
