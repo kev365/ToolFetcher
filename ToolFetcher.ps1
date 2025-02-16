@@ -4,7 +4,7 @@
 # A tool for fetching DFIR and other GitHub tools.
 #
 # Author: Kevin Stokes
-# Version: 1.2.1
+# Version: 1.2.2
 # License: MIT
 # =====================================================
 
