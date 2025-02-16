@@ -1,3 +1,4 @@
+tooldirectory: "F:\\Tools" # Must escape any backslashes
 tools:
   # Documentation: https://dfir-kev.medium.com/tool-fetcher-499c99aaa9fa
   # -Template-

@@ -4,7 +4,7 @@
 # A tool for fetching DFIR and other GitHub tools.
 #
 # Author: Kevin Stokes
-# Version: 1.2.0
+# Version: 1.2.1
 # License: MIT
 # =====================================================
 
@@ -18,12 +18,11 @@ param (
     [Alias('tf')]
     [string]$ToolsFile = "tools.yaml",
 
-    # The second parameter is the directory where downloaded tools will be stored.
-    [Parameter(Mandatory = $true,
+    [Parameter(Mandatory = $false,
                Position = 2,
                HelpMessage = 'Supply a folder where all tools will be stored when downloaded.')]
     [Alias('td')]
-    [string]$ToolsDirectory,
+    [string]$ToolsDirectory = "",
 
     # A switch that forces a re-download and overwrites any existing tool directories.
     [Parameter(HelpMessage = 'Force re-download and overwrite any existing tool output directories. Ignores the skipdownload flag.')]
@@ -359,7 +358,13 @@ if (-not [string]::IsNullOrEmpty($GitHubPAT)) {
 # -----------------------------------------------
 # If the ToolsDirectory parameter is empty, prompt the user.
 if ([string]::IsNullOrEmpty($ToolsDirectory)) {
-    $ToolsDirectory = (Read-Host "The 'ToolsDirectory' parameter is empty. Please provide a location for the tools folder")
+    if ($toolsConfig.tooldirectory) {
+         $ToolsDirectory = $toolsConfig.tooldirectory
+         Log-Info "Using ToolsDirectory from YAML: $ToolsDirectory"
+    }
+    else {
+         $ToolsDirectory = (Read-Host "The 'ToolsDirectory' parameter is empty. Please provide a location for the tools folder")
+    }
 }
 # Create the directory if it doesn't exist.
 if (-not (Test-Path -Path $ToolsDirectory)) {

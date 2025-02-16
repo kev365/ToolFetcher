@@ -1,0 +1,27 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual Environment
+venv/
+vvenv/
+env/
+*.env
+
+# IDE-specific files
+.vscode/
+*.idea/
+*.log
+
+# System files
+.DS_Store
+Thumbs.db
+.cursorrules
+parserrules.mdc
+Command_Examples.txt
+
+# PyQt Designer files
+*.qrc
+*.ui~  # autosave versions of UI files
