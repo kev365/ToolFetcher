@@ -4,62 +4,76 @@
 # A tool for fetching DFIR and other GitHub tools.
 #
 # Author: Kevin Stokes
-# Version: 1.2.1
+# Version: 1.2.3
 # License: MIT
 # =====================================================
 
 # Enable advanced functions with cmdlet binding.
 [CmdletBinding()]
 param (
-    # The first parameter allows a local file (such as "tools.yaml") or a URL (e.g., a GitHub raw URL).
-    [Parameter(Mandatory = $false,
-               Position = 1,
-               HelpMessage = 'Supply a local file (e.g., "tools.yaml") or a URL (e.g., a GitHub raw URL).')]
-    [Alias('tf')]
+    [Parameter(HelpMessage = 'Path to the YAML file containing tool definitions.')]
+    [Alias('f')]
     [string]$ToolsFile = "tools.yaml",
-
-    [Parameter(Mandatory = $false,
-               Position = 2,
-               HelpMessage = 'Supply a folder where all tools will be stored when downloaded.')]
-    [Alias('td')]
+    
+    [Parameter(HelpMessage = 'Directory where tools will be downloaded.')]
+    [Alias('d')]
     [string]$ToolsDirectory = "",
-
-    # A switch that forces a re-download and overwrites any existing tool directories.
-    [Parameter(HelpMessage = 'Force re-download and overwrite any existing tool output directories. Ignores the skipdownload flag.')]
-    [Alias('fd')]
+    
+    [Parameter(HelpMessage = 'Force re-download and overwrite any existing tool output directories.')]
+    [Alias('force')]
     [switch]$ForceDownload = $false,
-
-    # A switch to update tools that have already been downloaded. It respects the skipdownload flag.
-    [Parameter(HelpMessage = 'Update tools that are already downloaded. This forces an update like ForceDownload but respects the skipdownload flag.')]
-    [Alias('up')]
-    [switch]$Update = $false,
-
-    # A switch to enable verbose output.
-    [Parameter(HelpMessage = 'Show detailed output')]
+    
+    [Parameter(HelpMessage = 'Update tools. If you supply one or more tool names (comma-separated), then only those tools will be updated.')]
+    [Alias('u')]
+    [string[]]$Update,
+    
+    [Parameter(HelpMessage = 'Show debug-level output')]
     [Alias('v')]
     [switch]$VerboseOutput = $false,
-
-    # An optional GitHub Personal Access Token (PAT) to avoid rate limits when using GitHub API.
+    
+    [Parameter(HelpMessage = 'Show trace-level output (most detailed)')]
+    [Alias('vv')]
+    [switch]$TraceOutput = $false,
+    
+    [Parameter(HelpMessage = 'Enable logging to a file. Specify a path or leave empty for default log file.')]
+    [Alias('log')]
+    [string]$LogFile = "",
+    
     [Parameter(HelpMessage = 'GitHub Personal Access Token - to avoid rate limits, if needed.')]
-    [Alias('gh')]
-    [string]$GitHubPAT
+    [Alias('pat')]
+    [string]$GitHubPAT = "",
+    
+    [Parameter(HelpMessage = 'List all available tools in the configuration file')]
+    [Alias('list')]
+    [switch]$ListTools = $false
 )
+
+# Initialize logging
+if ($TraceOutput) {
+    $script:LoggingLevel = [LogLevel]::Trace
+}
+elseif ($VerboseOutput) {
+    $script:LoggingLevel = [LogLevel]::Debug
+}
+
+# Enable file logging if requested
+if (-not [string]::IsNullOrWhiteSpace($LogFile)) {
+    Enable-FileLogging -LogPath $LogFile
+}
+
+Log-Info "ToolFetcher v1.2.3 started"
+Log-Info "Log level set to: $($script:LoggingLevel)"
 
 # -----------------------------------------------
 # Failsafe for ToolsFile
 # -----------------------------------------------
-# Define a default URL to use in case the provided ToolsFile is unavailable.
 $defaultToolsFileUrl = "https://raw.githubusercontent.com/kev365/ToolFetcher/refs/heads/main/tools.yaml"
-
-# Check if the provided ToolsFile is a URL.
 if ($ToolsFile -match '^https?://') {
     try {
-        # Make a HEAD request to verify that the URL is reachable.
         $response = Invoke-WebRequest -Uri $ToolsFile -Method Head -UseBasicParsing -ErrorAction Stop
         Write-Host "[INFO] Using user-specified URL for tools file: $ToolsFile" -ForegroundColor Cyan
     }
     catch {
-        # If the URL is not reachable, warn the user and ask if they want to use the default URL.
         Write-Host "[WARNING] The user-specified URL '$ToolsFile' is not available." -ForegroundColor Yellow
         $choice = Read-Host "Do you want to use the default URL ($defaultToolsFileUrl)? (Y/N)"
         if ($choice -match '^(?i:Y(es)?)$') {
@@ -73,14 +87,11 @@ if ($ToolsFile -match '^https?://') {
     }
 }
 else {
-    # If the provided ToolsFile is not a URL, then treat it as a local file.
     if ([System.IO.Path]::IsPathRooted($ToolsFile)) {
-        # If the path is absolute, check if the file exists.
         if (Test-Path -Path $ToolsFile) {
             Write-Host "[INFO] Using user-specified local tools file: $ToolsFile" -ForegroundColor Cyan
         }
         else {
-            # Warn the user if the file isn't found and offer to use the default URL.
             Write-Host "[WARNING] The local tools file specified ($ToolsFile) was not found." -ForegroundColor Yellow
             $choice = Read-Host "Do you want to use the default URL ($defaultToolsFileUrl)? (Y/N)"
             if ($choice -match '^(?i:Y(es)?)$') {
@@ -94,14 +105,12 @@ else {
         }
     }
     else {
-        # For a relative path, resolve it relative to the script's location.
         $localToolsFile = Join-Path $PSScriptRoot $ToolsFile
         if (Test-Path -Path $localToolsFile) {
             Write-Host "[INFO] Using local tools file: $localToolsFile" -ForegroundColor Cyan
             $ToolsFile = $localToolsFile
         }
         else {
-            # Warn if not found and offer the default URL.
             Write-Host "[WARNING] Local tools file '$ToolsFile' not found at '$localToolsFile'." -ForegroundColor Yellow
             $choice = Read-Host "Do you want to use the default URL ($defaultToolsFileUrl)? (Y/N)"
             if ($choice -match '^(?i:Y(es)?)$') {
@@ -117,49 +126,182 @@ else {
 }
 
 # -----------------------------------------------
-# Global Logging Setup
+# Logging Configuration
 # -----------------------------------------------
-# Define simple logging functions for debugging and info messages.
-function Log-Debug {
-    param ([string]$Message)
-    # Only display debug messages if VerboseOutput is enabled.
-    if ($VerboseOutput) { Write-Host "[DEBUG] $Message" -ForegroundColor DarkGray }
+
+# Define log levels
+enum LogLevel {
+    Error = 0    # Critical errors that prevent operation
+    Warning = 1  # Issues that don't stop execution but may cause problems
+    Info = 2     # Normal operational information
+    Debug = 3    # Detailed information for troubleshooting
+    Trace = 4    # Very detailed tracing information
 }
-function Log-Info {
-    param ([string]$Message)
-    Write-Host "[INFO] $Message" -ForegroundColor Cyan
+
+# Default log level
+[LogLevel]$script:LoggingLevel = [LogLevel]::Info
+
+# Log file path (optional)
+$script:LogFilePath = $null
+
+# Set log level based on parameters
+if ($VerboseOutput) {
+    $script:LoggingLevel = [LogLevel]::Debug
 }
-function Log-Warning {
-    param ([string]$Message)
-    Write-Host "[WARNING] $Message" -ForegroundColor Yellow
+if ($TraceOutput) {
+    $script:LoggingLevel = [LogLevel]::Trace
 }
+
+# Main logging function that handles different log levels, console output, and file logging
+function Write-ToolLog {
+    param (
+        [Parameter(Mandatory=$true)][string]$Message,
+        [Parameter(Mandatory=$false)][LogLevel]$Level = [LogLevel]::Info,
+        [Parameter(Mandatory=$false)][switch]$NoConsole = $false,
+        [Parameter(Mandatory=$false)][ConsoleColor]$ForegroundColor = [ConsoleColor]::White
+    )
+    
+    # Skip if message level is higher than current logging level
+    if ([int]$Level -gt [int]$script:LoggingLevel) {
+        return
+    }
+    
+    # Format timestamp
+    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    
+    # Format log level prefix
+    $levelPrefix = switch ($Level) {
+        ([LogLevel]::Error)   { "[ERROR]  " }
+        ([LogLevel]::Warning) { "[WARNING]" }
+        ([LogLevel]::Info)    { "[INFO]   " }
+        ([LogLevel]::Debug)   { "[DEBUG]  " }
+        ([LogLevel]::Trace)   { "[TRACE]  " }
+        default               { "[INFO]   " }
+    }
+    
+    # Format full message
+    $fullMessage = "$timestamp $levelPrefix $Message"
+    
+    # Write to console if not suppressed
+    if (-not $NoConsole) {
+        $originalColor = $host.UI.RawUI.ForegroundColor
+        
+        # Set color based on level if not explicitly specified
+        if ($PSBoundParameters.ContainsKey('ForegroundColor') -eq $false) {
+            $ForegroundColor = switch ($Level) {
+                ([LogLevel]::Error)   { [ConsoleColor]::Red }
+                ([LogLevel]::Warning) { [ConsoleColor]::Yellow }
+                ([LogLevel]::Info)    { [ConsoleColor]::White }
+                ([LogLevel]::Debug)   { [ConsoleColor]::Cyan }
+                ([LogLevel]::Trace)   { [ConsoleColor]::Gray }
+                default               { [ConsoleColor]::White }
+            }
+        }
+        
+        $host.UI.RawUI.ForegroundColor = $ForegroundColor
+        Write-Host $fullMessage
+        $host.UI.RawUI.ForegroundColor = $originalColor
+    }
+    
+    # Write to log file if configured
+    if ($script:LogFilePath) {
+        try {
+            Add-Content -Path $script:LogFilePath -Value $fullMessage -ErrorAction SilentlyContinue
+        }
+        catch {
+            # If we can't write to the log file, output a console warning
+            # but only if we haven't already suppressed console output
+            if (-not $NoConsole) {
+                $originalColor = $host.UI.RawUI.ForegroundColor
+                $host.UI.RawUI.ForegroundColor = [ConsoleColor]::Yellow
+                Write-Host "Failed to write to log file: $_"
+                $host.UI.RawUI.ForegroundColor = $originalColor
+            }
+        }
+    }
+}
+
+# Create convenience functions for backward compatibility
 function Log-Error {
     param ([string]$Message)
-    Write-Host "[ERROR] $Message" -ForegroundColor Red
+    Write-ToolLog -Message $Message -Level ([LogLevel]::Error)
 }
+
+function Log-Warning {
+    param ([string]$Message)
+    Write-ToolLog -Message $Message -Level ([LogLevel]::Warning)
+}
+
+function Log-Info {
+    param ([string]$Message)
+    Write-ToolLog -Message $Message -Level ([LogLevel]::Info)
+}
+
+function Log-Debug {
+    param ([string]$Message)
+    Write-ToolLog -Message $Message -Level ([LogLevel]::Debug)
+}
+
+function Log-Trace {
+    param ([string]$Message)
+    Write-ToolLog -Message $Message -Level ([LogLevel]::Trace)
+}
+
+function Enable-FileLogging {
+    param (
+        [Parameter(Mandatory=$false)][string]$LogPath = "",
+        [Parameter(Mandatory=$false)][switch]$AppendToExisting = $false
+    )
+    
+    if ([string]::IsNullOrWhiteSpace($LogPath)) {
+        $LogPath = Join-Path $PSScriptRoot "ToolFetcher_$(Get-Date -Format 'yyyyMMdd_HHmmss').log"
+    }
+    
+    try {
+        # Create directory if it doesn't exist
+        $logDir = Split-Path -Path $LogPath -Parent
+        if (-not (Test-Path -Path $logDir)) {
+            New-Item -Path $logDir -ItemType Directory -Force | Out-Null
+        }
+        
+        # Create or clear the log file
+        if (-not $AppendToExisting -and (Test-Path -Path $LogPath)) {
+            Remove-Item -Path $LogPath -Force
+        }
+        
+        # Test if we can write to the file
+        Add-Content -Path $LogPath -Value "Log started at $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" -ErrorAction Stop
+        
+        $script:LogFilePath = $LogPath
+        Log-Info "File logging enabled: $LogPath"
+        return $true
+    }
+    catch {
+        Write-Host "Failed to enable file logging: $_" -ForegroundColor Yellow
+        return $false
+    }
+}
+
+# -----------------------------------------------
+# Global Logging Setup
+# -----------------------------------------------
+function Log-Debug { param ([string]$Message) if ($VerboseOutput) { Write-Host "[DEBUG] $Message" -ForegroundColor DarkGray } }
+function Log-Info  { param ([string]$Message) Write-Host "[INFO] $Message" -ForegroundColor Cyan }
+function Log-Warning { param ([string]$Message) Write-Host "[WARNING] $Message" -ForegroundColor Yellow }
+function Log-Error { param ([string]$Message) Write-Host "[ERROR] $Message" -ForegroundColor Red }
 
 # -----------------------------------------------
 # Function: Validate GitHub Personal Access Token
 # -----------------------------------------------
-# This function validates the provided GitHub PAT by making a call to GitHub's /user endpoint.
 function Validate-GitHubPAT {
-    param (
-        [Parameter(Mandatory = $true)]
-        [string]$Token
-    )
-    # Set up HTTP headers with the token and a user agent.
-    $headers = @{
-        "Authorization" = "token $Token"
-        "User-Agent"    = "PowerShell"
-    }
+    param ([Parameter(Mandatory = $true)][string]$Token)
+    $headers = @{ "Authorization" = "token $Token"; "User-Agent" = "PowerShell" }
     try {
-        # Make the API call. If successful, the token is valid.
-        $response = Invoke-RestMethod -Uri "https://api.github.com/user" -Headers $headers -ErrorAction Stop
+        $response = Invoke-WebRequest -Uri "https://api.github.com/user" -Headers $headers -ErrorAction Stop
         Log-Debug "GitHub PAT validated for user: $($response.login)"
         return $true
     }
     catch {
-        # If the call fails, the token is not valid.
         Log-Error "GitHub PAT validation failed: $_"
         return $false
     }
@@ -168,21 +310,13 @@ function Validate-GitHubPAT {
 # -----------------------------------------------
 # Helper Function: Build File Manifest
 # -----------------------------------------------
-# Scans a folder recursively to build a list (manifest) of files along with their MD5 hash.
 function Get-FileManifest {
-    param (
-        [Parameter(Mandatory = $true)]
-        [string]$Folder
-    )
+    param ([Parameter(Mandatory = $true)][string]$Folder)
     $manifest = @{}
-    # Recursively get all files in the folder.
     $files = Get-ChildItem -Recurse -File -Path $Folder
     foreach ($file in $files) {
-        # Skip the marker file that stores the manifest.
         if ($file.Name -eq ".downloaded.json") { continue }
-        # Create a relative path for the file (so that the full folder path is not stored).
         $relativePath = $file.FullName.Substring($Folder.Length + 1)
-        # Generate an MD5 hash of the file.
         $hash = (Get-FileHash -Algorithm MD5 -Path $file.FullName).Hash
         $manifest[$relativePath] = $hash
     }
@@ -192,31 +326,19 @@ function Get-FileManifest {
 # -----------------------------------------------
 # Helper Function: Write Marker File with Metadata
 # -----------------------------------------------
-# Writes out a JSON file (".downloaded.json") to record the details of the download.
 function Write-MarkerFile {
     param (
-        [Parameter(Mandatory)]
-        $OutputFolder,
-        [Parameter(Mandatory)]
-        $ToolName,
-        [Parameter(Mandatory)]
-        $DownloadMethod,
-        [Parameter(Mandatory)]
-        $DownloadURL,
-        [Parameter()]
-        $Version = "",
-        [Parameter()]
-        $CommitHash = "",
-        [Parameter()]
-        $DownloadedFile = "",
-        [Parameter()]
-        $ExtractionLocation = "",
-        [Parameter()]
-        $Manifest = $null
+        [Parameter(Mandatory)]$OutputFolder,
+        [Parameter(Mandatory)]$ToolName,
+        [Parameter(Mandatory)]$DownloadMethod,
+        [Parameter(Mandatory)]$DownloadURL,
+        [Parameter()]$Version = "",
+        [Parameter()]$CommitHash = "",
+        [Parameter()]$DownloadedFile = "",
+        [Parameter()]$ExtractionLocation = "",
+        [Parameter()]$Manifest = $null
     )
-    # Define the path for the marker file.
     $markerFile = Join-Path $OutputFolder ".downloaded.json"
-    # Build a hashtable with metadata for this download.
     $metadata = @{
         Tool               = $ToolName
         Timestamp          = (Get-Date).ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss")
@@ -228,7 +350,6 @@ function Write-MarkerFile {
         ExtractionLocation = $ExtractionLocation
         Manifest           = $Manifest
     }
-    # Convert the metadata to JSON and write it to the marker file.
     $metadata | ConvertTo-Json -Depth 5 | Out-File -FilePath $markerFile -Force
     Log-Debug "Marker file created at $markerFile"
 }
@@ -236,20 +357,13 @@ function Write-MarkerFile {
 # -----------------------------------------------
 # Helper Function: Remove Managed Files Using Marker File
 # -----------------------------------------------
-# Reads the marker file and removes only those files that were downloaded, preserving any user-added files.
 function Remove-ManagedFiles {
-    param (
-        [Parameter(Mandatory=$true)]
-        [string]$OutputFolder
-    )
-    # Define the marker file path.
+    param ([Parameter(Mandatory=$true)][string]$OutputFolder)
     $markerFile = Join-Path $OutputFolder ".downloaded.json"
     if (Test-Path $markerFile) {
         try {
-            # Load the metadata from the marker file.
             $metadata = Get-Content -Path $markerFile | ConvertFrom-Json
             if ($metadata.Manifest) {
-                # Loop through each file in the manifest and remove it.
                 foreach ($relativePath in $metadata.Manifest.Keys) {
                     $fileToRemove = Join-Path $OutputFolder $relativePath
                     if (Test-Path $fileToRemove) {
@@ -258,7 +372,6 @@ function Remove-ManagedFiles {
                     }
                 }
             }
-            # Remove the marker file once cleanup is complete.
             Remove-Item -Path $markerFile -Force -ErrorAction SilentlyContinue
             Log-Debug "Removed marker file: $markerFile"
         }
@@ -272,13 +385,80 @@ function Remove-ManagedFiles {
 }
 
 # -----------------------------------------------
+# Global Staging Helper for ZIP Archives
+# -----------------------------------------------
+function Process-ZipStaging {
+    param (
+        [Parameter(Mandatory=$true)][string]$ZipUrl,
+        [Parameter(Mandatory=$true)][string]$ToolName,
+        [Parameter(Mandatory=$true)][string]$Version
+    )
+    
+    Log-Trace "Starting ZIP staging process for $ToolName from $ZipUrl"
+    $stagingFolder = Join-Path $PSScriptRoot "tmp"
+    if (-not (Test-Path $stagingFolder)) { 
+        Log-Debug "Creating staging folder: $stagingFolder"
+        New-Item -Path $stagingFolder -ItemType Directory | Out-Null 
+    }
+    
+    # Use the original filename from the URL without renaming.
+    $fileName = Split-Path $ZipUrl -Leaf
+    $tempZip = Join-Path $stagingFolder $fileName
+    Log-Debug "Temporary ZIP file: $tempZip"
+    
+    # For extraction, create a folder using the original base name.
+    $baseName = [System.IO.Path]::GetFileNameWithoutExtension($fileName)
+    $tempExtract = Join-Path $stagingFolder $baseName
+    Log-Debug "Temporary extraction folder: $tempExtract"
+    
+    try {
+        Log-Trace "Downloading ZIP from $ZipUrl"
+        Invoke-WebRequest -Uri $ZipUrl -OutFile $tempZip -ErrorAction Stop
+        $fileSize = (Get-Item $tempZip).Length
+        Log-Debug "Downloaded ZIP to temporary file: $tempZip (Size: $fileSize bytes)"
+    }
+    catch {
+        Log-Error "Failed to download ZIP from $ZipUrl. Exception: $_"
+        return @{
+            Success = $false
+            ErrorCode = "DOWNLOAD_FAILED"
+            ErrorMessage = "Failed to download ZIP from $ZipUrl. Exception: $_"
+            TempFiles = @($tempZip)
+        }
+    }
+    
+    Log-Trace "Creating extraction directory: $tempExtract"
+    New-Item -Path $tempExtract -ItemType Directory -Force | Out-Null
+    try {
+        Log-Trace "Extracting ZIP file: $tempZip to $tempExtract"
+        Expand-Archive -Path $tempZip -DestinationPath $tempExtract -Force
+        $extractedItemCount = (Get-ChildItem -Path $tempExtract -Recurse).Count
+        Log-Debug "Extracted ZIP to temporary folder: $tempExtract (Items: $extractedItemCount)"
+    }
+    catch {
+        Log-Error "Extraction failed for $tempZip. Exception: $_"
+        return @{
+            Success = $false
+            ErrorCode = "EXTRACTION_FAILED"
+            ErrorMessage = "Extraction failed for $tempZip. Exception: $_"
+            TempFiles = @($tempZip, $tempExtract)
+        }
+    }
+    
+    Log-Trace "ZIP staging completed successfully"
+    return @{ 
+        Success = $true
+        TempZip = $tempZip
+        TempExtract = $tempExtract 
+    }
+}
+
+# -----------------------------------------------
 # Tools Configuration: Load from YAML File
 # -----------------------------------------------
-# Determine whether the tools configuration comes from a URL or a local file.
 if ($ToolsFile -match '^https?://') {
     Log-Info "Fetching tools configuration from URL: $ToolsFile"
     try {
-        # Get the YAML content from the URL.
         $yamlContent = (Invoke-WebRequest -Uri $ToolsFile -UseBasicParsing).Content
     }
     catch {
@@ -288,7 +468,6 @@ if ($ToolsFile -match '^https?://') {
 }
 else {
     try {
-        # Read the YAML configuration from a local file.
         $yamlContent = Get-Content -Path $ToolsFile -Raw
     }
     catch {
@@ -297,42 +476,80 @@ else {
     }
 }
 
-# Ensure the powershell-yaml module is available. Install it if not.
 if (-not (Get-Module -ListAvailable -Name powershell-yaml)) {
     Write-Host "[INFO] The 'powershell-yaml' module is not installed. Attempting to install it..." -ForegroundColor Cyan
     try {
         Install-Module -Name powershell-yaml -Scope CurrentUser -Force -AllowClobber
-        Write-Host "[INFO] Successfully installed the 'powershell-yaml' module." -ForegroundColor Green
     }
     catch {
-        Write-Host "[ERROR] Failed to install the 'powershell-yaml' module. Please install it manually using: Install-Module powershell-yaml" -ForegroundColor Red
+        Log-Error "Failed to install the 'powershell-yaml' module. Exception: $_"
         exit 1
     }
 }
-# Import the module for YAML parsing.
-Import-Module powershell-yaml -ErrorAction Stop
 
 try {
-    # Convert the YAML configuration into PowerShell objects.
-    $toolsConfig = $yamlContent | ConvertFrom-Yaml
-    # Check if the YAML contains a "tools" property.
-    if ($toolsConfig.tools) {
-        $tools = $toolsConfig.tools
+    Import-Module -Name powershell-yaml -ErrorAction Stop
+    $config = ConvertFrom-Yaml -Yaml $yamlContent -ErrorAction Stop
+    
+    # Validate configuration
+    $validationResult = Test-ToolConfiguration -Config $config
+    if (-not $validationResult.IsValid) {
+        Log-Error "Invalid configuration in ${ToolsFile}:"
+        foreach ($error in $validationResult.Errors) {
+            Log-Error "  - $error"
+        }
+        exit 1
     }
-    else {
-        $tools = $toolsConfig
+    
+    # Apply defaults
+    $config = Add-ConfigurationDefaults -Config $config
+    
+    # Extract configuration values
+    $ToolsDirectory = if ($PSBoundParameters.ContainsKey('ToolsDirectory') -and -not [string]::IsNullOrWhiteSpace($ToolsDirectory)) { 
+        $ToolsDirectory 
+    } else { 
+        $config.tooldirectory 
     }
-    Log-Debug "Loaded $($tools.Count) tools from configuration file."
+    $tools = $config.tools
+
+    # Check if we should just list the tools and exit
+    if ($ListTools) {
+        # Add parameter to show detailed info
+        $detailedParam = $VerboseOutput -or $TraceOutput
+        
+        # Show the tools
+        Show-AvailableTools -Tools $config.tools -Detailed:$detailedParam
+        
+        # Exit after showing tools
+        exit 0
+    }
 }
 catch {
-    Log-Error "Failed to parse YAML configuration. Exception: $_"
+    Log-Error "Failed to parse YAML configuration from $ToolsFile. Exception: $_"
     exit 1
+}
+
+# -----------------------------------------------
+# Determine update mode based on the -Update parameter.
+# -----------------------------------------------
+$updateMode = $null
+if ($PSBoundParameters.ContainsKey('Update')) {
+    if ($Update -and $Update.Count -gt 0) {
+         $updateMode = "specific"
+         $updateToolList = $Update | ForEach-Object { $_.ToLower() }
+         $allToolNames = $tools | ForEach-Object { $_.Name.ToLower() }
+         foreach ($req in $updateToolList) {
+              if ($allToolNames -notcontains $req) {
+                  Log-Warning "Requested update for tool '$req' not found in the YAML configuration."
+              }
+         }
+    }
+    else { $updateMode = "general" }
 }
 
 # -----------------------------------------------
 # Validate GitHub Personal Access Token (if provided)
 # -----------------------------------------------
-# If a GitHub PAT is provided, verify that it is valid.
 if (-not [string]::IsNullOrEmpty($GitHubPAT)) {
     if (-not (Validate-GitHubPAT -Token $GitHubPAT)) {
         $choice = Read-Host "The provided GitHub PAT appears to be invalid. Would you like to enter a new token? (Y/N)"
@@ -348,25 +565,19 @@ if (-not [string]::IsNullOrEmpty($GitHubPAT)) {
             exit 1
         }
     }
-    else {
-        Log-Info "GitHub PAT validated successfully."
-    }
+    else { Log-Info "GitHub PAT validated successfully." }
 }
 
 # -----------------------------------------------
 # Ensure the Tools Directory Exists
 # -----------------------------------------------
-# If the ToolsDirectory parameter is empty, prompt the user.
 if ([string]::IsNullOrEmpty($ToolsDirectory)) {
     if ($toolsConfig.tooldirectory) {
          $ToolsDirectory = $toolsConfig.tooldirectory
          Log-Info "Using ToolsDirectory from YAML: $ToolsDirectory"
     }
-    else {
-         $ToolsDirectory = (Read-Host "The 'ToolsDirectory' parameter is empty. Please provide a location for the tools folder")
-    }
+    else { $ToolsDirectory = (Read-Host "The 'ToolsDirectory' parameter is empty. Please provide a location for the tools folder") }
 }
-# Create the directory if it doesn't exist.
 if (-not (Test-Path -Path $ToolsDirectory)) {
     try {
         New-Item -Path $ToolsDirectory -ItemType Directory -Force | Out-Null
@@ -379,79 +590,401 @@ if (-not (Test-Path -Path $ToolsDirectory)) {
 }
 
 # -----------------------------------------------
-# Functions for Download Methods
+# Helper Functions for Download Operations
 # -----------------------------------------------
-# These functions implement different download strategies based on the tool's configuration.
 
-function Download-GitCloneTool {
+# Helper function to download a file to a temporary location
+function Download-FileToTemp {
     param (
-        [Parameter(Mandatory)]
-        $ToolConfig,
-        [Parameter(Mandatory)]
-        [string]$ToolsDirectory
+        [Parameter(Mandatory=$true)][string]$Url,
+        [Parameter(Mandatory=$true)][string]$OutputPath,
+        [Parameter(Mandatory=$false)][hashtable]$Headers = @{ "User-Agent" = "PowerShell" },
+        [Parameter(Mandatory=$false)][string]$ToolName = ""
     )
-    # Determine the output folder for the tool. Use the OutputFolder property if defined.
+    
+    try {
+        Invoke-WebRequest -Uri $Url -OutFile $OutputPath -Headers $Headers -ErrorAction Stop
+        Log-Debug "Downloaded file from $Url to $OutputPath"
+        return $true
+    }
+    catch {
+        Log-Error "Failed to download file for $ToolName from $Url. Exception: $_"
+        return $false
+    }
+}
+
+# Helper function to process non-ZIP files
+function Process-NonZipFile {
+    param (
+        [Parameter(Mandatory=$true)][string]$FileUrl,
+        [Parameter(Mandatory=$true)][string]$OutputFolder,
+        [Parameter(Mandatory=$true)]$ToolConfig,
+        [Parameter(Mandatory=$false)][string]$Version = "",
+        [Parameter(Mandatory=$false)][string]$CommitHash = "",
+        [Parameter(Mandatory=$false)][hashtable]$Headers = @{ "User-Agent" = "PowerShell" }
+    )
+    
+    # Validate required parameters
+    if (-not (Test-RequiredParameter -Value $FileUrl -ParameterName "FileUrl" -FunctionName "Process-NonZipFile")) { return $false }
+    if (-not (Test-RequiredParameter -Value $OutputFolder -ParameterName "OutputFolder" -FunctionName "Process-NonZipFile")) { return $false }
+    if (-not (Test-RequiredParameter -Value $ToolConfig -ParameterName "ToolConfig" -FunctionName "Process-NonZipFile")) { return $false }
+    
+    $stagingFolder = Join-Path $PSScriptRoot "tmp"
+    if (-not (Test-Path $stagingFolder)) { New-Item -Path $stagingFolder -ItemType Directory | Out-Null }
+    
+    $fileName = Split-Path $FileUrl -Leaf
+    $tempFile = Join-Path $stagingFolder $fileName
+    
+    try {
+        try {
+            if (-not (Download-FileToTemp -Url $FileUrl -OutputPath $tempFile -Headers $Headers -ToolName $ToolConfig.Name)) {
+                throw "Download failed"
+            }
+            
+            $hash = (Get-FileHash -Algorithm MD5 -Path $tempFile).Hash
+            $newManifest = @{ $fileName = $hash }
+            
+            if (Test-Path (Join-Path $OutputFolder ".downloaded.json")) {
+                Remove-ManagedFiles -OutputFolder $OutputFolder
+            }
+            
+            $destinationPath = Join-Path $OutputFolder -ChildPath $fileName
+            Copy-Item -Path $tempFile -Destination $destinationPath -Force
+            Log-Debug "Copied file from temp to output folder: $destinationPath"
+            
+            Write-MarkerFile -OutputFolder $OutputFolder `
+                            -ToolName $ToolConfig.Name `
+                            -DownloadMethod $ToolConfig.DownloadMethod `
+                            -DownloadURL $FileUrl `
+                            -Version $Version `
+                            -CommitHash $CommitHash `
+                            -DownloadedFile $destinationPath `
+                            -ExtractionLocation $OutputFolder `
+                            -Manifest $newManifest
+                            
+            return $true
+        }
+        catch {
+            Log-Error "Failed to process file for $($ToolConfig.Name). Exception: $_"
+            return $false
+        }
+    }
+    finally {
+        # Always clean up the temp file
+        if (Test-Path $tempFile) {
+            Remove-Item -Path $tempFile -Force -ErrorAction SilentlyContinue
+            Log-Debug "Cleaned up temporary file: $tempFile"
+        }
+    }
+}
+
+# Helper function for processing ZIP files without extraction
+function Process-ZipFileNoExtract {
+    param (
+        [Parameter(Mandatory=$true)][string]$ZipUrl,
+        [Parameter(Mandatory=$true)][string]$OutputFolder,
+        [Parameter(Mandatory=$true)]$ToolConfig,
+        [Parameter(Mandatory=$false)][string]$Version = "",
+        [Parameter(Mandatory=$false)][string]$CommitHash = "",
+        [Parameter(Mandatory=$false)][hashtable]$Headers = @{ "User-Agent" = "PowerShell" }
+    )
+    
+    # This is essentially the same as Process-NonZipFile but with specific naming for ZIP files
+    return Process-NonZipFile -FileUrl $ZipUrl -OutputFolder $OutputFolder -ToolConfig $ToolConfig -Version $Version -CommitHash $CommitHash -Headers $Headers
+}
+
+# Helper function to set up the output folder
+function Initialize-OutputFolder {
+    param (
+        [Parameter(Mandatory=$true)]$ToolConfig,
+        [Parameter(Mandatory=$true)][string]$ToolsDirectory
+    )
+    
     if (-not [string]::IsNullOrEmpty($ToolConfig.OutputFolder)) {
         $outputFolder = Join-Path -Path $ToolsDirectory -ChildPath (Join-Path $ToolConfig.OutputFolder $ToolConfig.Name)
     }
     else {
         $outputFolder = Join-Path -Path $ToolsDirectory -ChildPath $ToolConfig.Name
     }
-    Log-Info "Cloning $($ToolConfig.Name)..."
-    # Create the output folder if it doesn't exist.
+    
     if (-not (Test-Path -Path $outputFolder)) {
-        New-Item -Path $outputFolder -ItemType Directory -Force | Out-Null
+        New-Item -Path $outputFolder -ItemType Directory | Out-Null
         Log-Debug "Created output folder: $outputFolder"
     }
-    # Clone the repository using git.
-    git clone $ToolConfig.RepoUrl --branch $ToolConfig.Branch $outputFolder
-    Log-Debug "Clone complete for $($ToolConfig.Name)."
     
-    $commitHash = ""
-    try {
-        # Retrieve the commit hash from the cloned repository.
-        $commitHash = (& git -C $outputFolder rev-parse HEAD).Trim()
-    }
-    catch {
-        Log-Warning "Could not retrieve commit hash for $($ToolConfig.Name)."
+    return $outputFolder
+}
+
+# Helper function to get GitHub API headers
+function Get-GitHubHeaders {
+    param (
+        [Parameter(Mandatory=$false)][string]$GitHubPAT = ""
+    )
+    
+    $headers = @{ "User-Agent" = "PowerShell" }
+    if (-not [string]::IsNullOrEmpty($GitHubPAT)) {
+        $headers["Authorization"] = "token $GitHubPAT"
     }
     
-    # Build a file manifest of the downloaded content.
-    $manifest = Get-FileManifest -Folder $outputFolder
-    # Write out the marker file containing metadata and the file manifest.
-    Write-MarkerFile -OutputFolder $outputFolder `
+    return $headers
+}
+
+# Helper function to process extracted ZIP files
+function Process-ExtractedZip {
+    param (
+        [Parameter(Mandatory=$true)]$Staging,
+        [Parameter(Mandatory=$true)][string]$OutputFolder,
+        [Parameter(Mandatory=$true)]$ToolConfig,
+        [Parameter(Mandatory=$true)][string]$DownloadUrl,
+        [Parameter(Mandatory=$false)][string]$Version = ""
+    )
+    
+    # Validate required parameters
+    if (-not (Test-RequiredParameter -Value $Staging -ParameterName "Staging" -FunctionName "Process-ExtractedZip")) { return $false }
+    if (-not (Test-RequiredParameter -Value $OutputFolder -ParameterName "OutputFolder" -FunctionName "Process-ExtractedZip")) { return $false }
+    if (-not (Test-RequiredParameter -Value $ToolConfig -ParameterName "ToolConfig" -FunctionName "Process-ExtractedZip")) { return $false }
+    if (-not (Test-RequiredParameter -Value $DownloadUrl -ParameterName "DownloadUrl" -FunctionName "Process-ExtractedZip")) { return $false }
+    
+    $tempExtract = $Staging.TempExtract
+    $newManifest = Get-FileManifest -Folder $tempExtract
+    
+    if (Test-Path (Join-Path $OutputFolder ".downloaded.json")) {
+        Remove-ManagedFiles -OutputFolder $OutputFolder
+    }
+    
+    Copy-Item -Path (Join-Path $tempExtract "*") -Destination $OutputFolder -Recurse -Force
+    Log-Debug "Copied extracted files to output folder: $OutputFolder"
+    
+    Write-MarkerFile -OutputFolder $OutputFolder `
                      -ToolName $ToolConfig.Name `
                      -DownloadMethod $ToolConfig.DownloadMethod `
-                     -DownloadURL $ToolConfig.RepoUrl `
-                     -Version $ToolConfig.Branch `
-                     -CommitHash $commitHash `
+                     -DownloadURL $DownloadUrl `
+                     -Version $Version `
+                     -CommitHash "" `
                      -DownloadedFile "" `
-                     -ExtractionLocation $outputFolder `
-                     -Manifest $manifest
+                     -ExtractionLocation $OutputFolder `
+                     -Manifest $newManifest
+                     
+    # Clean up staging files
+    Remove-Item -Path $Staging.TempExtract -Recurse -Force
+    Remove-Item -Path $Staging.TempZip -Force
+    
+    return $true
+}
+
+# -----------------------------------------------
+# Dispatcher: Loop Through Tools and Process
+# -----------------------------------------------
+foreach ($tool in $tools) {
+    if (-not [string]::IsNullOrEmpty($tool.OutputFolder)) {
+        $toolOutputFolder = Join-Path -Path $ToolsDirectory -ChildPath (Join-Path $tool.OutputFolder $tool.Name)
+    }
+    else {
+        $toolOutputFolder = Join-Path -Path $ToolsDirectory -ChildPath $tool.Name
+    }
+    $markerFile = Join-Path $toolOutputFolder ".downloaded.json"
+    
+    $processTool = $false
+
+    if ($PSBoundParameters.ContainsKey('Update')) {
+        if ($updateMode -eq "specific") {
+            if ($updateToolList -contains $tool.Name.ToLower()) {
+                $processTool = $true
+                Write-Host "===========================================" -ForegroundColor White
+                Log-Info "Updating tool: $($tool.Name)"
+                if ((Test-Path $toolOutputFolder) -and (Test-Path $markerFile)) {
+                    Log-Info "Update: Removing previous files for $($tool.Name)."
+                    Remove-ManagedFiles -OutputFolder $toolOutputFolder
+                }
+            }
+        }
+        else {
+            if ($ForceDownload -or (-not $tool.skipdownload)) {
+                $processTool = $true
+                Write-Host "===========================================" -ForegroundColor White
+                Log-Info "Downloading tool: $($tool.Name)"
+                if ((Test-Path $toolOutputFolder) -and (Test-Path $markerFile)) {
+                    Log-Info "Update: Removing previous files for $($tool.Name)."
+                    Remove-ManagedFiles -OutputFolder $toolOutputFolder
+                }
+                else {
+                    Log-Info "Update: No marker file found for $($tool.Name); preserving user files."
+                }
+            }
+        }
+    }
+    else {
+        if ($ForceDownload) {
+            $processTool = $true
+            Write-Host "===========================================" -ForegroundColor White
+            Log-Info "Force downloading $($tool.Name)..."
+        }
+        else {
+            if ($tool.skipdownload) {
+                Log-Info "Skipping $($tool.Name) -- skipdownload is enabled."
+            }
+            elseif (Test-Path $markerFile) {
+                Log-Info "Skipping $($tool.Name) -- already downloaded."
+            }
+            else {
+                $processTool = $true
+                Write-Host "===========================================" -ForegroundColor White
+                Log-Info "Started working on $($tool.Name)..."
+            }
+        }
+    }
+    
+    if (-not $processTool) { continue }
+    
+    switch ($tool.DownloadMethod) {
+        "gitClone" {
+            Download-GitCloneTool -ToolConfig $tool -ToolsDirectory $ToolsDirectory
+        }
+        "latestRelease" {
+            Download-LatestReleaseTool -ToolConfig $tool -ToolsDirectory $ToolsDirectory -GitHubPAT $GitHubPAT -AssetPatterns $AssetPatterns
+        }
+        "branchZip" {
+            Download-BranchZipTool -ToolConfig $tool -ToolsDirectory $ToolsDirectory -GitHubPAT $GitHubPAT
+        }
+        "specificFile" {
+            Download-SpecificFileTool -ToolConfig $tool -ToolsDirectory $ToolsDirectory -GitHubPAT $GitHubPAT
+        }
+        default {
+            Log-Error "Download method '$($tool.DownloadMethod)' not recognized for $($tool.Name)."
+        }
+    }
+    Log-Info "Finished working on $($tool.Name)."
+    Write-Host "===========================================" -ForegroundColor White
+}
+
+function Download-SpecificFileTool {
+    param (
+        [Parameter(Mandatory=$true)]$ToolConfig,
+        [Parameter(Mandatory=$true)][string]$ToolsDirectory,
+        [Parameter(Mandatory=$false)][string]$GitHubPAT = ""
+    )
+    
+    # Validate required parameters
+    if (-not (Test-RequiredParameter -Value $ToolConfig -ParameterName "ToolConfig" -FunctionName "Download-SpecificFileTool")) { return }
+    if (-not (Test-RequiredParameter -Value $ToolsDirectory -ParameterName "ToolsDirectory" -FunctionName "Download-SpecificFileTool")) { return }
+    
+    # Handle optional parameters with defaults
+    $extract = Get-DefaultValue -Value $ToolConfig.Extract -DefaultValue $true -ParameterName "Extract"
+    
+    $outputFolder = Initialize-OutputFolder -ToolConfig $ToolConfig -ToolsDirectory $ToolsDirectory
+    
+    # Construct the file URL
+    if ($ToolConfig.ContainsKey("SpecificFilePath") -and -not [string]::IsNullOrEmpty($ToolConfig.SpecificFilePath)) {
+        if ($ToolConfig.RepoUrl -like "https://github.com/*") {
+            $rawRepoUrl = $ToolConfig.RepoUrl -replace "https://github.com/", "https://raw.githubusercontent.com/"
+            $cleanPath = $ToolConfig.SpecificFilePath -replace "^/raw", ""
+            $fileUrl = "$rawRepoUrl$cleanPath"
+        }
+        else {
+            $fileUrl = "$($ToolConfig.RepoUrl)$($ToolConfig.SpecificFilePath)"
+        }
+        $downloadName = [System.IO.Path]::GetFileName($ToolConfig.SpecificFilePath)
+    }
+    else {
+        $fileUrl = $ToolConfig.RepoUrl
+        $downloadName = [System.IO.Path]::GetFileName($ToolConfig.RepoUrl)
+    }
+    
+    Log-Debug "Constructed URL: $fileUrl"
+    
+    $ext = [System.IO.Path]::GetExtension($downloadName)
+    $headers = Get-GitHubHeaders -GitHubPAT $GitHubPAT
+    
+    if ($ext -ieq ".zip") {
+        if ($extract) {
+            $staging = Process-ZipStaging -ZipUrl $fileUrl -ToolName $ToolConfig.Name -Version "latest"
+            if (-not $staging.Success) {
+                # Clean up any temporary files
+                foreach ($tempFile in $staging.TempFiles) {
+                    if (Test-Path $tempFile) {
+                        Remove-Item -Path $tempFile -Force -Recurse -ErrorAction SilentlyContinue
+                        Log-Debug "Cleaned up temporary file/folder: $tempFile"
+                    }
+                }
+                Log-Error "Failed to process ZIP for $($ToolConfig.Name): $($staging.ErrorMessage)"
+                return
+            }
+            
+            Process-ExtractedZip -Staging $staging -OutputFolder $outputFolder -ToolConfig $ToolConfig -DownloadUrl $fileUrl
+        }
+        else {
+            Process-ZipFileNoExtract -ZipUrl $fileUrl -OutputFolder $outputFolder -ToolConfig $ToolConfig -Headers $headers
+        }
+    }
+    else {
+        Process-NonZipFile -FileUrl $fileUrl -OutputFolder $outputFolder -ToolConfig $ToolConfig -Headers $headers
+    }
+}
+
+function Download-BranchZipTool {
+    param (
+        [Parameter(Mandatory=$true)]$ToolConfig,
+        [Parameter(Mandatory=$true)][string]$ToolsDirectory,
+        [Parameter(Mandatory=$false)][string]$GitHubPAT = ""
+    )
+    
+    # Validate required parameters
+    if (-not (Test-RequiredParameter -Value $ToolConfig -ParameterName "ToolConfig" -FunctionName "Download-BranchZipTool")) { return }
+    if (-not (Test-RequiredParameter -Value $ToolsDirectory -ParameterName "ToolsDirectory" -FunctionName "Download-BranchZipTool")) { return }
+    
+    # Handle optional parameters with defaults
+    $extract = Get-DefaultValue -Value $ToolConfig.Extract -DefaultValue $true -ParameterName "Extract"
+    $branch = Get-DefaultValue -Value $ToolConfig.Branch -DefaultValue "master" -ParameterName "Branch"
+    
+    $zipUrl = "$($ToolConfig.RepoUrl)/archive/refs/heads/$branch.zip"
+    Log-Info "Downloading branch zip for $($ToolConfig.Name)..."
+    
+    $outputFolder = Initialize-OutputFolder -ToolConfig $ToolConfig -ToolsDirectory $ToolsDirectory
+    $headers = Get-GitHubHeaders -GitHubPAT $GitHubPAT
+    
+    if ($extract) {
+        $staging = Process-ZipStaging -ZipUrl $zipUrl -ToolName $ToolConfig.Name -Version $branch
+        if (-not $staging.Success) {
+            # Clean up any temporary files
+            foreach ($tempFile in $staging.TempFiles) {
+                if (Test-Path $tempFile) {
+                    Remove-Item -Path $tempFile -Force -Recurse -ErrorAction SilentlyContinue
+                    Log-Debug "Cleaned up temporary file/folder: $tempFile"
+                }
+            }
+            Log-Error "Failed to process ZIP for $($ToolConfig.Name): $($staging.ErrorMessage)"
+            return
+        }
+        
+        Process-ExtractedZip -Staging $staging -OutputFolder $outputFolder -ToolConfig $ToolConfig -DownloadUrl $zipUrl -Version $branch
+    }
+    else {
+        Process-ZipFileNoExtract -ZipUrl $zipUrl -OutputFolder $outputFolder -ToolConfig $ToolConfig -Version $branch -Headers $headers
+    }
 }
 
 function Download-LatestReleaseTool {
     param (
-        [Parameter(Mandatory)]
-        $ToolConfig,
-        [Parameter(Mandatory)]
-        [string]$ToolsDirectory,
-        [Parameter(Mandatory)]
-        $GitHubPAT,
-        [Parameter(Mandatory)]
-        $AssetPatterns
+        [Parameter(Mandatory=$true)]$ToolConfig,
+        [Parameter(Mandatory=$true)][string]$ToolsDirectory,
+        [Parameter(Mandatory=$false)][string]$GitHubPAT = "",
+        [Parameter(Mandatory=$true)]$AssetPatterns
     )
-    # Convert the GitHub repository URL to the corresponding API URL.
+    
+    # Validate required parameters
+    if (-not (Test-RequiredParameter -Value $ToolConfig -ParameterName "ToolConfig" -FunctionName "Download-LatestReleaseTool")) { return }
+    if (-not (Test-RequiredParameter -Value $ToolsDirectory -ParameterName "ToolsDirectory" -FunctionName "Download-LatestReleaseTool")) { return }
+    if (-not (Test-RequiredParameter -Value $AssetPatterns -ParameterName "AssetPatterns" -FunctionName "Download-LatestReleaseTool")) { return }
+    
+    # Handle optional parameters with defaults
+    $extract = Get-DefaultValue -Value $ToolConfig.Extract -DefaultValue $true -ParameterName "Extract"
+    
     $apiRepoUrl = $ToolConfig.RepoUrl -replace "https://github.com/", "https://api.github.com/repos/"
     $releaseUri = "$apiRepoUrl/releases/latest"
     Log-Debug "Using API endpoint: $releaseUri for $($ToolConfig.Name)"
-    
-    # Build the HTTP headers for the API call.
-    $headers = @{ "User-Agent" = "PowerShell" }
-    if (-not [string]::IsNullOrEmpty($GitHubPAT)) { $headers["Authorization"] = "token $GitHubPAT" }
+    $headers = Get-GitHubHeaders -GitHubPAT $GitHubPAT
     
     try {
-        # Retrieve the latest release information.
         $releaseInfo = Invoke-RestMethod -Uri $releaseUri -Headers $headers
         Log-Debug "Retrieved release info. Assets count: $($releaseInfo.assets.Count)"
     }
@@ -460,7 +993,7 @@ function Download-LatestReleaseTool {
         return
     }
     
-    # Filter the assets using the properties specified in the tool configuration.
+    # Filter assets based on configuration
     $assets = $releaseInfo.assets
     if (-not [string]::IsNullOrEmpty($ToolConfig.DownloadName)) {
         $assets = $assets | Where-Object { $_.name -eq $ToolConfig.DownloadName }
@@ -478,326 +1011,517 @@ function Download-LatestReleaseTool {
         }
     }
     
-    # Select the first matching asset.
     $asset = $assets | Select-Object -First 1
     if ($asset) {
-        # Determine the output folder.
-        if (-not [string]::IsNullOrEmpty($ToolConfig.OutputFolder)) {
-            $outputFolder = Join-Path -Path $ToolsDirectory -ChildPath (Join-Path $ToolConfig.OutputFolder $ToolConfig.Name)
+        $outputFolder = Initialize-OutputFolder -ToolConfig $ToolConfig -ToolsDirectory $ToolsDirectory
+        
+        $downloadUrl = $asset.browser_download_url
+        $fileName = Split-Path $downloadUrl -Leaf
+        $ext = [System.IO.Path]::GetExtension($fileName)
+        
+        if ($ext -ieq ".zip") {
+            if ($extract) {
+                $staging = Process-ZipStaging -ZipUrl $downloadUrl -ToolName $ToolConfig.Name -Version $releaseInfo.tag_name
+                if (-not $staging.Success) {
+                    # Clean up any temporary files
+                    foreach ($tempFile in $staging.TempFiles) {
+                        if (Test-Path $tempFile) {
+                            Remove-Item -Path $tempFile -Force -Recurse -ErrorAction SilentlyContinue
+                            Log-Debug "Cleaned up temporary file/folder: $tempFile"
+                        }
+                    }
+                    Log-Error "Failed to process ZIP for $($ToolConfig.Name): $($staging.ErrorMessage)"
+                    return
+                }
+                
+                Process-ExtractedZip -Staging $staging -OutputFolder $outputFolder -ToolConfig $ToolConfig -DownloadUrl $downloadUrl -Version $releaseInfo.tag_name
+            }
+            else {
+                Process-ZipFileNoExtract -ZipUrl $downloadUrl -OutputFolder $outputFolder -ToolConfig $ToolConfig -Version $releaseInfo.tag_name -Headers $headers
+            }
         }
         else {
-            $outputFolder = Join-Path -Path $ToolsDirectory -ChildPath $ToolConfig.Name
+            Process-NonZipFile -FileUrl $downloadUrl -OutputFolder $outputFolder -ToolConfig $ToolConfig -Version $releaseInfo.tag_name -Headers $headers
         }
-        if (-not (Test-Path -Path $outputFolder)) {
-            New-Item -Path $outputFolder -ItemType Directory | Out-Null
-            Log-Debug "Created output folder: $outputFolder"
-        }
-        # Define the download path for the asset.
-        $downloadPath = Join-Path -Path $outputFolder -ChildPath $asset.name
-        Log-Info "Downloading $($ToolConfig.Name)..."
-        try {
-            # Download the asset.
-            Invoke-WebRequest -Uri $asset.browser_download_url -OutFile $downloadPath -Headers $headers
-            Log-Debug "Downloaded to $downloadPath"
-        }
-        catch {
-            Log-Error "Failed to download asset for $($ToolConfig.Name). Exception: $_"
-            return
-        }
-        
-        $archiveHash = $null
-        $extract = $true
-        # Determine if extraction should occur (based on configuration).
-        if (($ToolConfig.ContainsKey("Extract")) -and ($ToolConfig.Extract -eq $false)) { $extract = $false }
-        if ($extract -and ($downloadPath -like "*.zip")) {
-            Log-Info "Extracting $($ToolConfig.Name)..."
-            try {
-                $archiveHash = (Get-FileHash -Algorithm MD5 -Path $downloadPath).Hash
-                # Extract the downloaded ZIP archive.
-                Expand-Archive -Path $downloadPath -DestinationPath $outputFolder -Force
-                Remove-Item -Path $downloadPath
-                Log-Debug "Extraction complete."
-            }
-            catch {
-                Log-Error "Extraction failed for $downloadPath. Exception: $_"
-            }
-        }
-        # Build a manifest of the files present in the output folder.
-        $manifest = Get-FileManifest -Folder $outputFolder
-        if ($archiveHash) {
-            $manifest[[System.IO.Path]::GetFileName($downloadPath)] = $archiveHash
-        }
-        $downloadedFileParam = $downloadPath
-        if ($extract -and ($downloadPath -like "*.zip")) { $downloadedFileParam = "" }
-        
-        $version = $releaseInfo.tag_name
-        # Write out the marker file with metadata.
-        Write-MarkerFile -OutputFolder $outputFolder `
-                         -ToolName $ToolConfig.Name `
-                         -DownloadMethod $ToolConfig.DownloadMethod `
-                         -DownloadURL $asset.browser_download_url `
-                         -Version $version `
-                         -CommitHash "" `
-                         -DownloadedFile $downloadedFileParam `
-                         -ExtractionLocation $outputFolder `
-                         -Manifest $manifest
     }
     else {
         Log-Warning "No matching asset found for $($ToolConfig.Name)."
     }
 }
 
-function Download-BranchZipTool {
+function Download-GitCloneTool {
     param (
-        [Parameter(Mandatory)]
-        $ToolConfig,
-        [Parameter(Mandatory)]
-        [string]$ToolsDirectory,
-        [Parameter(Mandatory)]
-        $GitHubPAT
+        [Parameter(Mandatory=$true)]$ToolConfig,
+        [Parameter(Mandatory=$true)][string]$ToolsDirectory,
+        [Parameter(Mandatory=$false)][string]$GitHubPAT = ""
     )
-    # Determine which branch to download; default to "master" if not specified.
-    $branch = if (-not [string]::IsNullOrEmpty($ToolConfig.Branch)) { $ToolConfig.Branch } else { "master" }
-    # Construct the URL for the ZIP archive of the branch.
-    $zipUrl = "$($ToolConfig.RepoUrl)/archive/refs/heads/$branch.zip"
-    Log-Info "Downloading branch zip for $($ToolConfig.Name)..."
     
-    # Determine the output folder.
-    if (-not [string]::IsNullOrEmpty($ToolConfig.OutputFolder)) {
-        $outputFolder = Join-Path -Path $ToolsDirectory -ChildPath (Join-Path $ToolConfig.OutputFolder $ToolConfig.Name)
+    # Validate required parameters
+    if (-not (Test-RequiredParameter -Value $ToolConfig -ParameterName "ToolConfig" -FunctionName "Download-GitCloneTool")) { return }
+    if (-not (Test-RequiredParameter -Value $ToolsDirectory -ParameterName "ToolsDirectory" -FunctionName "Download-GitCloneTool")) { return }
+    
+    # Handle optional parameters with defaults
+    $branch = Get-DefaultValue -Value $ToolConfig.Branch -DefaultValue "master" -ParameterName "Branch"
+    
+    $outputFolder = Initialize-OutputFolder -ToolConfig $ToolConfig -ToolsDirectory $ToolsDirectory
+    
+    # Extract owner and repo from URL
+    Log-Trace "Extracting owner and repo from URL: $($ToolConfig.RepoUrl)"
+    if ($ToolConfig.RepoUrl -match "github\.com/([^/]+)/([^/]+)") {
+        $owner = $matches[1]
+        $repo = $matches[2]
+        $repo = $repo -replace "\.git$", ""
+        Log-Debug "Extracted owner: $owner, repo: $repo"
     }
     else {
-        $outputFolder = Join-Path -Path $ToolsDirectory -ChildPath $ToolConfig.Name
-    }
-    if (-not (Test-Path -Path $outputFolder)) {
-        New-Item -Path $outputFolder -ItemType Directory | Out-Null
-        Log-Debug "Created output folder: $outputFolder"
-    }
-    $fileName = "$($ToolConfig.Name)-$branch.zip"
-    $downloadPath = Join-Path -Path $outputFolder -ChildPath $fileName
-    Log-Debug "Downloading branch zip to $downloadPath"
-    
-    # Set up HTTP headers.
-    $headers = @{ "User-Agent" = "PowerShell" }
-    if (-not [string]::IsNullOrEmpty($GitHubPAT)) { $headers["Authorization"] = "token $GitHubPAT" }
-    try {
-        # Download the ZIP file.
-        Invoke-WebRequest -Uri $zipUrl -OutFile $downloadPath -Headers $headers
-        Log-Debug "Downloaded branch zip to $downloadPath"
-    }
-    catch {
-        Log-Error "Failed to download branch zip for $($ToolConfig.Name). Exception: $_"
+        Log-Error "Invalid GitHub URL format for $($ToolConfig.Name): $($ToolConfig.RepoUrl)"
         return
     }
     
-    $archiveHash = $null
-    $extract = $true
-    # Check if extraction is desired.
-    if (($ToolConfig.ContainsKey("Extract")) -and ($ToolConfig.Extract -eq $false)) { $extract = $false }
-    if ($extract -and ($downloadPath -like "*.zip")) {
-        Log-Info "Extracting $($ToolConfig.Name)..."
-        try {
-            $archiveHash = (Get-FileHash -Algorithm MD5 -Path $downloadPath).Hash
-            Expand-Archive -Path $downloadPath -DestinationPath $outputFolder -Force
-            Remove-Item -Path $downloadPath
-            Log-Debug "Extraction complete."
-        }
-        catch {
-            Log-Error "Extraction failed for $downloadPath. Exception: $_"
-        }
-    }
-    $manifest = Get-FileManifest -Folder $outputFolder
-    if ($archiveHash) {
-        $manifest[[System.IO.Path]::GetFileName($downloadPath)] = $archiveHash
-    }
-    $downloadedFileParam = $downloadPath
-    if ($extract -and ($downloadPath -like "*.zip")) { $downloadedFileParam = "" }
+    # Get API info about the repo to get the latest commit
+    $headers = Get-GitHubHeaders -GitHubPAT $GitHubPAT
+    $apiUrl = "https://api.github.com/repos/$owner/$repo/branches/$branch"
+    Log-Debug "Querying GitHub API: $apiUrl"
     
-    # Write the marker file for the downloaded branch ZIP.
+    try {
+        $branchInfo = Invoke-RestMethod -Uri $apiUrl -Headers $headers
+        $commitHash = $branchInfo.commit.sha
+        Log-Debug "Latest commit hash for ${branch}: ${commitHash}"
+    }
+    catch {
+        # If master branch fails, try main branch
+        if ($branch -eq "master") {
+            Log-Warning "Failed to get info for 'master' branch, trying 'main' branch instead"
+            try {
+                $apiUrl = "https://api.github.com/repos/$owner/$repo/branches/main"
+                Log-Debug "Querying GitHub API: $apiUrl"
+                $branchInfo = Invoke-RestMethod -Uri $apiUrl -Headers $headers
+                $commitHash = $branchInfo.commit.sha
+                $branch = "main"
+                Log-Debug "Latest commit hash for main: $commitHash"
+            }
+            catch {
+                Log-Error "Failed to get branch info for $($ToolConfig.Name). Exception: $_"
+                return
+            }
+        }
+        else {
+            Log-Error "Failed to get branch info for $($ToolConfig.Name). Exception: $_"
+            return
+        }
+    }
+    
+    # Download ZIP archive of the branch
+    $zipUrl = "https://github.com/$owner/$repo/archive/$commitHash.zip"
+    Log-Info "Downloading repository ZIP for $($ToolConfig.Name) from branch $branch (commit $commitHash)..."
+    Log-Debug "ZIP URL: $zipUrl"
+    
+    $staging = Process-ZipStaging -ZipUrl $zipUrl -ToolName $ToolConfig.Name -Version $branch
+    if (-not $staging.Success) {
+        # Clean up any temporary files
+        foreach ($tempFile in $staging.TempFiles) {
+            if (Test-Path $tempFile) {
+                Remove-Item -Path $tempFile -Force -Recurse -ErrorAction SilentlyContinue
+                Log-Debug "Cleaned up temporary file/folder: $tempFile"
+            }
+        }
+        Log-Error "Failed to process ZIP for $($ToolConfig.Name): $($staging.ErrorMessage)"
+        return
+    }
+    
+    # Process the extracted files
+    $tempExtract = $staging.TempExtract
+    Log-Trace "Generating file manifest for extracted content"
+    $newManifest = Get-FileManifest -Folder $tempExtract
+    Log-Debug "Generated manifest with ${newManifest.Count} files"
+    
+    if (Test-Path (Join-Path $outputFolder ".downloaded.json")) {
+        Log-Debug "Removing previously managed files from $outputFolder"
+        Remove-ManagedFiles -OutputFolder $outputFolder
+    }
+    
+    Log-Debug "Copying extracted files to output folder: $outputFolder"
+    Copy-Item -Path (Join-Path $tempExtract "*") -Destination $outputFolder -Recurse -Force
+    Log-Debug "Copied extracted files to output folder: $outputFolder"
+    
     Write-MarkerFile -OutputFolder $outputFolder `
                      -ToolName $ToolConfig.Name `
                      -DownloadMethod $ToolConfig.DownloadMethod `
                      -DownloadURL $zipUrl `
                      -Version $branch `
-                     -CommitHash "" `
-                     -DownloadedFile $downloadedFileParam `
+                     -CommitHash $commitHash `
+                     -DownloadedFile "" `
                      -ExtractionLocation $outputFolder `
-                     -Manifest $manifest
+                     -Manifest $newManifest
+    
+    # Clean up staging files
+    Log-Trace "Cleaning up temporary files"
+    Remove-Item -Path $staging.TempExtract -Recurse -Force
+    Remove-Item -Path $staging.TempZip -Force
+    
+    Log-Info "Successfully downloaded and extracted $($ToolConfig.Name) from branch $branch (commit $commitHash)"
 }
 
-function Download-SpecificFileTool {
+# -----------------------------------------------
+# Parameter Validation Helpers
+# -----------------------------------------------
+
+# Validates that a required parameter has a value
+# Returns true if the parameter is valid, false otherwise
+function Test-RequiredParameter {
     param (
-        [Parameter(Mandatory)]
-        $ToolConfig,
-        [Parameter(Mandatory)]
-        [string]$ToolsDirectory
+        [Parameter(Mandatory=$true)]$Value,
+        [Parameter(Mandatory=$true)][string]$ParameterName,
+        [Parameter(Mandatory=$true)][string]$FunctionName
     )
-    # Determine the output folder for the specific file.
-    if (-not [string]::IsNullOrEmpty($ToolConfig.OutputFolder)) {
-        $outputFolder = Join-Path -Path $ToolsDirectory -ChildPath (Join-Path $ToolConfig.OutputFolder $ToolConfig.Name)
-    }
-    else {
-        $outputFolder = Join-Path -Path $ToolsDirectory -ChildPath $ToolConfig.Name
-    }
-    if (-not (Test-Path -Path $outputFolder)) {
-        New-Item -Path $outputFolder -ItemType Directory | Out-Null
-        Log-Debug "Created output folder: $outputFolder"
-    }
     
-    # Construct the URL for the specific file to download.
-    if ($ToolConfig.ContainsKey("SpecificFilePath") -and -not [string]::IsNullOrEmpty($ToolConfig.SpecificFilePath)) {
-        if ($ToolConfig.RepoUrl -like "https://github.com/*") {
-            # Convert the GitHub URL to its raw counterpart.
-            $rawRepoUrl = $ToolConfig.RepoUrl -replace "https://github.com/", "https://raw.githubusercontent.com/"
-            $cleanPath = $ToolConfig.SpecificFilePath -replace "^/raw", ""
-            $fileUrl = "$rawRepoUrl$cleanPath"
-        }
-        else {
-            $fileUrl = "$($ToolConfig.RepoUrl)$($ToolConfig.SpecificFilePath)"
-        }
-        # Get the filename from the specified file path.
-        $downloadName = [System.IO.Path]::GetFileName($ToolConfig.SpecificFilePath)
+    if ($null -eq $Value -or ($Value -is [string] -and [string]::IsNullOrWhiteSpace($Value))) {
+        Log-Error "Required parameter '$ParameterName' is missing or empty in function '$FunctionName'"
+        return $false
     }
-    else {
-        # If no specific file path is given, use the RepoUrl.
-        $fileUrl = $ToolConfig.RepoUrl
-        $downloadName = [System.IO.Path]::GetFileName($ToolConfig.RepoUrl)
-    }
-    
-    Log-Debug "Constructed URL: $fileUrl"
-    $downloadPath = Join-Path -Path $outputFolder -ChildPath $downloadName
-    Log-Info "Downloading $($ToolConfig.Name)..."
-    $headers = @{ "User-Agent" = "PowerShell" }
-    if (-not [string]::IsNullOrEmpty($GitHubPAT)) { $headers["Authorization"] = "token $GitHubPAT" }
-    try {
-        # Download the specific file.
-        Invoke-WebRequest -Uri $fileUrl -OutFile $downloadPath -Headers $headers
-        Log-Debug "Downloaded to $downloadPath"
-    }
-    catch {
-        Log-Error "Failed to download file for $($ToolConfig.Name). Exception: $_"
-        return
-    }
-    
-    $archiveHash = $null
-    $extract = $true
-    # Check if extraction is desired.
-    if (($ToolConfig.ContainsKey("Extract")) -and ($ToolConfig.Extract -eq $false)) { $extract = $false }
-    if ($extract -and ($downloadPath -like "*.zip")) {
-        Log-Info "Extracting $($ToolConfig.Name)..."
-        try {
-            $archiveHash = (Get-FileHash -Algorithm MD5 -Path $downloadPath).Hash
-            Expand-Archive -Path $downloadPath -DestinationPath $outputFolder -Force
-            Remove-Item -Path $downloadPath
-            Log-Debug "Extraction complete."
-        }
-        catch {
-            Log-Error "Extraction failed for $downloadPath. Exception: $_"
-        }
-    }
-    # Build the manifest and write the marker file.
-    $manifest = Get-FileManifest -Folder $outputFolder
-    if ($archiveHash) {
-        $manifest[[System.IO.Path]::GetFileName($downloadPath)] = $archiveHash
-    }
-    $downloadedFileParam = $downloadPath
-    if ($extract -and ($downloadPath -like "*.zip")) { $downloadedFileParam = "" }
-    
-    Write-MarkerFile -OutputFolder $outputFolder `
-                     -ToolName $ToolConfig.Name `
-                     -DownloadMethod $ToolConfig.DownloadMethod `
-                     -DownloadURL $fileUrl `
-                     -Version "" `
-                     -CommitHash "" `
-                     -DownloadedFile $downloadedFileParam `
-                     -ExtractionLocation $outputFolder `
-                     -Manifest $manifest
+    return $true
 }
 
-$AssetPatterns = @{
-    win64 = '(?i)win(?:dows)?[-_](x64|amd64)(?![-_](live|aarch64))'
-    win32 = '(?i)(win(dows)?).*?(32|x86)'
-    linux = '(?i)(linux|lin)'
-    macos = '(?i)(mac|osx|darwin)'
+# Gets a default value for a parameter if the provided value is null
+# Returns the provided value if not null, otherwise returns the default value
+function Get-DefaultValue {
+    param (
+        $Value,
+        $DefaultValue,
+        [string]$ParameterName = ""
+    )
+    
+    if ($null -eq $Value) {
+        if ($ParameterName) {
+            Log-Debug "Using default value for parameter '$ParameterName': $DefaultValue"
+        }
+        return $DefaultValue
+    }
+    return $Value
 }
 
 # -----------------------------------------------
-# Dispatcher: Loop Through Tools and Download
+# YAML Configuration Validation
 # -----------------------------------------------
-# Loop through each tool defined in the YAML configuration and process it.
-foreach ($tool in $tools) {
-    Write-Host "===========================================" -ForegroundColor White
-    Log-Info "Working on tool: $($tool.Name)"
+
+# Validates the YAML configuration
+# Returns an object with IsValid and Errors properties
+function Test-ToolConfiguration {
+    param (
+        [Parameter(Mandatory=$true)]$Config
+    )
     
-    # Determine the output folder for this tool.
-    if (-not [string]::IsNullOrEmpty($tool.OutputFolder)) {
-        $toolOutputFolder = Join-Path -Path $ToolsDirectory -ChildPath (Join-Path $tool.OutputFolder $tool.Name)
+    $isValid = $true
+    $errors = @()
+    
+    # Check if tooldirectory exists
+    if (-not $Config.ContainsKey("tooldirectory")) {
+        $errors += "Missing required field: tooldirectory"
+        $isValid = $false
+    }
+    elseif ([string]::IsNullOrWhiteSpace($Config.tooldirectory)) {
+        $errors += "tooldirectory cannot be empty"
+        $isValid = $false
+    }
+    
+    # Check if tools array exists
+    if (-not $Config.ContainsKey("tools") -or $null -eq $Config.tools) {
+        $errors += "Missing required field: tools"
+        $isValid = $false
+    }
+    elseif (-not ($Config.tools -is [System.Collections.IList])) {
+        $errors += "tools must be an array"
+        $isValid = $false
+    }
+    elseif ($Config.tools.Count -eq 0) {
+        $errors += "tools array cannot be empty"
+        $isValid = $false
     }
     else {
-        $toolOutputFolder = Join-Path -Path $ToolsDirectory -ChildPath $tool.Name
-    }
-    
-    # Define the path to the marker file for this tool.
-    $markerFile = Join-Path $toolOutputFolder ".downloaded.json"
-    
-    # Decide on action based on ForceDownload, Update, or normal mode.
-    if ($ForceDownload) {
-        # In ForceDownload mode, remove managed files if the marker file exists.
-        if (Test-Path $toolOutputFolder) {
-            if (Test-Path $markerFile) {
-                Log-Info "Force download: Removing managed files for $($tool.Name)."
-                Remove-ManagedFiles -OutputFolder $toolOutputFolder
+        # Validate each tool in the array
+        foreach ($tool in $Config.tools) {
+            $toolErrors = Test-ToolEntry -Tool $tool
+            if ($toolErrors.Count -gt 0) {
+                $errors += $toolErrors
+                $isValid = $false
             }
-            else {
-                Log-Info "Force download: No marker file found for $($tool.Name); preserving user files."
-            }
-        }
-    }
-    elseif ($Update) {
-        # In Update mode, respect the skipdownload flag.
-        if ($tool.skipdownload) {
-            Log-Info "Skipping $($tool.Name) because skipdownload flag is set."
-            continue
-        }
-        if (Test-Path $toolOutputFolder) {
-            if (Test-Path $markerFile) {
-                Log-Info "Update mode: Removing managed files for $($tool.Name) to update."
-                Remove-ManagedFiles -OutputFolder $toolOutputFolder
-            }
-            else {
-                Log-Info "Update mode: No marker file found for $($tool.Name); preserving user files."
-            }
-        }
-    }
-    else {
-        # In normal mode, if skipdownload is set or the marker file exists, skip processing.
-        if ($tool.skipdownload) {
-            Log-Info "Skipping $($tool.Name) (skipdownload flag set)."
-            continue
-        }
-        if (Test-Path $markerFile) {
-            Log-Info "$($tool.Name) is already downloaded, skipping."
-            continue
         }
     }
     
-    # Dispatch to the correct download method based on the tool's configuration.
-    switch ($tool.DownloadMethod) {
-        "gitClone" {
-            Download-GitCloneTool -ToolConfig $tool -ToolsDirectory $ToolsDirectory
-        }
-        "latestRelease" {
-            Download-LatestReleaseTool -ToolConfig $tool -ToolsDirectory $ToolsDirectory -GitHubPAT $GitHubPAT -AssetPatterns $AssetPatterns
-        }
-        "branchZip" {
-            Download-BranchZipTool -ToolConfig $tool -ToolsDirectory $ToolsDirectory -GitHubPAT $GitHubPAT
-        }
-        "specificFile" {
-            Download-SpecificFileTool -ToolConfig $tool -ToolsDirectory $ToolsDirectory
-        }
-        default {
-            Log-Error "Download method '$($tool.DownloadMethod)' not recognized for $($tool.Name)."
-        }
+    return @{
+        IsValid = $isValid
+        Errors = $errors
     }
-    Log-Info "Finished working on $($tool.Name)."
 }
+
+function Test-ToolEntry {
+    param (
+        [Parameter(Mandatory=$true)]$Tool
+    )
+    
+    $errors = @()
+    
+    # Check required fields
+    if (-not $Tool.ContainsKey("name") -or [string]::IsNullOrWhiteSpace($Tool.name)) {
+        $errors += "Tool is missing required field: name"
+    }
+    
+    if (-not $Tool.ContainsKey("RepoUrl") -or [string]::IsNullOrWhiteSpace($Tool.RepoUrl)) {
+        $errors += "Tool '$($Tool.name)' is missing required field: RepoUrl"
+    }
+    
+    if (-not $Tool.ContainsKey("DownloadMethod") -or [string]::IsNullOrWhiteSpace($Tool.DownloadMethod)) {
+        $errors += "Tool '$($Tool.name)' is missing required field: DownloadMethod"
+    }
+    else {
+        # Validate DownloadMethod
+        $validMethods = @("gitClone", "latestRelease", "branchZip", "specificFile")
+        if (-not ($validMethods -contains $Tool.DownloadMethod)) {
+            $errors += "Tool '$($Tool.name)' has invalid DownloadMethod: $($Tool.DownloadMethod). Valid values are: $($validMethods -join ', ')"
+        }
+        
+        # Validate method-specific required fields
+        switch ($Tool.DownloadMethod) {
+            "latestRelease" {
+                if (-not $Tool.ContainsKey("AssetType") -and -not $Tool.ContainsKey("AssetFilename") -and -not $Tool.ContainsKey("DownloadName")) {
+                    $errors += "Tool '$($Tool.name)' with DownloadMethod 'latestRelease' must specify either AssetType, AssetFilename, or DownloadName"
+                }
+            }
+            "specificFile" {
+                if (-not $Tool.ContainsKey("SpecificFilePath") -and $Tool.RepoUrl -like "https://github.com/*") {
+                    $errors += "Tool '$($Tool.name)' with DownloadMethod 'specificFile' must specify SpecificFilePath for GitHub repositories"
+                }
+            }
+            "branchZip" {
+                # Branch is optional, defaults to master/main
+            }
+        }
+    }
+    
+    return $errors
+}
+
+function Add-ConfigurationDefaults {
+    param (
+        [Parameter(Mandatory=$true)]$Config
+    )
+    
+    $updatedConfig = $Config.Clone()
+    
+    # Add default values for tools
+    if ($updatedConfig.ContainsKey("tools") -and $updatedConfig.tools -is [System.Collections.IList]) {
+        for ($i = 0; $i -lt $updatedConfig.tools.Count; $i++) {
+            $tool = $updatedConfig.tools[$i]
+            
+            # Add default SkipDownload if missing
+            if (-not $tool.ContainsKey("SkipDownload")) {
+                $tool.SkipDownload = $false
+                Log-Debug "Added default SkipDownload=false for tool '$($tool.name)'"
+            }
+            
+            # Add default Extract if missing
+            if (-not $tool.ContainsKey("Extract")) {
+                $tool.Extract = $true
+                Log-Debug "Added default Extract=true for tool '$($tool.name)'"
+            }
+            
+            # Add method-specific defaults
+            switch ($tool.DownloadMethod) {
+                "branchZip" {
+                    if (-not $tool.ContainsKey("Branch")) {
+                        $tool.Branch = "master"
+                        Log-Debug "Added default Branch=master for tool '$($tool.name)'"
+                    }
+                }
+                "gitClone" {
+                    if (-not $tool.ContainsKey("Branch")) {
+                        $tool.Branch = "master"
+                        Log-Debug "Added default Branch=master for tool '$($tool.name)'"
+                    }
+                }
+            }
+            
+            $updatedConfig.tools[$i] = $tool
+        }
+    }
+    
+    return $updatedConfig
+}
+
+# Function to display available tools
+function Show-AvailableTools {
+    param (
+        [Parameter(Mandatory=$true)]$Tools,
+        [Parameter(Mandatory=$false)][switch]$Detailed = $false
+    )
+    
+    Write-Host "`nAvailable Tools in Configuration:" -ForegroundColor Cyan
+    Write-Host "=================================" -ForegroundColor Cyan
+    
+    foreach ($tool in $Tools) {
+        # Display tool name with download method
+        Write-Host "`n[$($tool.DownloadMethod)]" -NoNewline -ForegroundColor Yellow
+        Write-Host " $($tool.Name)" -ForegroundColor Green
+        
+        # Display output folder if specified
+        if (-not [string]::IsNullOrEmpty($tool.OutputFolder)) {
+            Write-Host "  Location: $($tool.OutputFolder)\$($tool.Name)" -ForegroundColor Gray
+        }
+        
+        # Display skip status if true
+        if ($tool.SkipDownload) {
+            Write-Host "  Status: " -NoNewline -ForegroundColor Gray
+            Write-Host "SKIPPED" -ForegroundColor Red
+        }
+        
+        # Display additional details if requested
+        if ($Detailed) {
+            Write-Host "  URL: $($tool.RepoUrl)" -ForegroundColor Gray
+            
+            # Display method-specific details
+            switch ($tool.DownloadMethod) {
+                "gitClone" {
+                    if ($tool.Branch) {
+                        Write-Host "  Branch: $($tool.Branch)" -ForegroundColor Gray
+                    }
+                }
+                "branchZip" {
+                    if ($tool.Branch) {
+                        Write-Host "  Branch: $($tool.Branch)" -ForegroundColor Gray
+                    }
+                }
+                "latestRelease" {
+                    if ($tool.AssetType) {
+                        Write-Host "  Asset Type: $($tool.AssetType)" -ForegroundColor Gray
+                    }
+                    if ($tool.AssetFilename -or $tool.DownloadName) {
+                        $filename = if ($tool.DownloadName) { $tool.DownloadName } else { $tool.AssetFilename }
+                        Write-Host "  Asset Filename: $filename" -ForegroundColor Gray
+                    }
+                }
+                "specificFile" {
+                    if ($tool.SpecificFilePath) {
+                        Write-Host "  File Path: $($tool.SpecificFilePath)" -ForegroundColor Gray
+                    }
+                    if ($tool.DownloadName) {
+                        Write-Host "  Download As: $($tool.DownloadName)" -ForegroundColor Gray
+                    }
+                }
+            }
+            
+            # Display extract setting if specified
+            if ($tool.ContainsKey("Extract")) {
+                Write-Host "  Extract: $($tool.Extract)" -ForegroundColor Gray
+            }
+        }
+    }
+    
+    Write-Host "`nTotal Tools: $($Tools.Count)" -ForegroundColor Cyan
+    Write-Host "=================================`n" -ForegroundColor Cyan
+}
+
+<#
+.SYNOPSIS
+    ToolFetcher - A PowerShell script to download and update digital forensics tools.
+
+.DESCRIPTION
+    ToolFetcher automates the process of downloading and updating digital forensics tools from
+    various sources including GitHub repositories, direct downloads, and release pages.
+    
+    The script supports multiple download methods:
+    - gitClone: Downloads a repository using GitHub API (no Git dependency)
+    - latestRelease: Downloads the latest release asset from a GitHub repository
+    - branchZip: Downloads a specific branch as a ZIP file
+    - specificFile: Downloads a specific file from a URL
+
+.PARAMETER ToolsFile
+    Path to the YAML file containing tool definitions.
+    Default: "tools.yaml" in the same directory as the script.
+
+.PARAMETER ToolsDirectory
+    Directory where tools will be downloaded and extracted.
+    If not specified, the value from the YAML file will be used.
+
+.PARAMETER ForceDownload
+    Force download of all tools, even if they have been previously downloaded.
+
+.PARAMETER Update
+    Check for updates to previously downloaded tools and download newer versions if available.
+    If you supply one or more tool names (comma-separated), then only those tools will be updated.
+
+.PARAMETER VerboseOutput
+    Show detailed debug information during execution.
+
+.PARAMETER TraceOutput
+    Show very detailed trace information during execution (most verbose).
+
+.PARAMETER LogFile
+    Path to a log file where all output will be saved. If not specified, logging to file is disabled.
+
+.PARAMETER GitHubPAT
+    GitHub Personal Access Token to use for API requests to avoid rate limiting.
+
+.PARAMETER ListTools
+    Lists all available tools defined in the YAML configuration file.
+    Use with -VerboseOutput to see detailed information about each tool.
+
+.EXAMPLE
+    PS> .\ToolFetcher.ps1
+    
+    Runs the script with default parameters, using tools.yaml in the current directory
+    and downloading tools to the directory specified in the YAML file.
+
+.EXAMPLE
+    PS> .\ToolFetcher.ps1 -ToolsFile "my_tools.yaml" -ToolsDirectory "D:\DFIR\Tools"
+    
+    Uses a custom YAML configuration file and downloads tools to the specified directory.
+
+.EXAMPLE
+    PS> .\ToolFetcher.ps1 -Update
+    
+    Updates all previously downloaded tools that are not marked with SkipDownload.
+
+.EXAMPLE
+    PS> .\ToolFetcher.ps1 -Update "LECmd","JLECmd"
+    
+    Updates only the specified tools (LECmd and JLECmd), ignoring their SkipDownload setting.
+
+.EXAMPLE
+    PS> .\ToolFetcher.ps1 -ForceDownload
+    
+    Forces re-download of all tools, overwriting existing directories.
+
+.EXAMPLE
+    PS> .\ToolFetcher.ps1 -ListTools
+    
+    Lists all tools defined in the configuration file with basic information.
+
+.EXAMPLE
+    PS> .\ToolFetcher.ps1 -ListTools -VerboseOutput
+    
+    Lists all tools with detailed information including URLs, branches, and other settings.
+
+.EXAMPLE
+    PS> .\ToolFetcher.ps1 -VerboseOutput -LogFile "toolfetcher.log"
+    
+    Runs with detailed logging and saves all output to the specified log file.
+
+.EXAMPLE
+    PS> .\ToolFetcher.ps1 -GitHubPAT "ghp_1234567890abcdef"
+    
+    Uses a GitHub Personal Access Token to avoid API rate limiting when downloading from GitHub.
+
+.EXAMPLE
+    PS> .\ToolFetcher.ps1 -ToolsFile "https://raw.githubusercontent.com/kev365/ToolFetcher/main/tools.yaml"
+    
+    Uses a remote YAML configuration file instead of a local one.
+
+.NOTES
+    Author: Kevin Stokes
+    Version: 1.2.3
+    
+    Requirements:
+    - PowerShell 5.1 or higher
+    - Internet connection
+    - PowerShell-yaml module (will be installed if missing)
+#>
