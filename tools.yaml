@@ -53,7 +53,8 @@ tools:
     RepoUrl: "https://download.ericzimmermanstools.com/hasher.zip" # .Net4
     DownloadMethod: "specificFile"
     OutputFolder: "MISC"
-    SkipDownload: true
+    DownloadName: "hasher.zip"
+    SkipDownload: false
 
   - Name: "iisGeolocate"
     RepoUrl: "https://download.ericzimmermanstools.com/net6/iisGeolocate.zip" # .Net6
