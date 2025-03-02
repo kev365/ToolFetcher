@@ -4,7 +4,7 @@
 # A tool for fetching DFIR and other GitHub tools.
 #
 # Author: Kevin Stokes
-# Version: 1.2.3
+# Version: See $script:Version variable below
 # License: MIT
 # =====================================================
 
@@ -35,24 +35,32 @@ param (
     [Alias('vv')]
     [switch]$TraceOutput = $false,
     
-    [Parameter(HelpMessage = 'Enable logging to a file. Specify a path or leave empty for default log file.')]
-    [Alias('log')]
-    [string]$LogFile = "",
+    [Parameter(HelpMessage = 'Enable logging to a file. A log file will be created in the tools directory.')]
+    [Alias('l')]
+    [switch]$Log = $false,
     
-    [Parameter(HelpMessage = 'GitHub Personal Access Token - to avoid rate limits, if needed.')]
+    [Parameter(HelpMessage = 'GitHub Personal Access Token - to avoid rate limits, if needed. NOTE: This is visible in command history and process listings. Use -PromptForPAT for better security.')]
     [Alias('pat')]
     [string]$GitHubPAT = "",
+    
+    [Parameter(HelpMessage = 'Prompt for GitHub Personal Access Token securely (token will not be visible or stored in command history)')]
+    [Alias('ppat')]
+    [switch]$PromptForPAT = $false,
     
     [Parameter(HelpMessage = 'List all available tools in the configuration file')]
     [Alias('list')]
     [switch]$ListTools = $false
 )
 
+# Script version - centralized for easy updates
+$script:Version = "1.2.4"
+
 # -----------------------------------------------
 # Define Logging Functions First
 # -----------------------------------------------
 # Define log levels enum
-Add-Type -TypeDefinition @"
+if (-not ([System.Management.Automation.PSTypeName]'LogLevel').Type) {
+    Add-Type -TypeDefinition @"
     public enum LogLevel {
         Error = 0,
         Warning = 1,
@@ -61,6 +69,7 @@ Add-Type -TypeDefinition @"
         Trace = 4
     }
 "@
+}
 
 # Set default logging level
 $script:LoggingLevel = [LogLevel]::Info
@@ -75,11 +84,6 @@ function Write-ToolLog {
         [Parameter(Mandatory=$false)][switch]$NoConsole = $false,
         [Parameter(Mandatory=$false)][ConsoleColor]$ForegroundColor = [ConsoleColor]::White
     )
-    
-    # Skip if message level is higher than current logging level
-    if ([int]$Level -gt [int]$script:LoggingLevel) {
-        return
-    }
     
     # Format timestamp
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
@@ -97,18 +101,42 @@ function Write-ToolLog {
     # Format log message
     $logMessage = "[$timestamp] [$levelStr] $Message"
     
-    # Write to console if not suppressed
+    # Write to console if not suppressed and level is appropriate for console
     if (-not $NoConsole) {
-        Write-Host $logMessage -ForegroundColor $ForegroundColor
+        # Only show Debug/Trace messages on console if VerboseOutput/TraceOutput is enabled
+        $showOnConsole = $true
+        if ($Level -eq [LogLevel]::Debug -and -not $VerboseOutput) { $showOnConsole = $false }
+        if ($Level -eq [LogLevel]::Trace -and -not $TraceOutput) { $showOnConsole = $false }
+        
+        if ($showOnConsole) {
+            Write-Host $logMessage -ForegroundColor $ForegroundColor
+        }
     }
     
-    # Write to log file if enabled
-    if ($script:LoggingEnabled -and $script:LogFile) {
+    # Write to log file if enabled - always write all levels to log file
+    if ($script:LoggingEnabled -and $script:LogFile -and (Test-Path $script:LogFile)) {
         try {
             Add-Content -Path $script:LogFile -Value $logMessage -ErrorAction Stop
         }
         catch {
+            # If we fail to write to the log file, disable logging to prevent further errors
             Write-Host "Failed to write to log file: $_" -ForegroundColor Red
+            $script:LoggingEnabled = $false
+            
+            # Try to re-enable logging once
+            try {
+                $script:LogFile = Join-Path -Path (Split-Path -Path $script:LogFile -Parent) -ChildPath "ToolFetcher_recovery_$(Get-Date -Format 'yyyyMMdd_HHmmss').log"
+                $null = New-Item -Path $script:LogFile -ItemType File -Force
+                Add-Content -Path $script:LogFile -Value "[$timestamp] [WARNING] Previous log file became inaccessible, created recovery log" -ErrorAction Stop
+                Add-Content -Path $script:LogFile -Value $logMessage -ErrorAction Stop
+                $script:LoggingEnabled = $true
+                Write-Host "Created recovery log file: $($script:LogFile)" -ForegroundColor Yellow
+            }
+            catch {
+                Write-Host "Failed to create recovery log file: $_" -ForegroundColor Red
+                $script:LoggingEnabled = $false
+                $script:LogFile = $null
+            }
         }
     }
 }
@@ -130,30 +158,25 @@ function Log-Info {
 
 function Log-Debug {
     param ([string]$Message)
-    if ($VerboseOutput) {
-        Write-ToolLog -Message $Message -Level ([LogLevel]::Debug) -ForegroundColor DarkGray
-    }
+    # Always log debug messages to file, but only show on console if VerboseOutput is enabled
+    Write-ToolLog -Message $Message -Level ([LogLevel]::Debug) -ForegroundColor DarkGray
 }
 
 function Log-Trace {
     param ([string]$Message)
-    if ($TraceOutput) {
-        Write-ToolLog -Message $Message -Level ([LogLevel]::Trace) -ForegroundColor DarkGray
-    }
+    # Always log trace messages to file, but only show on console if TraceOutput is enabled
+    Write-ToolLog -Message $Message -Level ([LogLevel]::Trace) -ForegroundColor DarkGray
 }
 
 function Enable-FileLogging {
     param ([string]$LogPath)
-    
-    if ([string]::IsNullOrWhiteSpace($LogPath)) {
-        $LogPath = Join-Path -Path $PWD -ChildPath "ToolFetcher_$(Get-Date -Format 'yyyyMMdd_HHmmss').log"
-    }
     
     try {
         # Create directory if it doesn't exist
         $logDir = Split-Path -Path $LogPath -Parent
         if (-not [string]::IsNullOrWhiteSpace($logDir) -and -not (Test-Path -Path $logDir)) {
             New-Item -Path $logDir -ItemType Directory -Force | Out-Null
+            Log-Debug "Created log directory: $logDir"
         }
         
         # Test if we can write to the log file
@@ -162,10 +185,16 @@ function Enable-FileLogging {
         $script:LoggingEnabled = $true
         
         Log-Info "Logging enabled to file: $LogPath"
+        
+        # Write a test entry to verify we can write to the file
+        # Use Write-ToolLog instead of direct Add-Content to ensure consistent formatting
+        Log-Info "Logging initialized"
+        Log-Debug "Successfully wrote test entry to log file"
     }
     catch {
         Write-Host "Failed to enable logging to file: $_" -ForegroundColor Red
         $script:LoggingEnabled = $false
+        $script:LogFile = $null
     }
 }
 
@@ -450,14 +479,23 @@ if ($TraceOutput) {
 elseif ($VerboseOutput) {
     $script:LoggingLevel = [LogLevel]::Debug
 }
-
-# Enable file logging if requested
-if (-not [string]::IsNullOrWhiteSpace($LogFile)) {
-    Enable-FileLogging -LogPath $LogFile
+else {
+    # For file logging, always use Debug level to capture more information
+    $script:LoggingLevel = [LogLevel]::Debug
 }
 
-Log-Info "ToolFetcher v1.2.3 started"
-Log-Info "Log level set to: $($script:LoggingLevel)"
+# Enable file logging only if explicitly requested
+if ($Log) {
+    $script:LoggingEnabled = $true
+    Log-Debug "Logging to file is enabled by user request"
+}
+else {
+    $script:LoggingEnabled = $false
+    Log-Debug "Logging to file is disabled (use -Log to enable)"
+}
+
+Log-Info "ToolFetcher v$script:Version started"
+
 
 # -----------------------------------------------
 # Failsafe for ToolsFile
@@ -588,6 +626,13 @@ try {
     }
     $tools = $config.tools
 
+    # Setup logging after we have the tools directory
+    if ($Log) {
+        $logFilePath = Join-Path -Path $ToolsDirectory -ChildPath "ToolFetcher_$(Get-Date -Format 'yyyyMMdd_HHmmss').log"
+        Enable-FileLogging -LogPath $logFilePath
+        Log-Info "Log file will contain verbose information even though console output is normal"
+    }
+
     # Check if we should just list the tools and exit
     if ($ListTools) {
         # Add parameter to show detailed info
@@ -626,14 +671,35 @@ if ($PSBoundParameters.ContainsKey('Update')) {
 # -----------------------------------------------
 # Validate GitHub Personal Access Token (if provided)
 # -----------------------------------------------
+if ($PromptForPAT) {
+    Log-Info "Prompting for GitHub Personal Access Token..."
+    $secureString = Read-Host "Enter your GitHub Personal Access Token" -AsSecureString
+    $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureString)
+    try {
+        $GitHubPAT = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
+    } finally {
+        [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($BSTR)
+    }
+}
+
 if (-not [string]::IsNullOrEmpty($GitHubPAT)) {
     if (-not (Validate-GitHubPAT -Token $GitHubPAT)) {
         $choice = Read-Host "The provided GitHub PAT appears to be invalid. Would you like to enter a new token? (Y/N)"
         if ($choice -match '^(?i:Y(es)?)$') {
-            $GitHubPAT = Read-Host "Please enter a valid GitHub Personal Access Token"
+            $secureString = Read-Host "Please enter a valid GitHub Personal Access Token" -AsSecureString
+            $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureString)
+            try {
+                $GitHubPAT = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
+            } finally {
+                [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($BSTR)
+            }
+            
             if (-not (Validate-GitHubPAT -Token $GitHubPAT)) {
                 Write-Host "The provided token is still invalid. Exiting." -ForegroundColor Red
                 exit 1
+            }
+            else {
+                Log-Info "GitHub PAT validated successfully."
             }
         }
         else {
@@ -656,7 +722,14 @@ if ([string]::IsNullOrEmpty($ToolsDirectory)) {
 }
 if (-not (Test-Path -Path $ToolsDirectory)) {
     try {
-        New-Item -Path $ToolsDirectory -ItemType Directory -Force | Out-Null
+        # First check if the drive exists
+        $drive = [System.IO.Path]::GetPathRoot($ToolsDirectory)
+        if (-not [System.IO.Directory]::Exists($drive)) {
+            Log-Error "Drive '$drive' does not exist. Please specify a valid drive."
+            exit 1
+        }
+        
+        New-Item -Path $ToolsDirectory -ItemType Directory -Force -ErrorAction Stop | Out-Null
         Log-Info "Created tools directory: $ToolsDirectory"
     }
     catch {
@@ -776,8 +849,15 @@ function Get-FileManifest {
     foreach ($file in $files) {
         if ($file.Name -eq ".downloaded.json") { continue }
         $relativePath = $file.FullName.Substring($Folder.Length + 1)
-        $hash = (Get-FileHash -Algorithm MD5 -Path $file.FullName).Hash
-        $manifest[$relativePath] = $hash
+        try {
+            $hash = (Get-FileHash -Algorithm MD5 -Path $file.FullName -ErrorAction Stop).Hash
+            $manifest[$relativePath] = $hash
+        }
+        catch {
+            Log-Warning "Could not calculate hash for file: $($file.FullName). Error: $_"
+            # Still include the file in the manifest with a placeholder hash
+            $manifest[$relativePath] = "FILE_HASH_ERROR"
+        }
     }
     return $manifest
 }
@@ -819,100 +899,123 @@ function Write-MarkerFile {
 function Remove-ManagedFiles {
     param ([Parameter(Mandatory=$true)][string]$OutputFolder)
     $markerFile = Join-Path $OutputFolder ".downloaded.json"
-    Log-Info "Checking for marker file at: $markerFile"
+    Log-Debug "Checking for marker file at: $markerFile"
     
     if (Test-Path $markerFile) {
-        Log-Info "Marker file found, attempting to process it"
+        Log-Debug "Marker file found, attempting to process it"
         try {
             $metadata = Get-Content -Path $markerFile | ConvertFrom-Json
-            Log-Info "Marker file loaded successfully"
+            Log-Debug "Marker file loaded successfully"
             
             if ($metadata.Manifest) {
-                Log-Info "Manifest found in marker file with type: $($metadata.Manifest.GetType().FullName)"
+                Log-Debug "Manifest found in marker file with type: $($metadata.Manifest.GetType().FullName)"
                 
                 # Create a hashtable to track files by hash
                 $managedHashes = @{}
                 
                 # Handle PSCustomObject or Hashtable for Manifest
                 if ($metadata.Manifest -is [System.Management.Automation.PSCustomObject]) {
-                    Log-Info "Processing PSCustomObject manifest"
+                    Log-Debug "Processing PSCustomObject manifest"
                     # Convert PSCustomObject properties to hashtable entries
                     $propertyCount = ($metadata.Manifest.PSObject.Properties | Measure-Object).Count
-                    Log-Info "Found $propertyCount properties in PSCustomObject manifest"
+                    Log-Debug "Found $propertyCount properties in PSCustomObject manifest"
                     
                     $metadata.Manifest.PSObject.Properties | ForEach-Object {
-                        $managedHashes[$_.Value] = $_.Name
-                        Log-Info "Added hash mapping: $($_.Value) -> $($_.Name)"
+                        if ($null -ne $_.Value) {
+                            $managedHashes[$_.Value] = $_.Name
+                            Log-Debug "Added hash mapping: $($_.Value) -> $($_.Name)"
+                        }
+                        else {
+                            Log-Warning "Skipping null hash value for path: $($_.Name)"
+                        }
                     }
                 } 
                 else {
-                    Log-Info "Processing hashtable manifest"
+                    Log-Debug "Processing hashtable manifest"
                     # Original code for hashtable
                     $keyCount = ($metadata.Manifest.Keys | Measure-Object).Count
-                    Log-Info "Found $keyCount keys in hashtable manifest"
+                    Log-Debug "Found $keyCount keys in hashtable manifest"
                     
                     foreach ($relativePath in $metadata.Manifest.Keys) {
                         $hash = $metadata.Manifest.$relativePath
-                        $managedHashes[$hash] = $relativePath
-                        Log-Info "Added hash mapping: $hash -> $relativePath"
+                        if ($null -ne $hash) {
+                            $managedHashes[$hash] = $relativePath
+                            Log-Debug "Added hash mapping: $hash -> $relativePath"
+                        }
+                        else {
+                            Log-Warning "Skipping null hash value for path: $relativePath"
+                        }
                     }
                 }
                 
                 # Get all files in the directory
                 $currentFiles = Get-ChildItem -Path $OutputFolder -Recurse -File | 
-                    Where-Object { $_.Name -ne ".downloaded.json" }
+                    Where-Object { $_.Name -ne ".downloaded.json" -and -not ($_.Name -match "\.save\d+$") }
                 $fileCount = ($currentFiles | Measure-Object).Count
-                Log-Info "Found $fileCount files in output folder (excluding .downloaded.json)"
+                Log-Debug "Found $fileCount files in output folder (excluding .downloaded.json and .save# files)"
                 
                 foreach ($file in $currentFiles) {
                     $relativePath = $file.FullName.Substring($OutputFolder.Length + 1)
-                    Log-Info "Processing file: $relativePath"
+                    Log-Debug "Processing file: $relativePath"
                     
                     # Calculate the hash of the current file
-                    $currentHash = (Get-FileHash -Algorithm MD5 -Path $file.FullName).Hash
-                    Log-Info "File hash: $currentHash"
-                    
-                    # Check if this file is in our manifest (by hash)
-                    if ($managedHashes.ContainsKey($currentHash)) {
-                        # This is a managed file with unchanged content - remove it
-                        Log-Info "Hash match found, removing file: $($file.FullName)"
-                        Remove-Item -Path $file.FullName -Force -ErrorAction SilentlyContinue
-                        if (Test-Path $file.FullName) {
-                            Log-Warning "Failed to remove file: $($file.FullName)"
-                        } else {
-                            Log-Info "Successfully removed file: $($file.FullName)"
-                        }
-                    }
-                    # Check if the relative path exists in the manifest
-                    elseif (($metadata.Manifest -is [System.Management.Automation.PSCustomObject] -and 
-                             $metadata.Manifest.PSObject.Properties.Name -contains $relativePath) -or
-                            ($metadata.Manifest -is [System.Collections.IDictionary] -and 
-                             $metadata.Manifest.ContainsKey($relativePath))) {
-                        # This is a managed file with changed content - back it up
-                        Log-Info "Path match found, backing up modified file: $relativePath"
-                        $backupNumber = 1
-                        $backupPath = "$($file.FullName).save$backupNumber"
+                    try {
+                        $currentHash = (Get-FileHash -Algorithm MD5 -Path $file.FullName -ErrorAction Stop).Hash
+                        Log-Debug "File hash: $currentHash"
                         
-                        # Find an available backup name
-                        while (Test-Path $backupPath) {
-                            $backupNumber++
+                        # Check if this file is in our manifest (by hash)
+                        if ($managedHashes.ContainsKey($currentHash)) {
+                            # This is a managed file with unchanged content - remove it
+                            Log-Debug "Hash match found, removing file: $($file.FullName)"
+                            Remove-Item -Path $file.FullName -Force -ErrorAction SilentlyContinue
+                            if (Test-Path $file.FullName) {
+                                Log-Warning "Failed to remove file: $($file.FullName)"
+                            } else {
+                                Log-Debug "Successfully removed file: $($file.FullName)"
+                            }
+                        }
+                        # Check if the relative path exists in the manifest
+                        elseif (($metadata.Manifest -is [System.Management.Automation.PSCustomObject] -and 
+                                $metadata.Manifest.PSObject.Properties.Name -contains $relativePath) -or
+                                ($metadata.Manifest -is [System.Collections.IDictionary] -and 
+                                $metadata.Manifest.ContainsKey($relativePath))) {
+                            # This is a managed file with changed content - back it up
+                            Log-Debug "Path match found, backing up modified file: $relativePath"
+                            $backupNumber = 1
                             $backupPath = "$($file.FullName).save$backupNumber"
+                            
+                            # Find an available backup name
+                            while (Test-Path $backupPath) {
+                                $backupNumber++
+                                $backupPath = "$($file.FullName).save$backupNumber"
+                            }
+                            
+                            # Rename the file to the backup name
+                            $newName = Split-Path $backupPath -Leaf
+                            Log-Info "Backing up modified file: $relativePath > $newName"
+                            Rename-Item -Path $file.FullName -NewName $newName -Force
+                            if (Test-Path $backupPath) {
+                                Log-Debug "Successfully backed up file as: $newName"
+                            } else {
+                                Log-Warning "Failed to back up file: $($file.FullName)"
+                            }
                         }
-                        
-                        # Rename the file to the backup name
-                        $newName = Split-Path $backupPath -Leaf
-                        Log-Info "Renaming to: $newName"
-                        Rename-Item -Path $file.FullName -NewName $newName -Force
-                        if (Test-Path $backupPath) {
-                            Log-Info "Successfully backed up file as: $newName"
-                        } else {
-                            Log-Warning "Failed to back up file: $($file.FullName)"
+                        else {
+                            Log-Debug "File not in manifest, leaving untouched: $relativePath"
                         }
                     }
-                    else {
-                        Log-Info "File not in manifest, leaving untouched: $relativePath"
+                    catch {
+                        Log-Warning "Could not process file: $($file.FullName). Error: $_"
                     }
                     # Files not in the manifest are left untouched (user-added files)
+                }
+                
+                # Log count of .save# files if any exist
+                $saveFiles = Get-ChildItem -Path $OutputFolder -Recurse -File | 
+                    Where-Object { $_.Name -match "\.save\d+$" }
+                $saveFileCount = ($saveFiles | Measure-Object).Count
+                if ($saveFileCount -gt 0) {
+                    Log-Debug "Found $saveFileCount backup (.save#) files in output folder. Skipping managed file removal for these files"
                 }
             }
             else {
@@ -920,12 +1023,12 @@ function Remove-ManagedFiles {
             }
             
             # Always remove the marker file
-            Log-Info "Removing marker file: $markerFile"
+            Log-Debug "Removing marker file: $markerFile"
             Remove-Item -Path $markerFile -Force -ErrorAction SilentlyContinue
             if (Test-Path $markerFile) {
                 Log-Warning "Failed to remove marker file: $markerFile"
             } else {
-                Log-Info "Successfully removed marker file: $markerFile"
+                Log-Debug "Successfully removed marker file: $markerFile"
             }
         }
         catch {
@@ -933,7 +1036,7 @@ function Remove-ManagedFiles {
         }
     }
     else {
-        Log-Info "No marker file found in $OutputFolder. No managed files to remove."
+        Log-Debug "No marker file found in $OutputFolder. No managed files to remove."
     }
 }
 
@@ -1099,19 +1202,31 @@ function Initialize-OutputFolder {
         [Parameter(Mandatory=$true)][string]$ToolsDirectory
     )
     
-    if (-not [string]::IsNullOrEmpty($ToolConfig.OutputFolder)) {
-        $outputFolder = Join-Path -Path $ToolsDirectory -ChildPath (Join-Path $ToolConfig.OutputFolder $ToolConfig.Name)
-    }
-    else {
-        $outputFolder = Join-Path -Path $ToolsDirectory -ChildPath $ToolConfig.Name
-    }
-    
-    if (-not (Test-Path -Path $outputFolder)) {
-        New-Item -Path $outputFolder -ItemType Directory | Out-Null
-        Log-Debug "Created output folder: $outputFolder"
+    # First check if the tools directory exists
+    if (-not [System.IO.Directory]::Exists($ToolsDirectory)) {
+        Log-Error "Tools directory '$ToolsDirectory' does not exist. Cannot create output folder for $($ToolConfig.Name)."
+        return $null
     }
     
-    return $outputFolder
+    try {
+        if (-not [string]::IsNullOrEmpty($ToolConfig.OutputFolder)) {
+            $outputFolder = Join-Path -Path $ToolsDirectory -ChildPath (Join-Path $ToolConfig.OutputFolder $ToolConfig.Name)
+        }
+        else {
+            $outputFolder = Join-Path -Path $ToolsDirectory -ChildPath $ToolConfig.Name
+        }
+        
+        if (-not (Test-Path -Path $outputFolder)) {
+            New-Item -Path $outputFolder -ItemType Directory -Force -ErrorAction Stop | Out-Null
+            Log-Debug "Created output folder: $outputFolder"
+        }
+        
+        return $outputFolder
+    }
+    catch {
+        Log-Error "Failed to create output folder for $($ToolConfig.Name). Exception: $_"
+        return $null
+    }
 }
 
 # Helper function to get GitHub API headers
@@ -1146,6 +1261,10 @@ function Download-SpecificFileTool {
     $extract = Get-DefaultValue -Tool $ToolConfig -Parameter "Extract" -DefaultValue $true
     
     $outputFolder = Initialize-OutputFolder -ToolConfig $ToolConfig -ToolsDirectory $ToolsDirectory
+    if ($null -eq $outputFolder) {
+        Log-Error "Cannot process tool $($ToolConfig.Name) due to output folder initialization failure."
+        return
+    }
     
     # Construct the file URL
     if ($ToolConfig.ContainsKey("SpecificFilePath") -and -not [string]::IsNullOrEmpty($ToolConfig.SpecificFilePath)) {
@@ -1184,14 +1303,14 @@ function Download-SpecificFileTool {
                 return
             }
             
-            Process-ExtractedZip -Staging $staging -OutputFolder $outputFolder -ToolConfig $ToolConfig -DownloadUrl $fileUrl
+            Process-ExtractedZip -Staging $staging -OutputFolder $outputFolder -ToolConfig $ToolConfig -DownloadUrl $fileUrl | Out-Null
         }
         else {
-            Process-ZipFileNoExtract -ZipUrl $fileUrl -OutputFolder $outputFolder -ToolConfig $ToolConfig -Headers $headers
+            Process-ZipFileNoExtract -ZipUrl $fileUrl -OutputFolder $outputFolder -ToolConfig $ToolConfig -Headers $headers | Out-Null
         }
     }
     else {
-        Process-NonZipFile -FileUrl $fileUrl -OutputFolder $outputFolder -ToolConfig $ToolConfig -Headers $headers
+        Process-NonZipFile -FileUrl $fileUrl -OutputFolder $outputFolder -ToolConfig $ToolConfig -Headers $headers | Out-Null
     }
 }
 
@@ -1217,6 +1336,11 @@ function Download-BranchZipTool {
     Log-Info "Downloading branch zip for $($ToolConfig.Name)..."
     
     $outputFolder = Initialize-OutputFolder -ToolConfig $ToolConfig -ToolsDirectory $ToolsDirectory
+    if ($null -eq $outputFolder) {
+        Log-Error "Cannot process tool $($ToolConfig.Name) due to output folder initialization failure."
+        return
+    }
+    
     $headers = Get-GitHubHeaders -GitHubPAT $GitHubPAT
     
     if ($extract) {
@@ -1233,10 +1357,10 @@ function Download-BranchZipTool {
             return
         }
         
-        Process-ExtractedZip -Staging $staging -OutputFolder $outputFolder -ToolConfig $ToolConfig -DownloadUrl $zipUrl -Version $branch
+        Process-ExtractedZip -Staging $staging -OutputFolder $outputFolder -ToolConfig $ToolConfig -DownloadUrl $zipUrl -Version $branch | Out-Null
     }
     else {
-        Process-ZipFileNoExtract -ZipUrl $zipUrl -OutputFolder $outputFolder -ToolConfig $ToolConfig -Version $branch -Headers $headers
+        Process-ZipFileNoExtract -ZipUrl $zipUrl -OutputFolder $outputFolder -ToolConfig $ToolConfig -Version $branch -Headers $headers | Out-Null
     }
 }
 
@@ -1304,6 +1428,10 @@ function Download-LatestReleaseTool {
     $asset = $assets | Select-Object -First 1
     if ($asset) {
         $outputFolder = Initialize-OutputFolder -ToolConfig $ToolConfig -ToolsDirectory $ToolsDirectory
+        if ($null -eq $outputFolder) {
+            Log-Error "Cannot process tool $($ToolConfig.Name) due to output folder initialization failure."
+            return
+        }
         
         $downloadUrl = $asset.browser_download_url
         $fileName = Split-Path $downloadUrl -Leaf
@@ -1324,14 +1452,14 @@ function Download-LatestReleaseTool {
                     return
                 }
                 
-                Process-ExtractedZip -Staging $staging -OutputFolder $outputFolder -ToolConfig $ToolConfig -DownloadUrl $downloadUrl -Version $releaseInfo.tag_name
+                Process-ExtractedZip -Staging $staging -OutputFolder $outputFolder -ToolConfig $ToolConfig -DownloadUrl $downloadUrl -Version $releaseInfo.tag_name | Out-Null
             }
             else {
-                Process-ZipFileNoExtract -ZipUrl $downloadUrl -OutputFolder $outputFolder -ToolConfig $ToolConfig -Version $releaseInfo.tag_name -Headers $headers
+                Process-ZipFileNoExtract -ZipUrl $downloadUrl -OutputFolder $outputFolder -ToolConfig $ToolConfig -Version $releaseInfo.tag_name -Headers $headers | Out-Null
             }
         }
         else {
-            Process-NonZipFile -FileUrl $downloadUrl -OutputFolder $outputFolder -ToolConfig $ToolConfig -Version $releaseInfo.tag_name -Headers $headers
+            Process-NonZipFile -FileUrl $downloadUrl -OutputFolder $outputFolder -ToolConfig $ToolConfig -Version $releaseInfo.tag_name -Headers $headers | Out-Null
         }
     }
     else {
@@ -1357,6 +1485,10 @@ function Download-GitCloneTool {
     $branch = Get-DefaultValue -Tool $ToolConfig -Parameter "Branch" -DefaultValue "master"
     
     $outputFolder = Initialize-OutputFolder -ToolConfig $ToolConfig -ToolsDirectory $ToolsDirectory
+    if ($null -eq $outputFolder) {
+        Log-Error "Cannot process tool $($ToolConfig.Name) due to output folder initialization failure."
+        return
+    }
     
     # Extract owner and repo from URL
     Log-Trace "Extracting owner and repo from URL: $($ToolConfig.RepoUrl)"
@@ -1458,86 +1590,98 @@ function Download-GitCloneTool {
 # -----------------------------------------------
 # Dispatcher: Loop Through Tools and Process
 # -----------------------------------------------
-foreach ($tool in $tools) {
-    if (-not [string]::IsNullOrEmpty($tool.OutputFolder)) {
-        $toolOutputFolder = Join-Path -Path $ToolsDirectory -ChildPath (Join-Path $tool.OutputFolder $tool.Name)
-    }
-    else {
-        $toolOutputFolder = Join-Path -Path $ToolsDirectory -ChildPath $tool.Name
-    }
-    $markerFile = Join-Path $toolOutputFolder ".downloaded.json"
-    
-    $processTool = $false
+# First check if the tools directory exists
+if (-not [System.IO.Directory]::Exists($ToolsDirectory)) {
+    Log-Error "Tools directory '$ToolsDirectory' does not exist. Cannot process any tools."
+    exit 1
+}
 
-    if ($PSBoundParameters.ContainsKey('Update')) {
-        if ($updateMode -eq "specific") {
-            if ($updateToolList -contains $tool.Name.ToLower()) {
-                $processTool = $true
-                Write-Host "===========================================" -ForegroundColor White
-                Log-Info "Updating tool: $($tool.Name)"
-                if ((Test-Path $toolOutputFolder) -and (Test-Path $markerFile)) {
-                    Log-Info "Update: Removing previous files for $($tool.Name)."
-                    Remove-ManagedFiles -OutputFolder $toolOutputFolder
-                }
-            }
+foreach ($tool in $tools) {
+    try {
+        if (-not [string]::IsNullOrEmpty($tool.OutputFolder)) {
+            $toolOutputFolder = Join-Path -Path $ToolsDirectory -ChildPath (Join-Path $tool.OutputFolder $tool.Name)
         }
         else {
-            if ($ForceDownload -or (-not $tool.skipdownload)) {
-                $processTool = $true
-                Write-Host "===========================================" -ForegroundColor White
-                Log-Info "Downloading tool: $($tool.Name)"
-                if ((Test-Path $toolOutputFolder) -and (Test-Path $markerFile)) {
-                    Log-Info "Update: Removing previous files for $($tool.Name)."
-                    Remove-ManagedFiles -OutputFolder $toolOutputFolder
-                }
-                else {
-                    Log-Info "Update: No marker file found for $($tool.Name); preserving user files."
-                }
-            }
+            $toolOutputFolder = Join-Path -Path $ToolsDirectory -ChildPath $tool.Name
         }
-    }
-    else {
-        if ($ForceDownload) {
-            $processTool = $true
-            Write-Host "===========================================" -ForegroundColor White
-            Log-Info "Force downloading $($tool.Name)..."
-        }
-        else {
-            if ($tool.skipdownload) {
-                Log-Info "Skipping $($tool.Name) -- skipdownload is enabled."
-            }
-            elseif (Test-Path $markerFile) {
-                Log-Info "Skipping $($tool.Name) -- already downloaded."
+        $markerFile = Join-Path $toolOutputFolder ".downloaded.json"
+        
+        $processTool = $false
+
+        if ($PSBoundParameters.ContainsKey('Update')) {
+            if ($updateMode -eq "specific") {
+                if ($updateToolList -contains $tool.Name.ToLower()) {
+                    $processTool = $true
+                    Write-Host "===========================================" -ForegroundColor White
+                    Log-Info "Updating tool: $($tool.Name)"
+                    if ((Test-Path $toolOutputFolder) -and (Test-Path $markerFile)) {
+                        Log-Debug "Update: Removing previous files for $($tool.Name)."
+                        Remove-ManagedFiles -OutputFolder $toolOutputFolder
+                    }
+                }
             }
             else {
-                $processTool = $true
-                Write-Host "===========================================" -ForegroundColor White
-                Log-Info "Started working on $($tool.Name)..."
+                if ($ForceDownload -or (-not $tool.skipdownload)) {
+                    $processTool = $true
+                    Write-Host "===========================================" -ForegroundColor White
+                    Log-Info "Downloading tool: $($tool.Name)"
+                    if ((Test-Path $toolOutputFolder) -and (Test-Path $markerFile)) {
+                        Log-Debug "Update: Removing previous files for $($tool.Name)."
+                        Remove-ManagedFiles -OutputFolder $toolOutputFolder
+                    }
+                    else {
+                        Log-Debug "Update: No marker file found for $($tool.Name); preserving user files."
+                    }
+                }
             }
         }
+        else {
+            if ($ForceDownload) {
+                $processTool = $true
+                Write-Host "===========================================" -ForegroundColor White
+                Log-Info "Force downloading $($tool.Name)..."
+            }
+            else {
+                if ($tool.skipdownload) {
+                    Log-Info "Skipping $($tool.Name) -- skipdownload is enabled."
+                }
+                elseif (Test-Path $markerFile) {
+                    Log-Info "Skipping $($tool.Name) -- already downloaded."
+                }
+                else {
+                    $processTool = $true
+                    Write-Host "===========================================" -ForegroundColor White
+                    Log-Info "Started working on $($tool.Name)..."
+                }
+            }
+        }
+        
+        if (-not $processTool) { continue }
+        
+        switch ($tool.DownloadMethod) {
+            "gitClone" {
+                Download-GitCloneTool -ToolConfig $tool -ToolsDirectory $ToolsDirectory
+            }
+            "latestRelease" {
+                Download-LatestReleaseTool -ToolConfig $tool -ToolsDirectory $ToolsDirectory -GitHubPAT $GitHubPAT
+            }
+            "branchZip" {
+                Download-BranchZipTool -ToolConfig $tool -ToolsDirectory $ToolsDirectory -GitHubPAT $GitHubPAT
+            }
+            "specificFile" {
+                Download-SpecificFileTool -ToolConfig $tool -ToolsDirectory $ToolsDirectory -GitHubPAT $GitHubPAT
+            }
+            default {
+                Log-Error "Download method '$($tool.DownloadMethod)' not recognized for $($tool.Name)."
+            }
+        }
+        Log-Info "Finished working on $($tool.Name)."
+        Write-Host "===========================================" -ForegroundColor White
     }
-    
-    if (-not $processTool) { continue }
-    
-    switch ($tool.DownloadMethod) {
-        "gitClone" {
-            Download-GitCloneTool -ToolConfig $tool -ToolsDirectory $ToolsDirectory
-        }
-        "latestRelease" {
-            Download-LatestReleaseTool -ToolConfig $tool -ToolsDirectory $ToolsDirectory -GitHubPAT $GitHubPAT
-        }
-        "branchZip" {
-            Download-BranchZipTool -ToolConfig $tool -ToolsDirectory $ToolsDirectory -GitHubPAT $GitHubPAT
-        }
-        "specificFile" {
-            Download-SpecificFileTool -ToolConfig $tool -ToolsDirectory $ToolsDirectory -GitHubPAT $GitHubPAT
-        }
-        default {
-            Log-Error "Download method '$($tool.DownloadMethod)' not recognized for $($tool.Name)."
-        }
+    catch {
+        Log-Error "Failed to process tool $($tool.Name). Exception: $_"
+        continue
     }
-    Log-Info "Finished working on $($tool.Name)."
-    Write-Host "===========================================" -ForegroundColor White
 }
 
 # -----------------------------------------------
@@ -1723,11 +1867,15 @@ function Add-ConfigurationDefaults {
 .PARAMETER TraceOutput
     Show very detailed trace information during execution (most verbose).
 
-.PARAMETER LogFile
-    Path to a log file where all output will be saved. If not specified, logging to file is disabled.
+.PARAMETER Log
+    Enable logging to a file. When specified, a log file will be automatically created in the tools directory
+    with a timestamp in the filename.
 
 .PARAMETER GitHubPAT
     GitHub Personal Access Token to use for API requests to avoid rate limiting.
+
+.PARAMETER PromptForPAT
+    Prompt for GitHub Personal Access Token securely (token will not be visible or stored in command history)
 
 .PARAMETER ListTools
     Lists all available tools defined in the YAML configuration file.
@@ -1770,23 +1918,30 @@ function Add-ConfigurationDefaults {
     Lists all tools with detailed information including URLs, branches, and other settings.
 
 .EXAMPLE
-    PS> .\ToolFetcher.ps1 -VerboseOutput -LogFile "toolfetcher.log"
+    PS> .\ToolFetcher.ps1 -Log
     
-    Runs with detailed logging and saves all output to the specified log file.
+    Runs with logging enabled and saves all output to a timestamped log file in the tools directory.
 
 .EXAMPLE
     PS> .\ToolFetcher.ps1 -GitHubPAT "ghp_1234567890abcdef"
     
     Uses a GitHub Personal Access Token to avoid API rate limiting when downloading from GitHub.
+    Note: This method exposes your token in command history and process listings.
 
 .EXAMPLE
     PS> .\ToolFetcher.ps1 -ToolsFile "https://raw.githubusercontent.com/kev365/ToolFetcher/main/tools.yaml"
     
     Uses a remote YAML configuration file instead of a local one.
 
+.EXAMPLE
+    PS> .\ToolFetcher.ps1 -PromptForPAT
+    
+    Prompts for a GitHub Personal Access Token securely. The token will not be visible when typing
+    and will not be stored in command history.
+
 .NOTES
     Author: Kevin Stokes
-    Version: 1.2.3
+    Version: $script:Version
     
     Requirements:
     - PowerShell 5.1 or higher
