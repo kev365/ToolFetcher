@@ -156,29 +156,21 @@ SkipDownload: false   # Whether to skip downloading this tool (default: false)
 ToolFetcher provides comprehensive error handling and user guidance:
 
 - YAML syntax validation with helpful error messages
-- GitHub API error handling with rate limit awareness
+- GitHub API error handling
 - File system operation error handling
 - Network connectivity error handling
 - Detailed logging for troubleshooting
 
 ## Future Considerations
 
-- **Parallel Downloading:**  
+- **Parallel Download and Extraction:**  
   Separate download and extraction processes for improved performance.
   
 - **Additional Archive Formats:**  
   Expand support beyond ZIP archives to include other formats.
 
-- **Enhanced Multi-Platform Support:**  
-  Consider additional features for managing tools in WSL and Linux environments.
-
-## Limitations
-
 - **Non-GitHub Support:**  
-  The focus is primarily on GitHub-based downloads.
-
-- **Archive Extraction:**  
-  Currently supports only ZIP archives for automatic extraction.
+  Current focus is primarily on GitHub-based downloads.
 
 ## License
 
