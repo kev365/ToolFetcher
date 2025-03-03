@@ -366,11 +366,15 @@ function Test-ToolEntry {
             }
             "specificFile" {
                 # Don't require SpecificFilePath or DownloadName if SkipDownload is true
+                # or if RepoUrl is a direct file URL (not a GitHub repository URL)
+                # or if RepoUrl is a GitHub URL that points directly to a file in the releases section
                 if (-not $Tool.SkipDownload -and 
                     -not (Test-RequiredParameter -Tool $Tool -Parameter "SpecificFilePath") -and 
-                    -not (Test-RequiredParameter -Tool $Tool -Parameter "DownloadName")) {
+                    -not (Test-RequiredParameter -Tool $Tool -Parameter "DownloadName") -and
+                    ($Tool.RepoUrl -like "https://github.com/*") -and
+                    (-not ($Tool.RepoUrl -like "https://github.com/*/releases/*"))) {
                     $isValid = $false
-                    $errors += "For 'specificFile' method, either 'SpecificFilePath' or 'DownloadName' must be specified when SkipDownload is not true"
+                    $errors += "For 'specificFile' method with GitHub repositories, either 'SpecificFilePath' or 'DownloadName' must be specified when SkipDownload is not true"
                 }
             }
             default {
@@ -591,12 +595,20 @@ else {
 }
 
 if (-not (Get-Module -ListAvailable -Name powershell-yaml)) {
-    Write-Host "[INFO] The 'powershell-yaml' module is not installed. Attempting to install it..." -ForegroundColor Cyan
-    try {
-        Install-Module -Name powershell-yaml -Scope CurrentUser -Force -AllowClobber
+    Log-Info "The 'powershell-yaml' module is required to parse YAML configuration files."
+    $choice = Read-Host "Would you like to install the 'powershell-yaml' module? (Y/N)"
+    if ($choice -match '^(?i:Y(es)?)$') {
+        Log-Info "Attempting to install the 'powershell-yaml' module..."
+        try {
+            Install-Module -Name powershell-yaml -Scope CurrentUser -Force -AllowClobber
+        }
+        catch {
+            Log-Error "Failed to install the 'powershell-yaml' module. Exception: $_"
+            exit 1
+        }
     }
-    catch {
-        Log-Error "Failed to install the 'powershell-yaml' module. Exception: $_"
+    else {
+        Log-Error "The 'powershell-yaml' module is required to continue. Exiting script."
         exit 1
     }
 }
@@ -630,7 +642,6 @@ try {
     if ($Log) {
         $logFilePath = Join-Path -Path $ToolsDirectory -ChildPath "ToolFetcher_$(Get-Date -Format 'yyyyMMdd_HHmmss').log"
         Enable-FileLogging -LogPath $logFilePath
-        Log-Info "Log file will contain verbose information even though console output is normal"
     }
 
     # Check if we should just list the tools and exit
@@ -647,6 +658,12 @@ try {
 }
 catch {
     Log-Error "Failed to parse YAML configuration from $ToolsFile. Exception: $_"
+    Log-Error "Please check your YAML file for syntax errors such as:"
+    Log-Error "  - Missing or mismatched quotes"
+    Log-Error "  - Incorrect indentation"
+    Log-Error "  - Missing colons after property names"
+    Log-Error "  - Invalid characters in property names"
+    Log-Error "You can use an online YAML validator to help identify syntax issues."
     exit 1
 }
 
@@ -1772,8 +1789,10 @@ function Test-ToolEntry {
                 }
             }
             "specificFile" {
-                if (-not $Tool.ContainsKey("SpecificFilePath") -and $Tool.RepoUrl -like "https://github.com/*") {
-                    $errors += "Tool '$($Tool.name)' with DownloadMethod 'specificFile' must specify SpecificFilePath for GitHub repositories"
+                if (-not $Tool.ContainsKey("SpecificFilePath") -and $Tool.RepoUrl -like "https://github.com/*" -and 
+                    (-not $Tool.RepoUrl -like "https://github.com/*/releases/*") -and
+                    (-not $Tool.ContainsKey("SkipDownload") -or -not $Tool.SkipDownload)) {
+                    $errors += "Tool '$($Tool.name)' with DownloadMethod 'specificFile' must specify SpecificFilePath for GitHub repositories when SkipDownload is not true"
                 }
             }
             "branchZip" {
