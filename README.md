@@ -44,7 +44,7 @@ ToolFetcher is a PowerShell tool designed to fetch and manage a collection of DF
 - **PowerShell:** Version 5.1 or later (or PowerShell Core)
 - **Internet Connection:** Required for downloading tools and GitHub API access
 - **powershell-yaml Module:**  
-  This module is required to parse the external YAML configuration file. The script automatically checks for and installs it if necessary.
+  This module is required to parse the external YAML configuration file. The script automatically checks for and installs it if requested.
 
 ## Configuration & Parameters
 
