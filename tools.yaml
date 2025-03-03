@@ -1,4 +1,4 @@
-tooldirectory: "" # Must escape any backslashes. Example: "C:\\Tools"
+tooldirectory: "" # Must escape any backslashes
 tools:
   # Documentation: https://dfir-kev.medium.com/tool-fetcher-499c99aaa9fa
   # -Template-
@@ -6,27 +6,27 @@ tools:
   # RepoUrl: ""           # URL goes here
   # DownloadMethod: ""    # Options: gitClone | latestRelease | branchZip | specificFile
   # OutputFolder: ""      # Appends a subdirectory to $toolsFolder
-  # Branch: ""            # Defaults to master if not provided
-  # DownloadName: ""      # Used to download a particular file from the from the latestRelease
-  # AssetFilename: ""     # same as DownloadName, may be removed
-  # AssetType: ""         # Options: win64 | win32 | linux | macos
-  # SpecificFilePath: ""  # Optional: Used with the 'specificFile" DownloadMethod.
-  # Extract:              # Options: true | false (default is $true)
-  # SkipDownload:         # Options: true | false (default is $false)
+  # Branch: ""            # Defaults to master if not provided, also checks main if master is not available
+  # DownloadName: ""      # Used to download a particular file from the latestRelease
+  # AssetFilename: ""     # Used to specify exact filename to download from latestRelease (supports regex)
+  # AssetType: ""         # Options: win64 | win32 | linux64 | linux32 | macos64 | macos32 | arm64 | arm32
+  # SpecificFilePath: ""  # Used with the 'specificFile' DownloadMethod to specify file path in repository
+  # Extract: true         # Whether to extract the downloaded file (default: true)
+  # SkipDownload: false   # Whether to skip downloading this tool (default: false)
 
   - Name: "SQLECmd"
     RepoUrl: "https://download.ericzimmermanstools.com/net6/SQLECmd.zip" # .Net6
     # RepoUrl: "https://download.ericzimmermanstools.com/net9/SQLECmd.zip" # .Net9
     DownloadMethod: "specificFile"
     OutputFolder: "Database"
-    SkipDownload: false
+    SkipDownload: true
 
   - Name: "JLECmd"
     RepoUrl: "https://download.ericzimmermanstools.com/net6/JLECmd.zip" # .Net6
     # RepoUrl: "https://download.ericzimmermanstools.com/net9/JLECmd.zip" # .Net9
     DownloadMethod: "specificFile"
     OutputFolder: "LNK-JMP"
-    SkipDownload: false
+    SkipDownload: true
 
   - Name: "JumpListExplorer"
     RepoUrl: "https://download.ericzimmermanstools.com/net6/JumpListExplorer.zip" # .Net6
@@ -40,7 +40,7 @@ tools:
     # RepoUrl: "https://download.ericzimmermanstools.com/net9/LECmd.zip" # .Net9
     DownloadMethod: "specificFile"
     OutputFolder: "LNK-JMP"
-    SkipDownload: false
+    SkipDownload: true
 
   - Name: "EZViewer"
     RepoUrl: "https://download.ericzimmermanstools.com/net6/EZViewer.zip" # .Net6
@@ -53,6 +53,7 @@ tools:
     RepoUrl: "https://download.ericzimmermanstools.com/hasher.zip" # .Net4
     DownloadMethod: "specificFile"
     OutputFolder: "MISC"
+    DownloadName: "hasher.zip"
     SkipDownload: true
 
   - Name: "iisGeolocate"
@@ -129,7 +130,7 @@ tools:
     DownloadMethod: "latestRelease"
     DownloadName: "rusty_usn-v1.5.0-x86_64-pc-windows-msvc.zip"
     OutputFolder: "NTFS"
-    SkipDownload: true
+    SkipDownload: false
 
   - Name: "PECmd"
     RepoUrl: "https://download.ericzimmermanstools.com/net6/PECmd.zip" # .Net6
@@ -163,13 +164,13 @@ tools:
     RepoUrl: "https://github.com/Beercow/SEPparser/releases/latest/download/SEPparser.exe"
     DownloadMethod: "specificFile"
     OutputFolder: "SymantecLogs"
-    SkipDownload: false
+    SkipDownload: true
 
   - Name: "SEPparser_gui"
     RepoUrl: "https://github.com/Beercow/SEPparser/releases/latest/download/SEPparser_GUI.exe"
     DownloadMethod: "specificFile"
     OutputFolder: "SymantecLogs"
-    SkipDownload: false
+    SkipDownload: true
 
   - Name: "VSCMount"
     RepoUrl: "https://download.ericzimmermanstools.com/net6/VSCMount.zip" # .Net6
@@ -212,7 +213,7 @@ tools:
     SpecificFilePath: "/raw/refs/heads/main/dhparser.exe"
     DownloadName: "dhparser.exe"
     OutputFolder: "WinDefender"
-    SkipDownload: true
+    SkipDownload: false
 
   - Name: "APT-Hunter"
     RepoUrl: "https://github.com/ahmedkhlief/APT-Hunter"
@@ -296,7 +297,7 @@ tools:
     DownloadMethod: "latestRelease"
     DownloadName: "reg_hunter.exe"
     OutputFolder: "WinRegistry"
-    SkipDownload: false
+    SkipDownload: true
 
   - Name: "RegRipper3.0"
     RepoUrl: "https://github.com/keydet89/RegRipper3.0"
@@ -338,7 +339,7 @@ tools:
     DownloadMethod: "latestRelease"
     DownloadName: "sidr.exe"
     OutputFolder: "WinSearchIndex"
-    SkipDownload: false
+    SkipDownload: true
 
   - Name: "WMI-Parser"
     RepoUrl: "https://github.com/AndrewRathbun/WMI-Parser"
