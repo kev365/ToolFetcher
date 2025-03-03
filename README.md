@@ -123,7 +123,7 @@ SkipDownload: false   # Whether to skip downloading this tool (default: false)
 
 4. **Update Specific Tools:**
    ```powershell
-   .\ToolFetcher.ps1 -Update "LECmd","JLECmd"
+   .\ToolFetcher.ps1 -Update "LECmd","JLECmd","KStrike"
    ```
 
 5. **Force Re-download:**
