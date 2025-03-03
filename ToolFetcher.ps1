@@ -11,11 +11,11 @@
 # Enable advanced functions with cmdlet binding.
 [CmdletBinding()]
 param (
-    [Parameter(HelpMessage = 'Path to the YAML file containing tool definitions.')]
+    [Parameter(HelpMessage = 'Path to the YAML file containing tool definitions. Can be local or remote URL.')]
     [Alias('f')]
     [string]$ToolsFile = "tools.yaml",
     
-    [Parameter(HelpMessage = 'Directory where tools will be downloaded.')]
+    [Parameter(HelpMessage = 'Directory where tools will be downloaded and extracted.')]
     [Alias('d')]
     [string]$ToolsDirectory = "",
     
@@ -32,7 +32,7 @@ param (
     [switch]$VerboseOutput = $false,
     
     [Parameter(HelpMessage = 'Show trace-level output (most detailed)')]
-    [Alias('vv')]
+    [Alias('to')]
     [switch]$TraceOutput = $false,
     
     [Parameter(HelpMessage = 'Enable logging to a file. A log file will be created in the tools directory.')]
@@ -1865,40 +1865,58 @@ function Add-ConfigurationDefaults {
     - branchZip: Downloads a specific branch as a ZIP file
     - specificFile: Downloads a specific file from a URL
 
+    Each tool's configuration is defined in a YAML file that supports:
+    - Multiple download methods
+    - Custom output folders
+    - Asset type filtering (win64, win32, linux64, etc.)
+    - Skip download options
+    - Extraction control
+    - Branch selection
+
 .PARAMETER ToolsFile
     Path to the YAML file containing tool definitions.
+    Can be a local file path or a URL to a remote YAML file.
     Default: "tools.yaml" in the same directory as the script.
 
 .PARAMETER ToolsDirectory
     Directory where tools will be downloaded and extracted.
     If not specified, the value from the YAML file will be used.
+    If neither is specified, you will be prompted to enter a directory.
 
 .PARAMETER ForceDownload
     Force download of all tools, even if they have been previously downloaded.
+    This will overwrite existing tool directories completely.
 
 .PARAMETER Update
     Check for updates to previously downloaded tools and download newer versions if available.
     If you supply one or more tool names (comma-separated), then only those tools will be updated.
+    Updates preserve user modifications by only removing managed files (tracked in .downloaded.json).
 
 .PARAMETER VerboseOutput
     Show detailed debug information during execution.
+    Includes additional details about download operations, file processing, and configuration.
 
 .PARAMETER TraceOutput
     Show very detailed trace information during execution (most verbose).
+    Includes low-level details about file operations, API calls, and internal processing.
 
 .PARAMETER Log
     Enable logging to a file. When specified, a log file will be automatically created in the tools directory
-    with a timestamp in the filename.
+    with a timestamp in the filename. All operations will be logged regardless of console output level.
 
 .PARAMETER GitHubPAT
     GitHub Personal Access Token to use for API requests to avoid rate limiting.
+    WARNING: This method exposes your token in command history and process listings.
+    For better security, use -PromptForPAT instead.
 
 .PARAMETER PromptForPAT
-    Prompt for GitHub Personal Access Token securely (token will not be visible or stored in command history)
+    Prompt for GitHub Personal Access Token securely. The token will not be visible when typing
+    and will not be stored in command history. Recommended over -GitHubPAT for security.
 
 .PARAMETER ListTools
     Lists all available tools defined in the YAML configuration file.
     Use with -VerboseOutput to see detailed information about each tool.
+    This option only displays the tools and exits without downloading anything.
 
 .EXAMPLE
     PS> .\ToolFetcher.ps1
@@ -1915,6 +1933,7 @@ function Add-ConfigurationDefaults {
     PS> .\ToolFetcher.ps1 -Update
     
     Updates all previously downloaded tools that are not marked with SkipDownload.
+    Preserves any user modifications to the tools.
 
 .EXAMPLE
     PS> .\ToolFetcher.ps1 -Update "LECmd","JLECmd"
@@ -1925,6 +1944,7 @@ function Add-ConfigurationDefaults {
     PS> .\ToolFetcher.ps1 -ForceDownload
     
     Forces re-download of all tools, overwriting existing directories.
+    Use with caution as this will remove all existing tool files.
 
 .EXAMPLE
     PS> .\ToolFetcher.ps1 -ListTools
@@ -1958,6 +1978,16 @@ function Add-ConfigurationDefaults {
     Prompts for a GitHub Personal Access Token securely. The token will not be visible when typing
     and will not be stored in command history.
 
+.EXAMPLE
+    PS> .\ToolFetcher.ps1 -VerboseOutput -Log
+    
+    Runs with both verbose output and logging enabled for maximum debugging information.
+
+.EXAMPLE
+    PS> .\ToolFetcher.ps1 -ForceDownload -Update
+    
+    Forces re-download of all tools while preserving user modifications through the update process.
+
 .NOTES
     Author: Kevin Stokes
     Version: $script:Version
@@ -1966,5 +1996,20 @@ function Add-ConfigurationDefaults {
     - PowerShell 5.1 or higher
     - Internet connection
     - PowerShell-yaml module (will be installed if missing)
+
+    Features:
+    - Automatic module installation
+    - YAML configuration support
+    - Multiple download methods
+    - Update management
+    - File manifest tracking
+    - Detailed logging
+    - GitHub API rate limit handling
+    - Secure token input
+    - Cross-platform asset support
+
+    For more information, visit:
+    https://github.com/kev365/ToolFetcher
+    https://dfir-kev.medium.com/tool-fetcher-499c99aaa9fa
 #>
 

@@ -1,4 +1,4 @@
-# ToolFetcher (v1.2.0)
+# ToolFetcher (v2.0.0)
 
 ToolFetcher is a PowerShell tool designed to fetch and manage a collection of DFIR and other GitHub tools. It streamlines the process of downloading, extracting, and organizing forensic utilities from various sources—whether by cloning Git repositories, downloading the latest releases via the GitHub API, or pulling specific files directly.
 
@@ -6,52 +6,56 @@ ToolFetcher is a PowerShell tool designed to fetch and manage a collection of DF
 
 - **Multiple Download Methods:**  
   Supports various methods including:
-  - `gitClone` – Clones Git repositories.
-  - `latestRelease` – Downloads the latest release assets via the GitHub API.
-  - `branchZip` – Downloads a branch ZIP archive (without the `.git` folder).
-  - `specificFile` – Downloads a specific file directly.
+  - `gitClone` – Downloads a repository using GitHub API (no Git dependency)
+  - `latestRelease` – Downloads the latest release assets via the GitHub API
+  - `branchZip` – Downloads a branch ZIP archive (without the `.git` folder)
+  - `specificFile` – Downloads a specific file directly
 
-- **Automated Extraction:**  
-  Automatically extracts ZIP archives when applicable.
+- **Automated Extraction & Management:**  
+  - Automatically extracts ZIP archives when applicable
+  - Creates `.downloaded.json` marker files to track managed files
+  - Preserves user modifications during updates
+  - Supports force re-download with complete directory overwrite
 
 - **External YAML Configuration:**  
-  ToolFetcher now loads its tool configuration from an external YAML file rather than a hard-coded array. This offers several benefits:
-  - **Ease of Maintenance:**  
-    Update your list of tools without modifying the script.
-  - **Customization:**  
-    Easily add, remove, or modify tool definitions in a human-friendly format.
-  - **Remote Updates:**  
-    Point to a remote YAML file (such as one hosted on GitHub) to always fetch the latest configuration.
-  - **Separation of Concerns & Version Control:**  
-    Keep the script logic and configuration separate and manage changes independently.
-
-- **Marker Files & File Manifest:**  
-  Creates a `.downloaded.json` marker file in each tool’s output folder that contains metadata and a file manifest (with MD5 hashes). This improves download management and allows for selective removal of managed files during updates.
+  ToolFetcher loads its tool configuration from an external YAML file that supports:
+  - Multiple download methods
+  - Custom output folders
+  - Asset type filtering (win64, win32, linux64, linux32, macos64, macos32, arm64, arm32)
+  - Skip download options
+  - Extraction control
+  - Branch selection
+  - Local or remote YAML file support
 
 - **Enhanced Logging & Debugging:**  
-  Provides detailed debug output when enabled, making troubleshooting easier.
+  - Multiple log levels (Error, Warning, Info, Debug, Trace)
+  - File logging with timestamps
+  - Detailed debug output when enabled
+  - Comprehensive error messages with troubleshooting guidance
 
-- **Force Download & Update Options:**  
-  - **Force Download:**  
-    Use the `-ForceDownload` switch to overwrite existing tool directories completely.
-  - **Update Mode:**  
-    Use the new `-Update` switch to refresh already downloaded tools by removing only managed files (as tracked in the marker file), while preserving any user modifications.
+- **GitHub Integration:**  
+  - GitHub API rate limit handling
+  - Secure token input options
+  - PAT validation
+  - Support for private repositories
 
-- **GitHub PAT Validation & Rate Limit Handling:**  
-  - Supply a GitHub Personal Access Token (PAT) to avoid API rate limit issues.
-  - The script now validates the provided PAT to ensure smooth API operations.
+- **Cross-Platform Support:**  
+  - Handles various platform-specific asset naming patterns
+  - Supports multiple architectures (x64, x86, ARM)
+  - Works with Windows, Linux, and macOS assets
 
 ## Requirements
 
-- **PowerShell:** Version 5.1 or later (or PowerShell Core).
+- **PowerShell:** Version 5.1 or later (or PowerShell Core)
+- **Internet Connection:** Required for downloading tools and GitHub API access
 - **powershell-yaml Module:**  
   This module is required to parse the external YAML configuration file. The script automatically checks for and installs it if necessary.
 
 ## Configuration & Parameters
 
-In v1.2.0, ToolFetcher has shifted from internal variable configuration to a robust parameter-based approach for greater flexibility. The key parameters are:
+ToolFetcher uses a parameter-based approach for flexibility. Key parameters include:
 
-- **`-ToolsFile` (alias `-tf`):**  
+- **`-ToolsFile` (alias `-f`):**  
   Specifies the YAML configuration file. This can be a local file or a URL.  
   *Default:* `"tools.yaml"`  
   If the specified file is not found or is unreachable, the script offers to use a default URL:  
@@ -59,58 +63,108 @@ In v1.2.0, ToolFetcher has shifted from internal variable configuration to a rob
   https://raw.githubusercontent.com/kev365/ToolFetcher/refs/heads/main/tools.yaml
   ```
 
-- **`-ToolsDirectory` (alias `-td`):**  
+- **`-ToolsDirectory` (alias `-d`):**  
   The directory where all downloaded tools will be stored.  
   *Example:* `C:\tools`
 
-- **`-ForceDownload` (alias `-fd`):**  
+- **`-ForceDownload` (alias `-force`):**  
   Forces a complete re-download of a tool by overwriting its existing directory.
 
-- **`-Update` (alias `-up`):**  
+- **`-Update` (alias `-u`):**  
   Updates tools that have already been downloaded by removing only managed files (as defined in the marker file), while leaving any user-added files intact.
 
 - **`-VerboseOutput` (alias `-v`):**  
   Enables detailed debug output for troubleshooting.
 
-- **`-GitHubPAT` (alias `-gh`):**  
-  Optionally provide your GitHub Personal Access Token to avoid API rate limits. The script validates the token before proceeding.
+- **`-TraceOutput` (alias `-to`):**  
+  Enables very detailed trace information (most verbose).
 
-## External YAML Configuration
+- **`-Log` (alias `-l`):**  
+  Enables logging to a file in the tools directory.
 
-ToolFetcher now leverages an external YAML file to define tool settings instead of using an embedded array. This approach provides:
+- **`-GitHubPAT` (alias `-pat`):**  
+  Optionally provide your GitHub Personal Access Token to avoid API rate limits.
 
-- **Separation of Concerns:**  
-  Keeps configuration data separate from the script logic.
+- **`-PromptForPAT` (alias `-ppat`):**  
+  Securely prompt for GitHub Personal Access Token (recommended over -GitHubPAT).
 
-- **Dynamic Updates:**  
-  Easily update your tools list by modifying the YAML file (local or remote).
+- **`-ListTools` (alias `-list`):**  
+  Lists all available tools in the configuration file.
 
-- **User-Friendly Format:**  
-  YAML is straightforward to edit—even for those less familiar with code.
+## YAML Configuration
 
-- **Independent Version Control:**  
-  Manage the tools list as its own file, tracking changes separately from the script.
+The YAML configuration file supports the following fields for each tool:
 
-For example, you can run the script as follows:
-
-```powershell
-.\ToolFetcher.ps1 -ToolsFile "tools.yaml" -ToolsDirectory "C:\tools" -ForceDownload -VerboseOutput -GitHubPAT "your_pat_here"
+```yaml
+Name: "ToolName"      # Tool identifier, also used to name the parent folder
+RepoUrl: ""           # URL goes here
+DownloadMethod: ""    # Options: gitClone | latestRelease | branchZip | specificFile
+OutputFolder: ""      # Appends a subdirectory to $toolsFolder
+Branch: ""            # Defaults to master if not provided, also checks main if master is not available
+DownloadName: ""      # Used to download a particular file from the latestRelease
+AssetFilename: ""     # Used to specify exact filename to download from latestRelease (supports regex)
+AssetType: ""         # Options: win64 | win32 | linux64 | linux32 | macos64 | macos32 | arm64 | arm32
+SpecificFilePath: ""  # Used with the 'specificFile' DownloadMethod to specify file path in repository
+Extract: true         # Whether to extract the downloaded file (default: true)
+SkipDownload: false   # Whether to skip downloading this tool (default: false)
 ```
 
-## Usage
+## Usage Examples
 
-1. **Configure the Script:**  
-   Provide the necessary parameters when running the script. There is no need to modify internal variables. For instance:
-
+1. **Basic Usage:**
    ```powershell
-   .\ToolFetcher.ps1 -ToolsFile "tools.yaml" -ToolsDirectory "C:\tools" -Update -VerboseOutput
+   .\ToolFetcher.ps1
    ```
 
-2. **Run the Script:**  
-   Execute the script in your PowerShell terminal. If the `-ToolsDirectory` parameter is omitted, you will be prompted to enter a directory.
+2. **Custom Configuration:**
+   ```powershell
+   .\ToolFetcher.ps1 -ToolsFile "my_tools.yaml" -ToolsDirectory "D:\DFIR\Tools"
+   ```
 
-3. **Monitor the Process:**  
-   The script logs progress and debug information for each tool. Each tool’s output folder will include a `.downloaded.json` file containing metadata and the file manifest.
+3. **Update Tools:**
+   ```powershell
+   .\ToolFetcher.ps1 -Update
+   ```
+
+4. **Update Specific Tools:**
+   ```powershell
+   .\ToolFetcher.ps1 -Update "LECmd","JLECmd"
+   ```
+
+5. **Force Re-download:**
+   ```powershell
+   .\ToolFetcher.ps1 -ForceDownload
+   ```
+
+6. **List Available Tools:**
+   ```powershell
+   .\ToolFetcher.ps1 -ListTools
+   ```
+
+7. **Enable Logging:**
+   ```powershell
+   .\ToolFetcher.ps1 -Log
+   ```
+
+8. **Use Remote Configuration:**
+   ```powershell
+   .\ToolFetcher.ps1 -ToolsFile "https://raw.githubusercontent.com/kev365/ToolFetcher/main/tools.yaml"
+   ```
+
+9. **Secure GitHub Token Input:**
+   ```powershell
+   .\ToolFetcher.ps1 -PromptForPAT
+   ```
+
+## Error Handling
+
+ToolFetcher provides comprehensive error handling and user guidance:
+
+- YAML syntax validation with helpful error messages
+- GitHub API error handling with rate limit awareness
+- File system operation error handling
+- Network connectivity error handling
+- Detailed logging for troubleshooting
 
 ## Future Considerations
 
