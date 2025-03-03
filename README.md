@@ -39,11 +39,6 @@ ToolFetcher is a PowerShell tool designed to fetch and manage a collection of DF
   - PAT validation
   - Support for private repositories
 
-- **Cross-Platform Support:**  
-  - Handles various platform-specific asset naming patterns
-  - Supports multiple architectures (x64, x86, ARM)
-  - Works with Windows, Linux, and macOS assets
-
 ## Requirements
 
 - **PowerShell:** Version 5.1 or later (or PowerShell Core)
