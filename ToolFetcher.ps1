@@ -36,7 +36,7 @@ param (
     [switch]$TraceOutput = $false,
     
     [Parameter(HelpMessage = 'Enable logging to a file. A log file will be created in the tools directory.')]
-    [Alias('log')]
+    [Alias('l')]
     [switch]$Log = $false,
     
     [Parameter(HelpMessage = 'GitHub Personal Access Token - to avoid rate limits, if needed. NOTE: This is visible in command history and process listings. Use -PromptForPAT for better security.')]
@@ -495,7 +495,7 @@ if ($Log) {
 }
 else {
     $script:LoggingEnabled = $false
-    Log-Debug "Logging to file is disabled (use -log to enable)"
+    Log-Debug "Logging to file is disabled (use -l to enable)"
 }
 
 Log-Info "ToolFetcher v$script:Version started"
@@ -1957,7 +1957,7 @@ function Add-ConfigurationDefaults {
     Lists all tools with detailed information including URLs, branches, and other settings.
 
 .EXAMPLE
-    PS> .\ToolFetcher.ps1 -log
+    PS> .\ToolFetcher.ps1 -l
     
     Runs with logging enabled and saves all output to a timestamped log file in the tools directory.
 
@@ -1979,7 +1979,7 @@ function Add-ConfigurationDefaults {
     and will not be stored in command history.
 
 .EXAMPLE
-    PS> .\ToolFetcher.ps1 -vo -log
+    PS> .\ToolFetcher.ps1 -vo -l
     
     Runs with both verbose output and logging enabled for maximum debugging information.
 

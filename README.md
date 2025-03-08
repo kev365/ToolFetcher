@@ -74,7 +74,7 @@ ToolFetcher uses a parameter-based approach for flexibility. Key parameters incl
 - **`-TraceOutput` (alias `-to`):**  
   Enables very detailed trace information (most verbose).
 
-- **`-Log` (alias `-log`):**  
+- **`-Log` (alias `-l`):**  
   Enables logging to a file in the tools directory.
 
 - **`-GitHubPAT` (alias `-pat`, `-GitHubPAT`):**  
@@ -138,7 +138,7 @@ SkipDownload: false   # Whether to skip downloading this tool (default: false)
 
 7. **Enable Logging:**
    ```powershell
-   .\ToolFetcher.ps1 -log
+   .\ToolFetcher.ps1 -l
    ```
 
 8. **Use Remote Configuration:**
