@@ -12,11 +12,11 @@
 [CmdletBinding()]
 param (
     [Parameter(HelpMessage = 'Path to the YAML file containing tool definitions. Can be local or remote URL.')]
-    [Alias('f')]
+    [Alias('tf')]
     [string]$ToolsFile = "tools.yaml",
     
     [Parameter(HelpMessage = 'Directory where tools will be downloaded and extracted.')]
-    [Alias('d')]
+    [Alias('td')]
     [string]$ToolsDirectory = "",
     
     [Parameter(HelpMessage = 'Force re-download and overwrite any existing tool output directories.')]
@@ -24,11 +24,11 @@ param (
     [switch]$ForceDownload = $false,
     
     [Parameter(HelpMessage = 'Update tools. If you supply one or more tool names (comma-separated), then only those tools will be updated.')]
-    [Alias('u')]
+    [Alias('up')]
     [string[]]$Update,
     
     [Parameter(HelpMessage = 'Show debug-level output')]
-    [Alias('v')]
+    [Alias('vo')]
     [switch]$VerboseOutput = $false,
     
     [Parameter(HelpMessage = 'Show trace-level output (most detailed)')]
@@ -36,15 +36,15 @@ param (
     [switch]$TraceOutput = $false,
     
     [Parameter(HelpMessage = 'Enable logging to a file. A log file will be created in the tools directory.')]
-    [Alias('l')]
+    [Alias('log')]
     [switch]$Log = $false,
     
     [Parameter(HelpMessage = 'GitHub Personal Access Token - to avoid rate limits, if needed. NOTE: This is visible in command history and process listings. Use -PromptForPAT for better security.')]
-    [Alias('pat')]
+    [Alias('pat', 'GitHubPAT')]
     [string]$GitHubPAT = "",
     
     [Parameter(HelpMessage = 'Prompt for GitHub Personal Access Token securely (token will not be visible or stored in command history)')]
-    [Alias('ppat')]
+    [Alias('ppat', 'PromptForPAT')]
     [switch]$PromptForPAT = $false,
     
     [Parameter(HelpMessage = 'List all available tools in the configuration file')]
@@ -53,7 +53,7 @@ param (
 )
 
 # Script version - centralized for easy updates
-$script:Version = "2.0.0"
+$script:Version = "2.0.1"
 
 # -----------------------------------------------
 # Define Logging Functions First
@@ -495,7 +495,7 @@ if ($Log) {
 }
 else {
     $script:LoggingEnabled = $false
-    Log-Debug "Logging to file is disabled (use -Log to enable)"
+    Log-Debug "Logging to file is disabled (use -log to enable)"
 }
 
 Log-Info "ToolFetcher v$script:Version started"
@@ -1925,39 +1925,39 @@ function Add-ConfigurationDefaults {
     and downloading tools to the directory specified in the YAML file.
 
 .EXAMPLE
-    PS> .\ToolFetcher.ps1 -ToolsFile "my_tools.yaml" -ToolsDirectory "D:\DFIR\Tools"
+    PS> .\ToolFetcher.ps1 -tf "my_tools.yaml" -td "D:\DFIR\Tools"
     
     Uses a custom YAML configuration file and downloads tools to the specified directory.
 
 .EXAMPLE
-    PS> .\ToolFetcher.ps1 -Update
+    PS> .\ToolFetcher.ps1 -up
     
     Updates all previously downloaded tools that are not marked with SkipDownload.
     Preserves any user modifications to the tools.
 
 .EXAMPLE
-    PS> .\ToolFetcher.ps1 -Update "LECmd","JLECmd"
+    PS> .\ToolFetcher.ps1 -up "LECmd","JLECmd"
     
     Updates only the specified tools (LECmd and JLECmd), ignoring their SkipDownload setting.
 
 .EXAMPLE
-    PS> .\ToolFetcher.ps1 -ForceDownload
+    PS> .\ToolFetcher.ps1 -force
     
     Forces re-download of all tools, overwriting existing directories.
     Use with caution as this will remove all existing tool files.
 
 .EXAMPLE
-    PS> .\ToolFetcher.ps1 -ListTools
+    PS> .\ToolFetcher.ps1 -list
     
     Lists all tools defined in the configuration file with basic information.
 
 .EXAMPLE
-    PS> .\ToolFetcher.ps1 -ListTools -VerboseOutput
+    PS> .\ToolFetcher.ps1 -list -vo
     
     Lists all tools with detailed information including URLs, branches, and other settings.
 
 .EXAMPLE
-    PS> .\ToolFetcher.ps1 -Log
+    PS> .\ToolFetcher.ps1 -log
     
     Runs with logging enabled and saves all output to a timestamped log file in the tools directory.
 
@@ -1968,7 +1968,7 @@ function Add-ConfigurationDefaults {
     Note: This method exposes your token in command history and process listings.
 
 .EXAMPLE
-    PS> .\ToolFetcher.ps1 -ToolsFile "https://raw.githubusercontent.com/kev365/ToolFetcher/main/tools.yaml"
+    PS> .\ToolFetcher.ps1 -tf "https://raw.githubusercontent.com/kev365/ToolFetcher/main/tools.yaml"
     
     Uses a remote YAML configuration file instead of a local one.
 
@@ -1979,12 +1979,12 @@ function Add-ConfigurationDefaults {
     and will not be stored in command history.
 
 .EXAMPLE
-    PS> .\ToolFetcher.ps1 -VerboseOutput -Log
+    PS> .\ToolFetcher.ps1 -vo -log
     
     Runs with both verbose output and logging enabled for maximum debugging information.
 
 .EXAMPLE
-    PS> .\ToolFetcher.ps1 -ForceDownload -Update
+    PS> .\ToolFetcher.ps1 -force -Update
     
     Forces re-download of all tools while preserving user modifications through the update process.
 

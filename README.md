@@ -1,4 +1,4 @@
-# ToolFetcher (v2.0.0)
+# ToolFetcher (v2.0.1)
 
 ToolFetcher is a PowerShell tool designed to fetch and manage a collection of DFIR and other GitHub tools. It streamlines the process of downloading, extracting, and organizing forensic utilities from various sources—whether by cloning Git repositories, downloading the latest releases via the GitHub API, or pulling specific files directly.
 
@@ -50,7 +50,7 @@ ToolFetcher is a PowerShell tool designed to fetch and manage a collection of DF
 
 ToolFetcher uses a parameter-based approach for flexibility. Key parameters include:
 
-- **`-ToolsFile` (alias `-f`):**  
+- **`-ToolsFile` (alias `-tf`):**  
   Specifies the YAML configuration file. This can be a local file or a URL.  
   *Default:* `"tools.yaml"`  
   If the specified file is not found or is unreachable, the script offers to use a default URL:  
@@ -58,29 +58,29 @@ ToolFetcher uses a parameter-based approach for flexibility. Key parameters incl
   https://raw.githubusercontent.com/kev365/ToolFetcher/refs/heads/main/tools.yaml
   ```
 
-- **`-ToolsDirectory` (alias `-d`):**  
+- **`-ToolsDirectory` (alias `-td`):**  
   The directory where all downloaded tools will be stored.  
   *Example:* `C:\tools`
 
 - **`-ForceDownload` (alias `-force`):**  
   Forces a complete re-download of a tool by overwriting its existing directory.
 
-- **`-Update` (alias `-u`):**  
+- **`-Update` (alias `-up`):**  
   Updates tools that have already been downloaded by removing only managed files (as defined in the marker file), while leaving any user-added files intact.
 
-- **`-VerboseOutput` (alias `-v`):**  
+- **`-VerboseOutput` (alias `-vo`):**  
   Enables detailed debug output for troubleshooting.
 
 - **`-TraceOutput` (alias `-to`):**  
   Enables very detailed trace information (most verbose).
 
-- **`-Log` (alias `-l`):**  
+- **`-Log` (alias `-log`):**  
   Enables logging to a file in the tools directory.
 
-- **`-GitHubPAT` (alias `-pat`):**  
+- **`-GitHubPAT` (alias `-pat`, `-GitHubPAT`):**  
   Optionally provide your GitHub Personal Access Token to avoid API rate limits.
 
-- **`-PromptForPAT` (alias `-ppat`):**  
+- **`-PromptForPAT` (alias `-ppat`, `-PromptForPAT`):**  
   Securely prompt for GitHub Personal Access Token (recommended over -GitHubPAT).
 
 - **`-ListTools` (alias `-list`):**  
@@ -113,37 +113,37 @@ SkipDownload: false   # Whether to skip downloading this tool (default: false)
 
 2. **Custom Configuration:**
    ```powershell
-   .\ToolFetcher.ps1 -ToolsFile "my_tools.yaml" -ToolsDirectory "D:\DFIR\Tools"
+   .\ToolFetcher.ps1 -tf "my_tools.yaml" -tf "D:\DFIR\Tools"
    ```
 
 3. **Update Tools:**
    ```powershell
-   .\ToolFetcher.ps1 -Update
+   .\ToolFetcher.ps1 -up
    ```
 
 4. **Update Specific Tools:**
    ```powershell
-   .\ToolFetcher.ps1 -Update "LECmd","JLECmd","KStrike"
+   .\ToolFetcher.ps1 -up "LECmd","JLECmd","KStrike"
    ```
 
 5. **Force Re-download:**
    ```powershell
-   .\ToolFetcher.ps1 -ForceDownload
+   .\ToolFetcher.ps1 -force
    ```
 
 6. **List Available Tools:**
    ```powershell
-   .\ToolFetcher.ps1 -ListTools
+   .\ToolFetcher.ps1 -list
    ```
 
 7. **Enable Logging:**
    ```powershell
-   .\ToolFetcher.ps1 -Log
+   .\ToolFetcher.ps1 -log
    ```
 
 8. **Use Remote Configuration:**
    ```powershell
-   .\ToolFetcher.ps1 -ToolsFile "https://raw.githubusercontent.com/kev365/ToolFetcher/main/tools.yaml"
+   .\ToolFetcher.ps1 -tf "https://raw.githubusercontent.com/kev365/ToolFetcher/main/tools.yaml"
    ```
 
 9. **Secure GitHub Token Input:**
