@@ -1,20 +1,8 @@
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
-*.pyo
-*.pyd
-
 # IDE-specific files
 .vscode/
 *.idea/
 *.log
-
-# System files
-.DS_Store
-Thumbs.db
 .cursorrules
-parserrules.mdc
-Command_Examples.txt
 
 # tmp folder
 tmp/
