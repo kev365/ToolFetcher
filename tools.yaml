@@ -1,4 +1,4 @@
-tooldirectory: "" # Must escape any backslashes
+tooldirectory: "" # Must escape any backslashes or use single forward slashes
 tools:
   # Documentation: https://dfir-kev.medium.com/tool-fetcher-499c99aaa9fa
   # -Template-
@@ -151,7 +151,7 @@ tools:
     DownloadMethod: "branchZip"
     Branch: "master"
     OutputFolder: "SUM-UAL"
-    SkipDownload: false
+    SkipDownload: true
 
   - Name: "SumECmd"
     RepoUrl: "https://download.ericzimmermanstools.com/net6/SumECmd.zip" # .Net6
@@ -213,7 +213,7 @@ tools:
     SpecificFilePath: "/raw/refs/heads/main/dhparser.exe"
     DownloadName: "dhparser.exe"
     OutputFolder: "WinDefender"
-    SkipDownload: false
+    SkipDownload: true
 
   - Name: "APT-Hunter"
     RepoUrl: "https://github.com/ahmedkhlief/APT-Hunter"

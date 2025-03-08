@@ -1,3 +1,8 @@
-# System files
+# IDE-specific files
+.vscode/
+*.idea/
+*.log
 .cursorrules
-Command_Examples.txt
+
+# tmp folder
+tmp/
