@@ -77,10 +77,10 @@ ToolFetcher uses a parameter-based approach for flexibility. Key parameters incl
 - **`-Log` (alias `-l`):**  
   Enables logging to a file in the tools directory.
 
-- **`-GitHubPAT` (alias `-pat`, `-GitHubPAT`):**  
+- **`-GitHubPAT` (alias `-pat`):**  
   Optionally provide your GitHub Personal Access Token to avoid API rate limits.
 
-- **`-PromptForPAT` (alias `-ppat`, `-PromptForPAT`):**  
+- **`-PromptForPAT` (alias `-ppat`):**  
   Securely prompt for GitHub Personal Access Token (recommended over -GitHubPAT).
 
 - **`-ListTools` (alias `-list`):**  

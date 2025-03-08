@@ -40,11 +40,11 @@ param (
     [switch]$Log = $false,
     
     [Parameter(HelpMessage = 'GitHub Personal Access Token - to avoid rate limits, if needed. NOTE: This is visible in command history and process listings. Use -PromptForPAT for better security.')]
-    [Alias('pat', 'GitHubPAT')]
+    [Alias('pat')]
     [string]$GitHubPAT = "",
     
     [Parameter(HelpMessage = 'Prompt for GitHub Personal Access Token securely (token will not be visible or stored in command history)')]
-    [Alias('ppat', 'PromptForPAT')]
+    [Alias('ppat')]
     [switch]$PromptForPAT = $false,
     
     [Parameter(HelpMessage = 'List all available tools in the configuration file')]
