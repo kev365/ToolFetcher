@@ -1,4 +1,4 @@
-tooldirectory: "C:\\ToolFetcher" # Must escape any backslashes
+tooldirectory: "C:/ToolFetcher2" # Must escape any backslashes or use single forward slashes
 tools:
   # Documentation: https://dfir-kev.medium.com/tool-fetcher-499c99aaa9fa
   # -Template-

@@ -298,11 +298,12 @@ function Test-ToolConfiguration {
     $isValid = $true
     $errors = @()
     
-    # Check if tooldirectory is specified
-    if (-not $Config.ContainsKey("tooldirectory") -or [string]::IsNullOrWhiteSpace($Config.tooldirectory)) {
+    # Check if tooldirectory exists - but don't require a value
+    if (-not $Config.ContainsKey("tooldirectory")) {
+        $errors += "Missing required field: tooldirectory"
         $isValid = $false
-        $errors += "Missing or empty 'tooldirectory' in configuration"
     }
+    # Remove the check for empty tooldirectory
     
     # Check if tools array exists
     if (-not $Config.ContainsKey("tools") -or $null -eq $Config.tools -or $Config.tools.Count -eq 0) {
@@ -544,7 +545,7 @@ else {
     else {
         $localToolsFile = Join-Path $PSScriptRoot $ToolsFile
         if (Test-Path -Path $localToolsFile) {
-            Log-Info "Using local tools file: $localToolsFile"
+            Log-Info "Using local yaml file: $localToolsFile"
             $ToolsFile = $localToolsFile
         }
         else {
@@ -633,8 +634,15 @@ try {
     # Extract configuration values
     $ToolsDirectory = if ($PSBoundParameters.ContainsKey('ToolsDirectory') -and -not [string]::IsNullOrWhiteSpace($ToolsDirectory)) { 
         $ToolsDirectory 
-    } else { 
+    } elseif (-not [string]::IsNullOrWhiteSpace($config.tooldirectory)) { 
         $config.tooldirectory 
+    } else {
+        $userInput = Read-Host "Please provide a location for the tools folder"
+        if ([string]::IsNullOrWhiteSpace($userInput)) {
+            Log-Error "No tools directory specified. Exiting."
+            exit 1
+        }
+        $userInput
     }
     $tools = $config.tools
 
@@ -1715,15 +1723,12 @@ function Test-ToolConfiguration {
     $isValid = $true
     $errors = @()
     
-    # Check if tooldirectory exists
+    # Check if tooldirectory exists - but don't require a value
     if (-not $Config.ContainsKey("tooldirectory")) {
         $errors += "Missing required field: tooldirectory"
         $isValid = $false
     }
-    elseif ([string]::IsNullOrWhiteSpace($Config.tooldirectory)) {
-        $errors += "tooldirectory cannot be empty"
-        $isValid = $false
-    }
+    # Remove the check for empty tooldirectory
     
     # Check if tools array exists
     if (-not $Config.ContainsKey("tools") -or $null -eq $Config.tools) {

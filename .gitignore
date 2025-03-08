@@ -4,12 +4,6 @@ __pycache__/
 *.pyo
 *.pyd
 
-# Virtual Environment
-venv/
-vvenv/
-env/
-*.env
-
 # IDE-specific files
 .vscode/
 *.idea/
@@ -22,6 +16,5 @@ Thumbs.db
 parserrules.mdc
 Command_Examples.txt
 
-# PyQt Designer files
-*.qrc
-*.ui~  # autosave versions of UI files
+# tmp folder
+tmp/
