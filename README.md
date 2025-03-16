@@ -1,4 +1,4 @@
-# ToolFetcher (v2.0.1)
+# ToolFetcher (v2.1.1)
 
 ToolFetcher is a PowerShell tool designed to fetch and manage a collection of DFIR and other GitHub tools. It streamlines the process of downloading, extracting, and organizing forensic utilities from various sources—whether by cloning Git repositories, downloading the latest releases via the GitHub API, or pulling specific files directly.
 
@@ -64,9 +64,15 @@ ToolFetcher uses a parameter-based approach for flexibility. Key parameters incl
 
 - **`-ForceDownload` (alias `-force`):**  
   Forces a complete re-download of a tool by overwriting its existing directory.
+  When used with `-UpdateAll`, it will update all downloaded tools, bypassing the skipdownload setting.
 
-- **`-Update` (alias `-up`):**  
-  Updates tools that have already been downloaded by removing only managed files (as defined in the marker file), while leaving any user-added files intact.
+- **`-UpdateAll` (alias `-upall`):**  
+  Updates all previously downloaded tools that have downloads enabled (skipdownload: false).
+  Updates preserve user modifications by only removing managed files (tracked in .downloaded.json).
+
+- **`-UpdateTools` (alias `-uptool`):**  
+  Specify tool names to update (comma-separated). If a tool is not already downloaded, it will be downloaded.
+  Updates preserve user modifications by only removing managed files (tracked in .downloaded.json).
 
 - **`-VerboseOutput` (alias `-vo`):**  
   Enables detailed debug output for troubleshooting.
@@ -113,22 +119,22 @@ SkipDownload: false   # Whether to skip downloading this tool (default: false)
 
 2. **Custom Configuration:**
    ```powershell
-   .\ToolFetcher.ps1 -tf "my_tools.yaml" -tf "D:\DFIR\Tools"
+   .\ToolFetcher.ps1 -tf "my_tools.yaml" -td "D:\DFIR\Tools"
    ```
 
-3. **Update Tools:**
+3. **Update All Downloaded Tools:**
    ```powershell
-   .\ToolFetcher.ps1 -up
+   .\ToolFetcher.ps1 -upall
    ```
 
 4. **Update Specific Tools:**
    ```powershell
-   .\ToolFetcher.ps1 -up "LECmd","JLECmd","KStrike"
+   .\ToolFetcher.ps1 -uptool "LECmd","JLECmd","KStrike"
    ```
 
-5. **Force Re-download:**
+5. **Update All Tools (Bypass SkipDownload):**
    ```powershell
-   .\ToolFetcher.ps1 -force
+   .\ToolFetcher.ps1 -upall -force
    ```
 
 6. **List Available Tools:**
