@@ -57,7 +57,7 @@ param (
 )
 
 # Script version - centralized for easy updates
-$script:Version = "2.0.1"
+$script:Version = "2.1.1"
 
 # -----------------------------------------------
 # Define Logging Functions First

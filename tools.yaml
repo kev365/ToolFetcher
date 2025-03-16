@@ -241,14 +241,14 @@ tools:
     DownloadMethod: "latestRelease"
     AssetType: "win64"
     OutputFolder: "WinEventlogs-good"
-    SkipDownload: false
+    SkipDownload: true
 
   - Name: "hayabusa"
     RepoUrl: "https://github.com/Yamato-Security/hayabusa"
     DownloadMethod: "latestRelease"
     AssetFilename: "hayabusa-[\\d\\.]+?-win-x64\\.zip"
     OutputFolder: "WinEventlogs-test"
-    SkipDownload: false
+    SkipDownload: true
 
   - Name: "EvtxHussar"
     RepoUrl: "https://github.com/yarox24/EvtxHussar"
