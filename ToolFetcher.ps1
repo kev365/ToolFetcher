@@ -631,6 +631,18 @@ try {
     # Apply defaults
     $config = Add-ConfigurationDefaults -Config $config
     
+    # Check if we should just list the tools and exit
+    if ($ListTools) {
+        # Add parameter to show detailed info
+        $detailedParam = $VerboseOutput -or $TraceOutput
+        
+        # Show the tools
+        Show-AvailableTools -Tools $config.tools -Detailed:$detailedParam
+        
+        # Exit after showing tools
+        exit 0
+    }
+    
     # Extract configuration values
     $ToolsDirectory = if ($PSBoundParameters.ContainsKey('ToolsDirectory') -and -not [string]::IsNullOrWhiteSpace($ToolsDirectory)) { 
         $ToolsDirectory 
@@ -650,18 +662,6 @@ try {
     if ($Log) {
         $logFilePath = Join-Path -Path $ToolsDirectory -ChildPath "ToolFetcher_$(Get-Date -Format 'yyyyMMdd_HHmmss').log"
         Enable-FileLogging -LogPath $logFilePath
-    }
-
-    # Check if we should just list the tools and exit
-    if ($ListTools) {
-        # Add parameter to show detailed info
-        $detailedParam = $VerboseOutput -or $TraceOutput
-        
-        # Show the tools
-        Show-AvailableTools -Tools $config.tools -Detailed:$detailedParam
-        
-        # Exit after showing tools
-        exit 0
     }
 }
 catch {
