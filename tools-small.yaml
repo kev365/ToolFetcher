@@ -1,0 +1,83 @@
+tooldirectory: "C:/Tools" # Must escape any backslashes or use single forward slashes
+tools:
+  # Documentation: https://dfir-kev.medium.com/tool-fetcher-499c99aaa9fa
+  # -Template-
+  # Name: "ToolName"      # Tool identifier, also used to name the parent folder for the tool
+  # RepoUrl: ""           # URL goes here
+  # DownloadMethod: ""    # Options: gitClone | latestRelease | branchZip | specificFile
+  # OutputFolder: ""      # Appends a subdirectory to $toolsFolder
+  # Branch: ""            # Defaults to master if not provided, also checks main if master is not available
+  # DownloadName: ""      # Used to download a particular file from the latestRelease
+  # AssetFilename: ""     # Used to specify exact filename to download from latestRelease (supports regex)
+  # AssetType: ""         # Options: win64 | win32 | linux64 | linux32 | macos64 | macos32 | arm64 | arm32
+  # SpecificFilePath: ""  # Used with the 'specificFile' DownloadMethod to specify file path in repository
+  # Extract: true         # Whether to extract the downloaded file (default: true)
+  # SkipDownload: true   # Whether to skip downloading this tool (default: false)
+
+  - Name: "TimeApp"
+    RepoUrl: "https://download.ericzimmermanstools.com/TimeApp.zip" # .Net4
+    DownloadMethod: "specificFile"
+    OutputFolder: "MISC"
+    SkipDownload: true
+
+  - Name: "forensicsim"
+    RepoUrl: "https://github.com/lxndrblz/forensicsim"
+    DownloadMethod: "latestRelease"
+    DownloadName: "forensicsim.zip"
+    OutputFolder: "MSOffice"
+    SkipDownload: true
+
+  - Name: "KStrike"
+    RepoUrl: "https://github.com/brimorlabs/KStrike"
+    DownloadMethod: "branchZip"
+    Branch: "master"
+    OutputFolder: "SUM-UAL"
+    SkipDownload: true
+
+  - Name: "SEPparser_cmd"
+    RepoUrl: "https://github.com/Beercow/SEPparser/releases/latest/download/SEPparser.exe"
+    DownloadMethod: "specificFile"
+    OutputFolder: "SymantecLogs"
+    SkipDownload: true
+
+  - Name: "SEPparser_gui"
+    RepoUrl: "https://github.com/Beercow/SEPparser/releases/latest/download/SEPparser_GUI.exe"
+    DownloadMethod: "specificFile"
+    OutputFolder: "SymantecLogs"
+    SkipDownload: true
+
+  - Name: "hindsight"
+    RepoUrl: "https://github.com/obsidianforensics/hindsight"
+    DownloadMethod: "latestRelease"
+    DownloadName: "hindsight.exe"
+    OutputFolder: "WebHistory"
+    SkipDownload: true
+
+  - Name: "hindsight_gui"
+    RepoUrl: "https://github.com/obsidianforensics/hindsight"
+    DownloadMethod: "latestRelease"
+    DownloadName: "hindsight_gui.exe"
+    OutputFolder: "WebHistory"
+    SkipDownload: true
+
+  - Name: "DHParser"
+    RepoUrl: "https://github.com/jklepsercyber/defender-detectionhistory-parser"
+    DownloadMethod: "specificFile"
+    SpecificFilePath: "/raw/refs/heads/main/dhparser.exe"
+    DownloadName: "dhparser.exe"
+    OutputFolder: "WinDefender"
+    SkipDownload: true
+
+  - Name: "reg_hunter"
+    RepoUrl: "https://github.com/theflakes/reg_hunter"
+    DownloadMethod: "latestRelease"
+    DownloadName: "reg_hunter.exe"
+    OutputFolder: "WinRegistry"
+    SkipDownload: true
+
+  - Name: "Plist_Time_Dump"
+    RepoUrl: "https://github.com/kev365/plist_time_dump"
+    DownloadMethod: "branchZip"
+    Branch: "master"
+    OutputFolder: "Apple"
+    SkipDownload: true

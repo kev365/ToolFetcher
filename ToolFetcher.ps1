@@ -23,11 +23,15 @@ param (
     [Alias('force')]
     [switch]$ForceDownload = $false,
     
-    [Parameter(HelpMessage = 'Update tools. If you supply one or more tool names (comma-separated), then only those tools will be updated.')]
-    [Alias('up')]
-    [string[]]$Update,
+    [Parameter(HelpMessage = 'Update all previously downloaded tools that have downloads enabled (skipdownload: false). Updates preserve user modifications by only removing managed files (tracked in .downloaded.json).')]
+    [Alias('upall')]
+    [switch]$UpdateAll,
     
-    [Parameter(HelpMessage = 'Show debug-level output')]
+    [Parameter(HelpMessage = 'Specify tool names to update (comma-separated). If a tool is not already downloaded, it will be downloaded. Updates preserve user modifications by only removing managed files (tracked in .downloaded.json).')]
+    [Alias('uptool')]
+    [string[]]$UpdateTools = @(),
+    
+    [Parameter(HelpMessage = 'Show detailed debug information during execution. Includes additional details about download operations, file processing, and configuration.')]
     [Alias('vo')]
     [switch]$VerboseOutput = $false,
     
@@ -676,21 +680,21 @@ catch {
 }
 
 # -----------------------------------------------
-# Determine update mode based on the -Update parameter.
+# Determine update mode based on the parameters.
 # -----------------------------------------------
 $updateMode = $null
-if ($PSBoundParameters.ContainsKey('Update')) {
-    if ($Update -and $Update.Count -gt 0) {
-         $updateMode = "specific"
-         $updateToolList = $Update | ForEach-Object { $_.ToLower() }
-         $allToolNames = $tools | ForEach-Object { $_.Name.ToLower() }
-         foreach ($req in $updateToolList) {
-              if ($allToolNames -notcontains $req) {
-                  Log-Warning "Requested update for tool '$req' not found in the YAML configuration."
-              }
-         }
+if ($UpdateTools.Count -gt 0) {
+    $updateMode = "specific"
+    $updateToolList = $UpdateTools | ForEach-Object { $_.ToLower() }
+    $allToolNames = $tools | ForEach-Object { $_.Name.ToLower() }
+    foreach ($req in $updateToolList) {
+        if ($allToolNames -notcontains $req) {
+            Log-Warning "Requested update for tool '$req' not found in the YAML configuration."
+        }
     }
-    else { $updateMode = "general" }
+}
+elseif ($UpdateAll) {
+    $updateMode = "general"
 }
 
 # -----------------------------------------------
@@ -1633,30 +1637,48 @@ foreach ($tool in $tools) {
         
         $processTool = $false
 
-        if ($PSBoundParameters.ContainsKey('Update')) {
-            if ($updateMode -eq "specific") {
-                if ($updateToolList -contains $tool.Name.ToLower()) {
-                    $processTool = $true
-                    Write-Host "===========================================" -ForegroundColor White
-                    Log-Info "Updating tool: $($tool.Name)"
-                    if ((Test-Path $toolOutputFolder) -and (Test-Path $markerFile)) {
-                        Log-Debug "Update: Removing previous files for $($tool.Name)."
-                        Remove-ManagedFiles -OutputFolder $toolOutputFolder
-                    }
+        if ($updateMode -eq "specific") {
+            if ($updateToolList -contains $tool.Name.ToLower()) {
+                $processTool = $true
+                Write-Host "===========================================" -ForegroundColor White
+                Log-Info "Updating tool: $($tool.Name)"
+                if ((Test-Path $toolOutputFolder) -and (Test-Path $markerFile)) {
+                    Log-Debug "Update: Removing previous files for $($tool.Name)."
+                    Remove-ManagedFiles -OutputFolder $toolOutputFolder
                 }
             }
-            else {
-                if ($ForceDownload -or (-not $tool.skipdownload)) {
+        }
+        elseif ($updateMode -eq "general") {
+            # Only update tools that are already downloaded
+            if (Test-Path $toolOutputFolder) {
+                if ($ForceDownload) {
+                    # When force is used with UpdateAll, bypass the skipdownload setting
                     $processTool = $true
                     Write-Host "===========================================" -ForegroundColor White
-                    Log-Info "Downloading tool: $($tool.Name)"
-                    if ((Test-Path $toolOutputFolder) -and (Test-Path $markerFile)) {
+                    Log-Info "Force updating tool: $($tool.Name)"
+                    if (Test-Path $markerFile) {
                         Log-Debug "Update: Removing previous files for $($tool.Name)."
                         Remove-ManagedFiles -OutputFolder $toolOutputFolder
                     }
                     else {
                         Log-Debug "Update: No marker file found for $($tool.Name); preserving user files."
                     }
+                }
+                elseif (-not $tool.skipdownload) {
+                    $processTool = $true
+                    Write-Host "===========================================" -ForegroundColor White
+                    Log-Info "Updating tool: $($tool.Name)"
+                    if (Test-Path $markerFile) {
+                        Log-Debug "Update: Removing previous files for $($tool.Name)."
+                        Remove-ManagedFiles -OutputFolder $toolOutputFolder
+                    }
+                    else {
+                        Log-Debug "Update: No marker file found for $($tool.Name); preserving user files."
+                    }
+                }
+                else {
+                    # Add messaging for skipped tools
+                    Log-Info "Skipping update for $($tool.Name) -- skipdownload is enabled. Use -force to override."
                 }
             }
         }
@@ -1891,10 +1913,14 @@ function Add-ConfigurationDefaults {
 .PARAMETER ForceDownload
     Force download of all tools, even if they have been previously downloaded.
     This will overwrite existing tool directories completely.
+    When used with -UpdateAll, it will update all downloaded tools, bypassing the skipdownload setting.
 
-.PARAMETER Update
-    Check for updates to previously downloaded tools and download newer versions if available.
-    If you supply one or more tool names (comma-separated), then only those tools will be updated.
+.PARAMETER UpdateAll
+    Update all previously downloaded tools that have downloads enabled (skipdownload: false).
+    Updates preserve user modifications by only removing managed files (tracked in .downloaded.json).
+
+.PARAMETER UpdateTools
+    Specify tool names to update (comma-separated). If a tool is not already downloaded, it will be downloaded.
     Updates preserve user modifications by only removing managed files (tracked in .downloaded.json).
 
 .PARAMETER VerboseOutput
@@ -1935,13 +1961,13 @@ function Add-ConfigurationDefaults {
     Uses a custom YAML configuration file and downloads tools to the specified directory.
 
 .EXAMPLE
-    PS> .\ToolFetcher.ps1 -up
+    PS> .\ToolFetcher.ps1 -upall
     
     Updates all previously downloaded tools that are not marked with SkipDownload.
     Preserves any user modifications to the tools.
 
 .EXAMPLE
-    PS> .\ToolFetcher.ps1 -up "LECmd","JLECmd"
+    PS> .\ToolFetcher.ps1 -uptool "LECmd","JLECmd"
     
     Updates only the specified tools (LECmd and JLECmd), ignoring their SkipDownload setting.
 
@@ -1992,6 +2018,12 @@ function Add-ConfigurationDefaults {
     PS> .\ToolFetcher.ps1 -force -Update
     
     Forces re-download of all tools while preserving user modifications through the update process.
+
+.EXAMPLE
+    PS> .\ToolFetcher.ps1 -upall -force
+    
+    Updates all previously downloaded tools, bypassing the SkipDownload setting.
+    Preserves any user modifications to the tools.
 
 .NOTES
     Author: Kevin Stokes
