@@ -27,8 +27,8 @@ param (
     [Alias('upall')]
     [switch]$UpdateAll,
     
-    [Parameter(HelpMessage = 'Specify tool names to update (comma-separated). If a tool is not already downloaded, it will be downloaded. Updates preserve user modifications by only removing managed files (tracked in .downloaded.json).')]
-    [Alias('uptool')]
+    [Parameter(HelpMessage = 'Specify tool names to update. You can provide multiple tools in several ways: 1. Comma-separated list: -UpdateTools "tool1,tool2,tool3" 2. Multiple parameters: -UpdateTools tool1 -UpdateTools tool2 3. Array syntax: -UpdateTools @("tool1","tool2")')]
+    [Alias('uptools')]
     [string[]]$UpdateTools = @(),
     
     [Parameter(HelpMessage = 'Show detailed debug information during execution. Includes additional details about download operations, file processing, and configuration.')]
@@ -685,13 +685,38 @@ catch {
 $updateMode = $null
 if ($UpdateTools.Count -gt 0) {
     $updateMode = "specific"
-    $updateToolList = $UpdateTools | ForEach-Object { $_.ToLower() }
+    
+    # Process each item in UpdateTools, splitting by comma if needed
+    $expandedToolList = @()
+    foreach ($item in $UpdateTools) {
+        # Split by comma and add each part to the expanded list
+        $expandedToolList += $item.Split(',', [System.StringSplitOptions]::RemoveEmptyEntries)
+    }
+    
+    # Process the expanded list
+    $updateToolList = $expandedToolList | ForEach-Object { $_.ToLower().Trim() }
     $allToolNames = $tools | ForEach-Object { $_.Name.ToLower() }
+    
+    # Check if each requested tool exists in the YAML configuration
+    $validTools = @()
+    $invalidTools = @()
     foreach ($req in $updateToolList) {
-        if ($allToolNames -notcontains $req) {
+        if ($allToolNames -contains $req) {
+            $validTools += $req
+        } else {
+            $invalidTools += $req
             Log-Warning "Requested update for tool '$req' not found in the YAML configuration."
         }
     }
+    
+    # If no valid tools were found, exit with an error
+    if ($validTools.Count -eq 0 -and $updateToolList.Count -gt 0) {
+        Log-Error "None of the requested tools were found in the YAML configuration. Please check tool names and try again."
+        exit 1
+    }
+    
+    # Update the list to only include valid tools
+    $updateToolList = $validTools
 }
 elseif ($UpdateAll) {
     $updateMode = "general"
@@ -1641,10 +1666,18 @@ foreach ($tool in $tools) {
             if ($updateToolList -contains $tool.Name.ToLower()) {
                 $processTool = $true
                 Write-Host "===========================================" -ForegroundColor White
-                Log-Info "Updating tool: $($tool.Name)"
-                if ((Test-Path $toolOutputFolder) -and (Test-Path $markerFile)) {
-                    Log-Debug "Update: Removing previous files for $($tool.Name)."
-                    Remove-ManagedFiles -OutputFolder $toolOutputFolder
+                
+                # If the tool is already downloaded, update it
+                if (Test-Path $toolOutputFolder) {
+                    Log-Info "Updating tool: $($tool.Name)"
+                    if (Test-Path $markerFile) {
+                        Log-Debug "Update: Removing previous files for $($tool.Name)."
+                        Remove-ManagedFiles -OutputFolder $toolOutputFolder
+                    }
+                }
+                # If the tool is not downloaded yet, we'll download it
+                else {
+                    Log-Info "Tool $($tool.Name) not found locally. Will download it."
                 }
             }
         }
@@ -1920,7 +1953,12 @@ function Add-ConfigurationDefaults {
     Updates preserve user modifications by only removing managed files (tracked in .downloaded.json).
 
 .PARAMETER UpdateTools
-    Specify tool names to update (comma-separated). If a tool is not already downloaded, it will be downloaded.
+    Specify tool names to update. You can provide multiple tools in several ways:
+    1. Comma-separated list: -UpdateTools "tool1,tool2,tool3"
+    2. Multiple parameters: -UpdateTools tool1 -UpdateTools tool2
+    3. Array syntax: -UpdateTools @("tool1","tool2")
+    
+    If a tool is not already downloaded, it will be downloaded.
     Updates preserve user modifications by only removing managed files (tracked in .downloaded.json).
 
 .PARAMETER VerboseOutput
@@ -1967,15 +2005,14 @@ function Add-ConfigurationDefaults {
     Preserves any user modifications to the tools.
 
 .EXAMPLE
-    PS> .\ToolFetcher.ps1 -uptool "LECmd","JLECmd"
+    PS> .\ToolFetcher.ps1 -uptools "LECmd","KStrike"
     
     Updates only the specified tools (LECmd and JLECmd), ignoring their SkipDownload setting.
 
 .EXAMPLE
-    PS> .\ToolFetcher.ps1 -force
+    PS> .\ToolFetcher.ps1 -uptools LECmd -uptools KStrike
     
-    Forces re-download of all tools, overwriting existing directories.
-    Use with caution as this will remove all existing tool files.
+    Another way to update specific tools using multiple parameter instances.
 
 .EXAMPLE
     PS> .\ToolFetcher.ps1 -list
@@ -2013,17 +2050,6 @@ function Add-ConfigurationDefaults {
     PS> .\ToolFetcher.ps1 -vo -l
     
     Runs with both verbose output and logging enabled for maximum debugging information.
-
-.EXAMPLE
-    PS> .\ToolFetcher.ps1 -force -Update
-    
-    Forces re-download of all tools while preserving user modifications through the update process.
-
-.EXAMPLE
-    PS> .\ToolFetcher.ps1 -upall -force
-    
-    Updates all previously downloaded tools, bypassing the SkipDownload setting.
-    Preserves any user modifications to the tools.
 
 .NOTES
     Author: Kevin Stokes

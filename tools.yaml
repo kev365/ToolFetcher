@@ -130,7 +130,7 @@ tools:
     DownloadMethod: "latestRelease"
     DownloadName: "rusty_usn-v1.5.0-x86_64-pc-windows-msvc.zip"
     OutputFolder: "NTFS"
-    SkipDownload: false
+    SkipDownload: true
 
   - Name: "PECmd"
     RepoUrl: "https://download.ericzimmermanstools.com/net6/PECmd.zip" # .Net6

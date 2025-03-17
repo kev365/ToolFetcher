@@ -125,11 +125,21 @@ SkipDownload: false   # Whether to skip downloading this tool (default: false)
 3. **Update All Downloaded Tools:**
    ```powershell
    .\ToolFetcher.ps1 -upall
+   
+   .\ToolFetcher.ps1 -UpdateAll
    ```
 
 4. **Update Specific Tools:**
    ```powershell
-   .\ToolFetcher.ps1 -uptool "LECmd","JLECmd","KStrike"
+   # Comma-separated list with quotes
+   .\ToolFetcher.ps1 -uptools "LECmd","JLECmd","KStrike"
+   .\ToolFetcher.ps1 -UpdateTools "LECmd,JLECmd,KStrike"
+
+   # Multiple parameters
+   .\ToolFetcher.ps1 -UpdateTools RustyUsn -UpdateTools KStrike
+
+   # Array syntax
+   .\ToolFetcher.ps1 -UpdateTools @("RustyUsn","KStrike")
    ```
 
 5. **Update All Tools (Bypass SkipDownload):**
