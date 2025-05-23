@@ -196,4 +196,4 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 Kevin Stokes
 
-[Blog write-up](https://dfir-kev.medium.com/tool-fetcher-499c99aaa9fa) · [LinkedIn Profile](https://www.linkedin.com/in/dfir-kev/) · [Buy me a coffee!](https://www.buymeacoffee.com/dfirkev)
+[Blog write-up](https://dfir-kev.medium.com/tool-fetcher-86691e65731b) · [LinkedIn Profile](https://www.linkedin.com/in/dfir-kev/) · [Buy me a coffee!](https://www.buymeacoffee.com/dfirkev)
