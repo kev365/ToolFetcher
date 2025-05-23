@@ -1,6 +1,6 @@
 tooldirectory: "" # Must escape any backslashes or use single forward slashes
 tools:
-  # Documentation: https://dfir-kev.medium.com/tool-fetcher-499c99aaa9fa
+  # Documentation: https://dfir-kev.medium.com/tool-fetcher-86691e65731b
   # -Template-
   # Name: "ToolName"      # Tool identifier, also used to name the parent folder for the tool
   # RepoUrl: ""           # URL goes here
@@ -240,14 +240,7 @@ tools:
     RepoUrl: "https://github.com/Yamato-Security/hayabusa"
     DownloadMethod: "latestRelease"
     AssetType: "win64"
-    OutputFolder: "WinEventlogs-good"
-    SkipDownload: false
-
-  - Name: "hayabusa"
-    RepoUrl: "https://github.com/Yamato-Security/hayabusa"
-    DownloadMethod: "latestRelease"
-    AssetFilename: "hayabusa-[\\d\\.]+?-win-x64\\.zip"
-    OutputFolder: "WinEventlogs-test"
+    OutputFolder: "WinEventlogs"
     SkipDownload: false
 
   - Name: "EvtxHussar"
