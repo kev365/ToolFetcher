@@ -1433,16 +1433,16 @@ function Download-LatestReleaseTool {
     if (-not (Test-RequiredParameter -Tool $ToolConfig -Parameter "RepoUrl")) { return }
     
     # Define asset patterns if not provided
-    $AssetPatterns = @{
-        "win64" = "(?i)(win64|windows[-_]?64|x64|amd64|64[-_]?bit)"
-        "win32" = "(?i)(win32|windows[-_]?32|x86|386|32[-_]?bit)"
-        "linux64" = "(?i)(linux[-_]?64|linux[-_]?amd64)"
-        "linux32" = "(?i)(linux[-_]?32|linux[-_]?386)"
-        "macos64" = "(?i)(macos[-_]?64|darwin[-_]?64|osx[-_]?64)"
-        "macos32" = "(?i)(macos[-_]?32|darwin[-_]?32|osx[-_]?32)"
-        "arm64" = "(?i)(arm64|aarch64)"
-        "arm32" = "(?i)(arm32|armv7)"
-    }
+	$AssetPatterns = @{
+		"win64"   = "(?i)(win64|windows[-_]?64|win[-_]?x64|x64|x86_64|amd64|64[-_]?bit)"
+		"win32"   = "(?i)(win32|windows[-_]?32|win[-_]?x86|x86|i386|386|32[-_]?bit)"
+		"linux64" = "(?i)(linux[-_]?64|linux[-_]?amd64|linux[-_]?x64|linux[-_]?x86_64|linuxx86_64|linux64|x86_64|amd64|x64)"
+		"linux32" = "(?i)(linux[-_]?32|linux[-_]?386|linuxx86|linuxi386|x86|i386|386|32[-_]?bit)"
+		"macos64" = "(?i)(macos[-_]?64|darwin[-_]?64|osx[-_]?64|macos[-_]?x64|darwin[-_]?x64|osx[-_]?x64|macos[-_]?x86_64|darwin[-_]?x86_64|osx[-_]?x86_64|x64|x86_64|arm64|aarch64)"
+		"macos32" = "(?i)(macos[-_]?32|darwin[-_]?32|osx[-_]?32|macos[-_]?x86|darwin[-_]?x86|osx[-_]?x86|x86|i386|386|32[-_]?bit)"
+		"arm64"   = "(?i)(arm64|aarch64|armv8)"
+		"arm32"   = "(?i)(arm32|armv7|armv6|armhf)"
+	}
     
     # Handle optional parameters with defaults
     $extract = Get-DefaultValue -Tool $ToolConfig -Parameter "Extract" -DefaultValue $true
@@ -1467,7 +1467,7 @@ function Download-LatestReleaseTool {
         $assets = $assets | Where-Object { $_.name -eq $ToolConfig.DownloadName }
     }
     elseif (-not [string]::IsNullOrEmpty($ToolConfig.AssetFilename)) {
-        $assets = $assets | Where-Object { $_.name -eq $ToolConfig.AssetFilename }
+        $assets = $assets | Where-Object { $_.name -match $ToolConfig.AssetFilename }
     }
     elseif (-not [string]::IsNullOrEmpty($ToolConfig.AssetType)) {
         if ($AssetPatterns.ContainsKey($ToolConfig.AssetType)) {
