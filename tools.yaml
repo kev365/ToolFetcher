@@ -381,3 +381,58 @@ tools:
     Branch: "main"
     OutputFolder: "Timelines"
     SkipDownload: false
+
+  - Name: "MemProcFs"
+    RepoUrl: "https://github.com/ufrisk/MemProcFS"
+    DownloadMethod: "latestrelease"
+    DownloadName: "MemProcFS_files_and_binaries-win_x64-latest.zip"
+    OutputFolder: "Memory"
+    SkipDownload: false
+
+  - Name: "MemProcFsAnalyzer"
+    RepoUrl: "https://github.com/LETHAL-FORENSICS/MemProcFS-Analyzer"
+    DownloadMethod: "latestrelease"
+    DownloadName: "MemProcFS-Analyzer-v1.2.0.zip"
+    OutputFolder: "Memory"
+    SkipDownload: false
+
+    - Name: "AmCache-EvilHunter"
+    RepoUrl: "https://github.com/cristianzsh/amcache-evilhunter"
+    DownloadMethod: "latestrelease"
+    DownloadName: "amcache_evilhunter.exe"
+    OutputFolder: "WinRegistry"
+    SkipDownload: false
+
+    - Name: "Microsoft-Analyzer-Suite"
+    RepoUrl: "https://github.com/LETHAL-FORENSICS/Microsoft-Analyzer-Suite"
+    DownloadMethod: "latestrelease"
+    DownloadName: "Microsoft-Analyzer-Suite-v1.5.1.zip"
+    OutputFolder: "CloudLogs"
+    SkipDownload: false
+
+    - Name: "Nirsoft Utilities"
+    RepoUrl: "https://download.nirsoft.net/nirsoft_package_enc_1.30.19.zip"
+    DownloadMethod: "specificFile"
+    OutputFolder: "MISC"
+    SkipDownload: false
+
+      - Name: "Bmc-Tools-Compiled"
+    RepoUrl: "https://github.com/Qazeer/bmc-tools-compiled/"
+    DownloadMethod: "latestrelease"
+    DownloadName: "bmc-tools.exe"
+    OutputFolder: "MISC"
+    SkipDownload: false
+
+      - Name: "RdpCacheStitcher"
+    RepoUrl: "https://github.com/BSI-Bund/RdpCacheStitcher/"
+    DownloadMethod: "latestrelease"
+    DownloadName: "RdpCacheStitcher-v1.1-win64.zipp"
+    OutputFolder: "MISC"
+    SkipDownload: false
+
+        - Name: "RegRipper 3.0"
+    RepoUrl: "https://github.com/keydet89/RegRipper3.0"
+    DownloadMethod: "gitClone"
+    Branch: "master"
+    OutputFolder: "WinRegistry"
+    SkipDownload: false
