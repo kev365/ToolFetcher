@@ -416,23 +416,58 @@ tools:
     OutputFolder: "MISC"
     SkipDownload: false
 
-      - Name: "Bmc-Tools-Compiled"
+    - Name: "Bmc-Tools-Compiled"
     RepoUrl: "https://github.com/Qazeer/bmc-tools-compiled/"
     DownloadMethod: "latestrelease"
     DownloadName: "bmc-tools.exe"
     OutputFolder: "MISC"
     SkipDownload: false
 
-      - Name: "RdpCacheStitcher"
+    - Name: "RdpCacheStitcher"
     RepoUrl: "https://github.com/BSI-Bund/RdpCacheStitcher/"
     DownloadMethod: "latestrelease"
-    DownloadName: "RdpCacheStitcher-v1.1-win64.zipp"
+    DownloadName: "RdpCacheStitcher-v1.1-win64.zip"
     OutputFolder: "MISC"
     SkipDownload: false
 
-        - Name: "RegRipper 3.0"
+    - Name: "RegRipper 3.0"
     RepoUrl: "https://github.com/keydet89/RegRipper3.0"
     DownloadMethod: "gitClone"
     Branch: "master"
     OutputFolder: "WinRegistry"
+    SkipDownload: false
+
+    - Name: "NTFS Journal Viewer"
+    RepoUrl: "https://e5hforensics.com/wp-content/uploads/2023/11/NTFS-Journal-Viewer.zip"
+    DownloadMethod: "specificFile"
+    OutputFolder: "NTFS"
+    Extract: true
+    SkipDownload: false
+
+    - Name: "Wireshark Portable"
+    RepoUrl: "https://2.na.dl.wireshark.org/win64/WiresharkPortable64_4.4.8.paf.exe"
+    DownloadMethod: "specificFile"
+    OutputFolder: "Network"
+    SkipDownload: false
+
+    - Name: "NetworkMiner"
+    RepoUrl: "https://download.netresec.com/networkminer/NetworkMiner_3-0.zip"
+    DownloadMethod: "specificFile"
+    OutputFolder: "Network"
+    Extract: true
+    SkipDownload: false
+
+    - Name: "ShadowExplorer"
+    RepoUrl: "https://www.shadowexplorer.com/uploads/ShadowExplorer-0.9-portable.zip"
+    DownloadMethod: "specificFile"
+    OutputFolder: "NTFS"
+    Extract: true
+    SkipDownload: false
+
+    - Name: "Forensic-Timeliner"
+    RepoUrl: "https://github.com/acquiredsecurity/forensic-timeliner"
+    DownloadMethod: "latestrelease"
+    DownloadName: "https://github.com/acquiredsecurity/forensic-timeliner/releases/download/v2.2/ForensicTimeliner2.2.zip"
+    OutputFolder: "NTFS"
+    Extract: true
     SkipDownload: false
