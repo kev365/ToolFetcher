@@ -426,7 +426,7 @@ tools:
     - Name: "RdpCacheStitcher"
     RepoUrl: "https://github.com/BSI-Bund/RdpCacheStitcher/"
     DownloadMethod: "latestrelease"
-    DownloadName: "RdpCacheStitcher-v1.1-win64.zipp"
+    DownloadName: "RdpCacheStitcher-v1.1-win64.zip"
     OutputFolder: "MISC"
     SkipDownload: false
 
@@ -460,6 +460,14 @@ tools:
     - Name: "ShadowExplorer"
     RepoUrl: "https://www.shadowexplorer.com/uploads/ShadowExplorer-0.9-portable.zip"
     DownloadMethod: "specificFile"
+    OutputFolder: "NTFS"
+    Extract: true
+    SkipDownload: false
+
+    - Name: "Forensic-Timeliner"
+    RepoUrl: "https://github.com/acquiredsecurity/forensic-timeliner"
+    DownloadMethod: "latestrelease"
+    DownloadName: "https://github.com/acquiredsecurity/forensic-timeliner/releases/download/v2.2/ForensicTimeliner2.2.zip"
     OutputFolder: "NTFS"
     Extract: true
     SkipDownload: false
