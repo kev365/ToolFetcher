@@ -436,3 +436,9 @@ tools:
     Branch: "master"
     OutputFolder: "WinRegistry"
     SkipDownload: false
+
+    - Name: "NTFS Journal Viewer"
+    RepoUrl: "https://e5hforensics.com/wp-content/uploads/2023/11/NTFS-Journal-Viewer.zip"
+    DownloadMethod: "specificFile"
+    OutputFolder: "NTFS"
+    SkipDownload: false
