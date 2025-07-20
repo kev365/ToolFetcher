@@ -442,3 +442,9 @@ tools:
     DownloadMethod: "specificFile"
     OutputFolder: "NTFS"
     SkipDownload: false
+
+    - Name: "Wireshark Portable"
+    RepoUrl: "https://2.na.dl.wireshark.org/win64/WiresharkPortable64_4.4.8.paf.exe"
+    DownloadMethod: "specificFile"
+    OutputFolder: "Network"
+    SkipDownload: false
