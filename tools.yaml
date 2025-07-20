@@ -448,3 +448,9 @@ tools:
     DownloadMethod: "specificFile"
     OutputFolder: "Network"
     SkipDownload: false
+
+    - Name: "NetworkMiner"
+    RepoUrl: "https://download.netresec.com/networkminer/NetworkMiner_3-0.zip"
+    DownloadMethod: "specificFile"
+    OutputFolder: "Network"
+    SkipDownload: false    
