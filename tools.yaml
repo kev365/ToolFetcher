@@ -416,21 +416,21 @@ tools:
     OutputFolder: "MISC"
     SkipDownload: false
 
-      - Name: "Bmc-Tools-Compiled"
+    - Name: "Bmc-Tools-Compiled"
     RepoUrl: "https://github.com/Qazeer/bmc-tools-compiled/"
     DownloadMethod: "latestrelease"
     DownloadName: "bmc-tools.exe"
     OutputFolder: "MISC"
     SkipDownload: false
 
-      - Name: "RdpCacheStitcher"
+    - Name: "RdpCacheStitcher"
     RepoUrl: "https://github.com/BSI-Bund/RdpCacheStitcher/"
     DownloadMethod: "latestrelease"
     DownloadName: "RdpCacheStitcher-v1.1-win64.zipp"
     OutputFolder: "MISC"
     SkipDownload: false
 
-        - Name: "RegRipper 3.0"
+    - Name: "RegRipper 3.0"
     RepoUrl: "https://github.com/keydet89/RegRipper3.0"
     DownloadMethod: "gitClone"
     Branch: "master"
@@ -441,6 +441,7 @@ tools:
     RepoUrl: "https://e5hforensics.com/wp-content/uploads/2023/11/NTFS-Journal-Viewer.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "NTFS"
+    Extract: true
     SkipDownload: false
 
     - Name: "Wireshark Portable"
@@ -453,4 +454,12 @@ tools:
     RepoUrl: "https://download.netresec.com/networkminer/NetworkMiner_3-0.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "Network"
-    SkipDownload: false    
+    Extract: true
+    SkipDownload: false
+
+    - Name: "ShadowExplorer"
+    RepoUrl: "https://www.shadowexplorer.com/uploads/ShadowExplorer-0.9-portable.zip"
+    DownloadMethod: "specificFile"
+    OutputFolder: "NTFS"
+    Extract: true
+    SkipDownload: false
