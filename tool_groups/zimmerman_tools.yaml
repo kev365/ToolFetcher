@@ -1,0 +1,173 @@
+# Eric Zimmerman Tools Collection
+
+  # Documentation: https://dfir-kev.medium.com/tool-fetcher-86691e65731b
+  # -Template-
+  # Name: "ToolName"      # Tool identifier, also used to name the parent folder for the tool
+  # RepoUrl: ""           # URL goes here
+  # DownloadMethod: ""    # Options: gitClone | latestRelease | branchZip | specificFile
+  # OutputFolder: ""      # Appends a subdirectory to $toolsFolder
+  # Branch: ""            # Defaults to master if not provided, also checks main if master is not available
+  # DownloadName: ""      # Used to download a particular file from the latestRelease
+  # AssetFilename: ""     # Used to specify exact filename to download from latestRelease (supports regex)
+  # AssetType: ""         # Options: win64 | win32 | linux64 | linux32 | macos64 | macos32 | arm64 | arm32
+  # SpecificFilePath: ""  # Used with the 'specificFile' DownloadMethod to specify file path in repository
+  # Extract: true         # Whether to extract the downloaded file (default: true)
+  # SkipDownload: false   # Whether to skip downloading this tool (default: false)
+
+tools:
+  
+  - Name: "AmcacheParser"
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/AmcacheParser.zip"
+    DownloadMethod: "specificFile"
+    OutputFolder: "ez_tools"
+    SkipDownload: false
+
+  - Name: "AppCompatCacheParser"
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/AppCompatCacheParser.zip"
+    DownloadMethod: "specificFile"
+    OutputFolder: "ez_tools"
+    SkipDownload: false
+
+  - Name: "EvtxECmd"
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/EvtxECmd.zip"
+    DownloadMethod: "specificFile"
+    OutputFolder: "ez_tools"
+    SkipDownload: false
+
+  - Name: "EZViewer"
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/EZViewer.zip"
+    DownloadMethod: "specificFile"
+    OutputFolder: "ez_tools"
+    SkipDownload: false
+
+  - Name: "iisGeolocate"
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/iisGeolocate.zip"
+    DownloadMethod: "specificFile"
+    OutputFolder: "ez_tools"
+    SkipDownload: false
+
+  - Name: "JLECmd"
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/JLECmd.zip"
+    DownloadMethod: "specificFile"
+    OutputFolder: "ez_tools"
+    SkipDownload: false
+
+  - Name: "JumpListExplorer"
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/JumpListExplorer.zip"
+    DownloadMethod: "specificFile"
+    OutputFolder: "ez_tools"
+    SkipDownload: false
+
+  - Name: "LECmd"
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/LECmd.zip"
+    DownloadMethod: "specificFile"
+    OutputFolder: "ez_tools"
+    SkipDownload: false
+
+  - Name: "MFTECmd"
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/MFTECmd.zip"
+    DownloadMethod: "specificFile"
+    OutputFolder: "ez_tools"
+    SkipDownload: false
+
+  - Name: "MFTExplorer"
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/MFTExplorer.zip"
+    DownloadMethod: "specificFile"
+    OutputFolder: "ez_tools"
+    SkipDownload: false
+
+  - Name: "PECmd"
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/PECmd.zip"
+    DownloadMethod: "specificFile"
+    OutputFolder: "ez_tools"
+    SkipDownload: false
+
+  - Name: "RBCmd"
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/RBCmd.zip"
+    DownloadMethod: "specificFile"
+    OutputFolder: "ez_tools"
+    SkipDownload: false
+
+  - Name: "RECmd"
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/RECmd.zip"
+    DownloadMethod: "specificFile"
+    OutputFolder: "ez_tools"
+    SkipDownload: false
+
+  - Name: "RecentFileCacheParser"
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/RecentFileCacheParser.zip"
+    DownloadMethod: "specificFile"
+    OutputFolder: "ez_tools"
+    SkipDownload: false
+
+  - Name: "RegistryExplorer"
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/RegistryExplorer.zip"
+    DownloadMethod: "specificFile"
+    OutputFolder: "ez_tools"
+    SkipDownload: false
+
+  - Name: "rla"
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/rla.zip"
+    DownloadMethod: "specificFile"
+    OutputFolder: "ez_tools"
+    SkipDownload: false
+
+  - Name: "SBECmd"
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/SBECmd.zip"
+    DownloadMethod: "specificFile"
+    OutputFolder: "ez_tools"
+    SkipDownload: false
+
+  - Name: "SDBExplorer"
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/SDBExplorer.zip"
+    DownloadMethod: "specificFile"
+    OutputFolder: "ez_tools"
+    SkipDownload: false
+
+  - Name: "ShellBagsExplorer"
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/ShellBagsExplorer.zip"
+    DownloadMethod: "specificFile"
+    OutputFolder: "ez_tools"
+    SkipDownload: false
+
+  - Name: "SQLECmd"
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/SQLECmd.zip"
+    DownloadMethod: "specificFile"
+    OutputFolder: "ez_tools"
+    SkipDownload: false
+
+  - Name: "SumECmd"
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/SumECmd.zip"
+    DownloadMethod: "specificFile"
+    OutputFolder: "ez_tools"
+    SkipDownload: false
+
+  - Name: "TimeApp"
+    RepoUrl: "https://download.ericzimmermanstools.com/TimeApp.zip"
+    DownloadMethod: "specificFile"
+    OutputFolder: "ez_tools"
+    SkipDownload: false
+
+  - Name: "TimelineExplorer"
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/TimelineExplorer.zip"
+    DownloadMethod: "specificFile"
+    OutputFolder: "ez_tools"
+    SkipDownload: false
+
+  - Name: "VSCMount"
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/VSCMount.zip"
+    DownloadMethod: "specificFile"
+    OutputFolder: "ez_tools"
+    SkipDownload: false
+
+  - Name: "WxTCmd"
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/WxTCmd.zip"
+    DownloadMethod: "specificFile"
+    OutputFolder: "ez_tools"
+    SkipDownload: false
+
+  - Name: "XWFIM"
+    RepoUrl: "https://download.ericzimmermanstools.com/XWFIM.zip"
+    DownloadMethod: "specificFile"
+    OutputFolder: "ez_tools"
+    SkipDownload: false 

@@ -3,6 +3,7 @@
 *.idea/
 *.log
 .cursorrules
+*.mdc
 
 # Folders
 tmp/

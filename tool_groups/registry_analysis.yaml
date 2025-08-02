@@ -1,0 +1,108 @@
+# Registry Analysis Tools
+
+  # Documentation: https://dfir-kev.medium.com/tool-fetcher-86691e65731b
+  # -Template-
+  # Name: "ToolName"      # Tool identifier, also used to name the parent folder for the tool
+  # RepoUrl: ""           # URL goes here
+  # DownloadMethod: ""    # Options: gitClone | latestRelease | branchZip | specificFile
+  # OutputFolder: ""      # Appends a subdirectory to $toolsFolder
+  # Branch: ""            # Defaults to master if not provided, also checks main if master is not available
+  # DownloadName: ""      # Used to download a particular file from the latestRelease
+  # AssetFilename: ""     # Used to specify exact filename to download from latestRelease (supports regex)
+  # AssetType: ""         # Options: win64 | win32 | linux64 | linux32 | macos64 | macos32 | arm64 | arm32
+  # SpecificFilePath: ""  # Used with the 'specificFile' DownloadMethod to specify file path in repository
+  # Extract: true         # Whether to extract the downloaded file (default: true)
+  # SkipDownload: false   # Whether to skip downloading this tool (default: false)
+
+tools:
+  
+  - Name: "AmCache-EvilHunter"
+    RepoUrl: "https://github.com/cristianzsh/amcache-evilhunter"
+    DownloadMethod: "latestrelease"
+    DownloadName: "amcache_evilhunter.exe"
+    OutputFolder: "registry"
+    SkipDownload: false
+
+  - Name: "AmcacheParser"
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/AmcacheParser.zip"
+    DownloadMethod: "specificFile"
+    OutputFolder: "registry"
+    SkipDownload: false
+
+  - Name: "AppCompatCacheParser"
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/AppCompatCacheParser.zip"
+    DownloadMethod: "specificFile"
+    OutputFolder: "registry"
+    SkipDownload: false
+
+  - Name: "RECmd"
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/RECmd.zip"
+    DownloadMethod: "specificFile"
+    OutputFolder: "registry"
+    SkipDownload: false
+
+  - Name: "RecentFileCacheParser"
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/RecentFileCacheParser.zip"
+    DownloadMethod: "specificFile"
+    OutputFolder: "registry"
+    SkipDownload: false
+
+  - Name: "RegDllView"
+    RepoUrl: "https://www.nirsoft.net/utils/registered_dll_view.html"
+    DownloadMethod: "specificFile"
+    DownloadName: "RegDllView.zip"
+    OutputFolder: "registry"
+    SkipDownload: false
+
+  - Name: "RegFromApp"
+    RepoUrl: "https://www.nirsoft.net/utils/reg_file_from_application.html"
+    DownloadMethod: "specificFile"
+    DownloadName: "RegFromApp.zip"
+    OutputFolder: "registry"
+    SkipDownload: false
+
+  - Name: "reg_hunter"
+    RepoUrl: "https://github.com/theflakes/reg_hunter"
+    DownloadMethod: "latestRelease"
+    DownloadName: "reg_hunter.exe"
+    OutputFolder: "registry"
+    SkipDownload: false
+
+  - Name: "RegRipper3.0"
+    RepoUrl: "https://github.com/keydet89/RegRipper3.0"
+    DownloadMethod: "branchZip"
+    Branch: "master"
+    OutputFolder: "registry"
+    SkipDownload: false
+
+  - Name: "RegScanner"
+    RepoUrl: "https://www.nirsoft.net/utils/regscanner.html"
+    DownloadMethod: "specificFile"
+    DownloadName: "RegScanner.zip"
+    OutputFolder: "registry"
+    SkipDownload: false
+
+  - Name: "RegistryExplorer"
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/RegistryExplorer.zip"
+    DownloadMethod: "specificFile"
+    OutputFolder: "registry"
+    SkipDownload: false
+
+  - Name: "RegistryScanner"
+    RepoUrl: "https://github.com/forensicmatt/RegistryScanner"
+    DownloadMethod: "latestRelease"
+    DownloadName: "RegistryScanner.exe"
+    OutputFolder: "registry"
+    SkipDownload: false
+
+  - Name: "rla"
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/rla.zip"
+    DownloadMethod: "specificFile"
+    OutputFolder: "registry"
+    SkipDownload: false
+
+  - Name: "SBECmd"
+    RepoUrl: "https://download.ericzimmermanstools.com/net6/SBECmd.zip"
+    DownloadMethod: "specificFile"
+    OutputFolder: "registry"
+    SkipDownload: false 

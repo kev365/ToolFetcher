@@ -1,0 +1,233 @@
+# Miscellaneous Tools
+
+  # Documentation: https://dfir-kev.medium.com/tool-fetcher-86691e65731b
+  # -Template-
+  # Name: "ToolName"      # Tool identifier, also used to name the parent folder for the tool
+  # RepoUrl: ""           # URL goes here
+  # DownloadMethod: ""    # Options: gitClone | latestRelease | branchZip | specificFile
+  # OutputFolder: ""      # Appends a subdirectory to $toolsFolder
+  # Branch: ""            # Defaults to master if not provided, also checks main if master is not available
+  # DownloadName: ""      # Used to download a particular file from the latestRelease
+  # AssetFilename: ""     # Used to specify exact filename to download from latestRelease (supports regex)
+  # AssetType: ""         # Options: win64 | win32 | linux64 | linux32 | macos64 | macos32 | arm64 | arm32
+  # SpecificFilePath: ""  # Used with the 'specificFile' DownloadMethod to specify file path in repository
+  # Extract: true         # Whether to extract the downloaded file (default: true)
+  # SkipDownload: false   # Whether to skip downloading this tool (default: false)
+
+tools:
+  
+  - Name: "010-Editor"
+    RepoUrl: "https://www.sweetscape.com/010editor/"
+    DownloadMethod: ""
+    DownloadName: ""
+    OutputFolder: "misc"
+    SkipDownload: false
+
+  - Name: "BackstageParser"
+    RepoUrl: "https://github.com/ArsenalRecon/BackstageParser"
+    DownloadMethod: "branchZip"
+    Branch: "master"
+    OutputFolder: "misc"
+    SkipDownload: false
+
+  - Name: "BitsParser"
+    RepoUrl: "https://github.com/fireeye/BitsParser"
+    DownloadMethod: "branchZip"
+    Branch: "master"
+    OutputFolder: "misc"
+    SkipDownload: false
+
+  - Name: "Bmc-Tools-Compiled"
+    RepoUrl: "https://github.com/Qazeer/bmc-tools-compiled/"
+    DownloadMethod: "latestrelease"
+    DownloadName: "bmc-tools.exe"
+    OutputFolder: "misc"
+    SkipDownload: false
+
+  - Name: "DB-Browser-SQLCipher"
+    RepoUrl: "https://github.com/sqlitebrowser/sqlitebrowser"
+    DownloadMethod: "latestRelease"
+    DownloadName: "DB.Browser.for.SQLite-SQLCipher-3.12.2-win64.msi"
+    OutputFolder: "misc"
+    SkipDownload: false
+
+  - Name: "DB-Browser-SQLite"
+    RepoUrl: "https://github.com/sqlitebrowser/sqlitebrowser"
+    DownloadMethod: "latestRelease"
+    DownloadName: "DB.Browser.for.SQLite-3.12.2-win64.msi"
+    OutputFolder: "misc"
+    SkipDownload: false
+
+  - Name: "DCode"
+    RepoUrl: ""
+    DownloadMethod: ""
+    DownloadName: ""
+    OutputFolder: "misc"
+    SkipDownload: false
+
+  - Name: "DHParser"
+    RepoUrl: "https://github.com/jklepsercyber/defender-detectionhistory-parser"
+    DownloadMethod: "specificFile"
+    SpecificFilePath: "/raw/refs/heads/main/dhparser.exe"
+    DownloadName: "dhparser.exe"
+    OutputFolder: "misc"
+    SkipDownload: false
+
+  - Name: "DidierStevensSuite"
+    RepoUrl: "https://github.com/DidierStevens/DidierStevensSuite"
+    DownloadMethod: "branchZip"
+    Branch: "master"
+    OutputFolder: "misc"
+    SkipDownload: false
+
+  - Name: "dnSpy"
+    RepoUrl: "https://github.com/dnSpy/dnSpy"
+    DownloadMethod: "latestRelease"
+    DownloadName: "dnSpy-net-win64.zip"
+    OutputFolder: "misc"
+    SkipDownload: false
+
+  - Name: "forensicsim"
+    RepoUrl: "https://github.com/lxndrblz/forensicsim"
+    DownloadMethod: "latestRelease"
+    DownloadName: "forensicsim.zip"
+    OutputFolder: "misc"
+    SkipDownload: false
+
+  - Name: "HxD"
+    RepoUrl: ""
+    DownloadMethod: ""
+    DownloadName: ""
+    OutputFolder: "misc"
+    SkipDownload: false
+
+  - Name: "IDA-Freeware"
+    RepoUrl: "https://hex-rays.com/ida-free/"
+    DownloadMethod: ""
+    DownloadName: ""
+    OutputFolder: "misc"
+    SkipDownload: false
+
+  - Name: "ILSpy"
+    RepoUrl: "https://github.com/icsharpcode/ILSpy"
+    DownloadMethod: "latestRelease"
+    DownloadName: "ILSpy_binaries.zip"
+    OutputFolder: "misc"
+    SkipDownload: false
+
+  - Name: "jadx"
+    RepoUrl: "https://github.com/skylot/jadx"
+    DownloadMethod: "latestRelease"
+    DownloadName: "jadx-1.4.7-with-jre-win.zip"
+    OutputFolder: "misc"
+    SkipDownload: false
+
+  - Name: "KAPE"
+    RepoUrl: ""
+    DownloadMethod: ""
+    Branch: "master"
+    OutputFolder: "misc"
+    SkipDownload: false
+
+  - Name: "KStrike"
+    RepoUrl: "https://github.com/brimorlabs/KStrike"
+    DownloadMethod: "branchZip"
+    Branch: "master"
+    OutputFolder: "misc"
+    SkipDownload: false
+
+  - Name: "LevelDBDumper"
+    RepoUrl: "https://github.com/mdawsonuk/LevelDBDumper"
+    DownloadMethod: "latestRelease"
+    DownloadName: "LevelDBDumper.exe"
+    OutputFolder: "misc"
+    SkipDownload: false
+
+  - Name: "Microsoft-Analyzer-Suite"
+    RepoUrl: "https://github.com/LETHAL-FORENSICS/Microsoft-Analyzer-Suite"
+    DownloadMethod: "latestrelease"
+    DownloadName: "Microsoft-Analyzer-Suite-v1.5.1.zip"
+    OutputFolder: "misc"
+    SkipDownload: false
+
+  - Name: "OneDriveExplorer"
+    RepoUrl: "https://github.com/Beercow/OneDriveExplorer"
+    DownloadMethod: "latestRelease"
+    DownloadName: "ODE.zip"
+    OutputFolder: "misc"
+    SkipDownload: false
+
+  - Name: "Outlook-Recovery-Kit"
+    RepoUrl: ""
+    DownloadMethod: ""
+    DownloadName: ""
+    OutputFolder: "misc"
+    SkipDownload: false
+
+  - Name: "PST-Walker"
+    RepoUrl: ""
+    DownloadMethod: ""
+    DownloadName: ""
+    OutputFolder: "misc"
+    SkipDownload: false
+
+  - Name: "Radare2"
+    RepoUrl: "https://github.com/radareorg/radare2"
+    DownloadMethod: ""
+    Branch: ""
+    OutputFolder: "misc"
+    SkipDownload: false
+
+  - Name: "Resource-Hacker"
+    RepoUrl: ""
+    DownloadMethod: ""
+    DownloadName: ""
+    OutputFolder: "misc"
+    SkipDownload: false
+
+  - Name: "SEPparser_cmd"
+    RepoUrl: "https://github.com/Beercow/SEPparser/releases/latest/download/SEPparser.exe"
+    DownloadMethod: "specificFile"
+    OutputFolder: "misc"
+    SkipDownload: false
+
+  - Name: "SEPparser_gui"
+    RepoUrl: "https://github.com/Beercow/SEPparser/releases/latest/download/SEPparser_GUI.exe"
+    DownloadMethod: "specificFile"
+    OutputFolder: "misc"
+    SkipDownload: false
+
+  - Name: "sidr"
+    RepoUrl: "https://github.com/strozfriedberg/sidr"
+    DownloadMethod: "latestRelease"
+    DownloadName: "sidr.exe"
+    OutputFolder: "misc"
+    SkipDownload: false
+
+  - Name: "steghide"
+    RepoUrl: "https://github.com/StefanoDeVuono/steghide"
+    DownloadMethod: "branchZip"
+    Branch: "master"
+    OutputFolder: "misc"
+    SkipDownload: false
+
+  - Name: "SysinternalsSuite"
+    RepoUrl: "https://download.sysinternals.com/files/SysinternalsSuite.zip"
+    DownloadMethod: "specificFile"
+    DownloadName: "SysinternalsSuite.zip"
+    OutputFolder: "misc"
+    SkipDownload: false
+
+  - Name: "Visual-Studio-Code"
+    RepoUrl: "https://code.visualstudio.com/"
+    DownloadMethod: "specificFile"
+    DownloadName: "VSCodeUserSetup-x64-1.80.0.exe"
+    OutputFolder: "misc"
+    SkipDownload: false
+
+  - Name: "WMI-Parser"
+    RepoUrl: "https://github.com/AndrewRathbun/WMI-Parser"
+    DownloadMethod: "latestRelease"
+    DownloadName: "WMI-Parser.zip"
+    OutputFolder: "misc"
+    SkipDownload: false 

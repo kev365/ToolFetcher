@@ -1,0 +1,87 @@
+# Memory Analysis Tools
+
+  # Documentation: https://dfir-kev.medium.com/tool-fetcher-86691e65731b
+  # -Template-
+  # Name: "ToolName"      # Tool identifier, also used to name the parent folder for the tool
+  # RepoUrl: ""           # URL goes here
+  # DownloadMethod: ""    # Options: gitClone | latestRelease | branchZip | specificFile
+  # OutputFolder: ""      # Appends a subdirectory to $toolsFolder
+  # Branch: ""            # Defaults to master if not provided, also checks main if master is not available
+  # DownloadName: ""      # Used to download a particular file from the latestRelease
+  # AssetFilename: ""     # Used to specify exact filename to download from latestRelease (supports regex)
+  # AssetType: ""         # Options: win64 | win32 | linux64 | linux32 | macos64 | macos32 | arm64 | arm32
+  # SpecificFilePath: ""  # Used with the 'specificFile' DownloadMethod to specify file path in repository
+  # Extract: true         # Whether to extract the downloaded file (default: true)
+  # SkipDownload: false   # Whether to skip downloading this tool (default: false)
+
+tools:
+  
+  - Name: "capa"
+    RepoUrl: "https://github.com/mandiant/capa"
+    DownloadMethod: "latestRelease"
+    DownloadName: "capa-v6.0.0-windows.zip"
+    OutputFolder: "memory"
+    SkipDownload: false
+
+  - Name: "CobaltStrikeParser"
+    RepoUrl: "https://github.com/Sentinel-One/CobaltStrikeParser"
+    DownloadMethod: "latestRelease"
+    DownloadName: "CobaltStrikeParser.zip"
+    OutputFolder: "memory"
+    SkipDownload: false
+
+  - Name: "libcsce"
+    RepoUrl: ""
+    DownloadMethod: ""
+    Branch: ""
+    OutputFolder: "memory"
+    SkipDownload: false
+
+  - Name: "MemProcFs"
+    RepoUrl: "https://github.com/ufrisk/MemProcFS"
+    DownloadMethod: "latestrelease"
+    DownloadName: "MemProcFS_files_and_binaries-win_x64-latest.zip"
+    OutputFolder: "memory"
+    SkipDownload: false
+
+  - Name: "MemProcFsAnalyzer"
+    RepoUrl: "https://github.com/LETHAL-FORENSICS/MemProcFS-Analyzer"
+    DownloadMethod: "latestrelease"
+    DownloadName: "MemProcFS-Analyzer-v1.2.0.zip"
+    OutputFolder: "memory"
+    SkipDownload: false
+
+  - Name: "RdpCacheStitcher"
+    RepoUrl: "https://github.com/BSI-Bund/RdpCacheStitcher/"
+    DownloadMethod: "latestrelease"
+    DownloadName: "RdpCacheStitcher-v1.1-win64.zipp"
+    OutputFolder: "memory"
+    SkipDownload: false
+
+  - Name: "scdbg"
+    RepoUrl: ""
+    DownloadMethod: ""
+    Branch: ""
+    OutputFolder: "memory"
+    SkipDownload: false
+
+  - Name: "vol2"
+    RepoUrl: "https://github.com/volatilityfoundation/volatility"
+    DownloadMethod: "branchZip"
+    Branch: "develop"
+    OutputFolder: "memory"
+    SkipDownload: false
+
+  - Name: "vol3"
+    RepoUrl: "https://github.com/volatilityfoundation/volatility3"
+    DownloadMethod: "branchZip"
+    Branch: "develop"
+    OutputFolder: "memory"
+    SkipDownload: false
+
+  - Name: "WMI_Forensics"
+    RepoUrl: "https://github.com/davidpany/WMI_Forensics"
+    DownloadMethod: "branchZip"
+    Branch: "master"
+    OutputFolder: "memory"
+    SkipDownload: false 

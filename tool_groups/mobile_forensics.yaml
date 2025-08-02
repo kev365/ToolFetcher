@@ -1,0 +1,73 @@
+# Mobile Forensics Tools
+
+  # Documentation: https://dfir-kev.medium.com/tool-fetcher-86691e65731b
+  # -Template-
+  # Name: "ToolName"      # Tool identifier, also used to name the parent folder for the tool
+  # RepoUrl: ""           # URL goes here
+  # DownloadMethod: ""    # Options: gitClone | latestRelease | branchZip | specificFile
+  # OutputFolder: ""      # Appends a subdirectory to $toolsFolder
+  # Branch: ""            # Defaults to master if not provided, also checks main if master is not available
+  # DownloadName: ""      # Used to download a particular file from the latestRelease
+  # AssetFilename: ""     # Used to specify exact filename to download from latestRelease (supports regex)
+  # AssetType: ""         # Options: win64 | win32 | linux64 | linux32 | macos64 | macos32 | arm64 | arm32
+  # SpecificFilePath: ""  # Used with the 'specificFile' DownloadMethod to specify file path in repository
+  # Extract: true         # Whether to extract the downloaded file (default: true)
+  # SkipDownload: false   # Whether to skip downloading this tool (default: false)
+
+tools:
+  
+  - Name: "aleapp"
+    RepoUrl: "https://github.com/abrignoni/ALEAPP"
+    DownloadMethod: "branchZip"
+    Branch: "master"
+    OutputFolder: "mobile"
+    SkipDownload: false
+
+  - Name: "ileapp"
+    RepoUrl: "https://github.com/abrignoni/ILEAPP"
+    DownloadMethod: "branchZip"
+    Branch: "master"
+    OutputFolder: "mobile"
+    SkipDownload: false
+
+  - Name: "ios_apt"
+    RepoUrl: ""
+    DownloadMethod: ""
+    Branch: ""
+    OutputFolder: "mobile"
+    SkipDownload: false
+
+  - Name: "mac_apt"
+    RepoUrl: "https://github.com/ydkhatri/mac_apt"
+    DownloadMethod: "branchZip"
+    Branch: "master"
+    OutputFolder: "mobile"
+    SkipDownload: false
+
+  - Name: "mac_apt_artifact_only"
+    RepoUrl: "https://github.com/ydkhatri/mac_apt"
+    DownloadMethod: "branchZip"
+    Branch: "master"
+    OutputFolder: "mobile"
+    SkipDownload: false
+
+  - Name: "mac_apt_mounted_sys_data"
+    RepoUrl: "https://github.com/ydkhatri/mac_apt"
+    DownloadMethod: "branchZip"
+    Branch: "master"
+    OutputFolder: "mobile"
+    SkipDownload: false
+
+  - Name: "Plist_Time_Dump"
+    RepoUrl: "https://github.com/kev365/plist_time_dump"
+    DownloadMethod: "branchZip"
+    Branch: "master"
+    OutputFolder: "mobile"
+    SkipDownload: false
+
+  - Name: "WhatsApp-Viewer"
+    RepoUrl: "https://github.com/andreas-mausch/whatsapp-viewer"
+    DownloadMethod: "latestRelease"
+    DownloadName: "WhatsAppViewer.zip"
+    OutputFolder: "mobile"
+    SkipDownload: false
