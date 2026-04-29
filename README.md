@@ -92,6 +92,29 @@ ToolFetcher uses a parameter-based approach for flexibility. Key parameters incl
 - **`-ListTools` (alias `-list`):**  
   Lists all available tools in the configuration file.
 
+- **`-Tag <string[]>`:**  
+  Filter the merged tool list to entries whose `Category` field matches one of the
+  given tags (case-insensitive). Tools without a `Category` are excluded when this is set.
+
+- **`-Parallel`:**  
+  Run downloads concurrently. Requires PowerShell 7+. On PS 5.1 a warning is
+  shown and execution falls back to sequential.
+
+- **`-ThrottleLimit <int>`:**  
+  Maximum concurrent downloads when `-Parallel` is set. Default: 4.
+
+- **`-DryRun` (alias `-dry`):**  
+  Show what would be downloaded/updated without writing anything. No network
+  downloads, no file changes - useful for previewing `-UpdateAll`.
+
+- **`-Interactive` (alias `-i`):**  
+  Launch a TUI picker (`Out-ConsoleGridView`) showing every tool with its local
+  version and the latest upstream version. Multi-select, then Enter to run the
+  downloads through the parallel engine. Requires PowerShell 7+ and the
+  `Microsoft.PowerShell.ConsoleGuiTools` module (offered for install on first run).
+  Strongly recommend pairing with `-PromptForPAT` so the upfront status check
+  doesn't hit GitHub's 60/hr unauthenticated limit.
+
 ## YAML Configuration
 
 The YAML configuration file supports the following fields for each tool:

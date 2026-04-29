@@ -198,6 +198,10 @@ param (
     [Parameter(HelpMessage = 'Run downloads in parallel (PowerShell 7+ only). On PS 5.1 a warning is shown and execution falls back to sequential. Use -ThrottleLimit to tune concurrency.')]
     [switch]$Parallel = $false,
 
+    [Parameter(HelpMessage = 'Launch the interactive TUI picker (PowerShell 7+ only). Requires Microsoft.PowerShell.ConsoleGuiTools. Loads the merged tools list, queries GitHub for remote versions, and lets you multi-select tools to download.')]
+    [Alias('i')]
+    [switch]$Interactive = $false,
+
     [Parameter(HelpMessage = 'Maximum concurrent downloads when -Parallel is set. Default: 4.')]
     [int]$ThrottleLimit = 4,
 
@@ -1044,6 +1048,27 @@ if (-not (Test-Path -Path $ToolsDirectory)) {
         Write-LogError "Failed to create tools directory at '$ToolsDirectory'. Exception: $_"
         exit 1
     }
+}
+
+# Interactive mode short-circuits the rest of the main flow: it loads
+# the TUI module, presents a picker, then dispatches the user's
+# selection. The CLI dispatcher (main-flow-B) is bypassed.
+if ($Interactive) {
+    if ($PSVersionTable.PSVersion.Major -lt 7) {
+        Write-LogError "-Interactive requires PowerShell 7+ (you're on $($PSVersionTable.PSVersion))."
+        exit 1
+    }
+    $uiPath = Join-Path $PSScriptRoot "ToolFetcherUI.ps1"
+    if (-not (Test-Path $uiPath)) {
+        Write-LogError "Could not find ToolFetcherUI.ps1 next to the engine ($uiPath)."
+        exit 1
+    }
+    . $uiPath
+    Show-ToolFetcherTUI -Tools $tools -ToolsDirectory $ToolsDirectory -GitHubPAT $GitHubPAT -ThrottleLimit $ThrottleLimit
+    if (Test-Path $script:StagingRoot) {
+        Remove-Item -Path $script:StagingRoot -Recurse -Force -ErrorAction SilentlyContinue
+    }
+    exit 0
 }
 
 } # end: if (-not $SourceOnly) for main-flow-A
