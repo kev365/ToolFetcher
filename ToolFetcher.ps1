@@ -247,7 +247,7 @@ param (
 [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
 
 # Script version - centralized for easy updates
-$script:Version = "2.1.2"
+$script:Version = "3.0.0"
 
 # Pin powershell-yaml to a known-good version. PSGallery is the trusted
 # default, but pinning protects against supply-chain compromise of the module.

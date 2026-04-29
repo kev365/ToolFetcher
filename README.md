@@ -1,4 +1,4 @@
-# ToolFetcher (v2.1.2)
+# ToolFetcher (v3.0.0)
 
 ToolFetcher is a PowerShell tool designed to fetch and manage a collection of DFIR and other GitHub tools. It streamlines the process of downloading, extracting, and organizing forensic utilities from various sources—whether by cloning Git repositories, downloading the latest releases via the GitHub API, or pulling specific files directly.
 
