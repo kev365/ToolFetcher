@@ -177,6 +177,43 @@ ToolFetcher provides comprehensive error handling and user guidance:
 - Network connectivity error handling
 - Detailed logging for troubleshooting
 
+## Security Considerations
+
+ToolFetcher downloads and writes binaries to your filesystem based on
+configuration files you supply. A few things to keep in mind:
+
+- **Remote YAML trust boundary.** When you pass `-ToolsFile <url>`, the URL's
+  author fully controls *which* repos are downloaded, *which* binaries are
+  installed, and (within the bounds of the path-traversal guard) *where on
+  disk* they land. Treat any third-party URL as you would `curl | bash` and
+  prefer pinning to a specific commit:
+  ```
+  -tf "https://raw.githubusercontent.com/<owner>/<repo>/<commit-sha>/tools.yaml"
+  ```
+  rather than `main`/`master`, so a future commit can't silently change what
+  gets installed.
+- **Optional `ExpectedSha256` per tool.** For high-trust tools you can pin a
+  known-good SHA256 in the YAML entry; ToolFetcher will refuse to install
+  anything that doesn't match. Recommended for `specificFile` and
+  `latestRelease` methods, where the content of an asset URL can change
+  silently.
+- **Path traversal is rejected.** Tool `Name` and `OutputFolder` are validated
+  at load time and at write time — entries containing `..`, absolute paths,
+  or path separators in `Name` are refused so downloads can't escape your
+  `-ToolsDirectory`.
+- **TLS 1.2+ enforced.** The script raises `[Net.ServicePointManager]::SecurityProtocol`
+  to TLS 1.2 at startup so PS 5.1 on older Windows builds doesn't fall back
+  to TLS 1.0.
+- **PAT scrubbing.** GitHub Personal Access Tokens (`ghp_...`, `github_pat_...`,
+  classic 40-char hex) are redacted from log output before display or
+  persistence.
+- **Plaintext HTTP warning.** `RepoUrl` or `-ToolsFile` values starting with
+  `http://` produce a warning at validation time. They still work but are
+  vulnerable to tampering in transit.
+- **Pinned dependency.** The `powershell-yaml` module is installed at a
+  specific version (see `$script:RequiredYamlVersion` in the script) to
+  protect against supply-chain compromise of that module.
+
 ## Future Considerations
 
 - **Parallel Download and Extraction:**  

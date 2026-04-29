@@ -6,7 +6,7 @@
   # RepoUrl: ""           # URL goes here
   # DownloadMethod: ""    # Options: gitClone | latestRelease | branchZip | specificFile
   # OutputFolder: ""      # Appends a subdirectory to $toolsFolder
-  # Branch: ""            # Defaults to master if not provided, also checks main if master is not available
+  # Branch: ""            # If not provided, the repo's default_branch (e.g. main) is queried via the GitHub API
   # DownloadName: ""      # Used to download a particular file from the latestRelease
   # AssetFilename: ""     # Used to specify exact filename to download from latestRelease (supports regex)
   # AssetType: ""         # Options: win64 | win32 | linux64 | linux32 | macos64 | macos32 | arm64 | arm32

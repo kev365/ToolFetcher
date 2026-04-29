@@ -1,18 +1,7 @@
 # Disk Analysis Tools
 
-  # Documentation: https://dfir-kev.medium.com/tool-fetcher-86691e65731b
-  # -Template-
-  # Name: "ToolName"      # Tool identifier, also used to name the parent folder for the tool
-  # RepoUrl: ""           # URL goes here
-  # DownloadMethod: ""    # Options: gitClone | latestRelease | branchZip | specificFile
-  # OutputFolder: ""      # Appends a subdirectory to $toolsFolder
-  # Branch: ""            # Defaults to master if not provided, also checks main if master is not available
-  # DownloadName: ""      # Used to download a particular file from the latestRelease
-  # AssetFilename: ""     # Used to specify exact filename to download from latestRelease (supports regex)
-  # AssetType: ""         # Options: win64 | win32 | linux64 | linux32 | macos64 | macos32 | arm64 | arm32
-  # SpecificFilePath: ""  # Used with the 'specificFile' DownloadMethod to specify file path in repository
-  # Extract: true         # Whether to extract the downloaded file (default: true)
-  # SkipDownload: false   # Whether to skip downloading this tool (default: false)
+# Field reference: see _tool_template.yaml
+# Documentation:   https://dfir-kev.medium.com/tool-fetcher-86691e65731b
 
 tools:
  
@@ -26,7 +15,7 @@ tools:
   - Name: "Autopsy"
     RepoUrl: "https://github.com/sleuthkit/autopsy"
     DownloadMethod: "latestRelease"
-    DownloadName: "autopsy-4.21.3-64bit.msi"
+    AssetFilename: "autopsy-.*-64bit\\.msi"
     OutputFolder: "disk_analysis"
     SkipDownload: false
 
@@ -54,7 +43,7 @@ tools:
   - Name: "INDXRipper"
     RepoUrl: "https://github.com/harelsegev/INDXRipper"
     DownloadMethod: "latestRelease"
-    DownloadName: "INDXRipper-20231117-py3.12-amd64.zip"
+    AssetFilename: "INDXRipper-.*-amd64\\.zip"
     OutputFolder: "NTFS"
     SkipDownload: false
 
@@ -94,21 +83,21 @@ tools:
   - Name: "RustyUsn-apple"
     RepoUrl: "https://github.com/forensicmatt/RustyUsn"
     DownloadMethod: "latestRelease"
-    DownloadName: " rusty_usn-v1.5.0-x86_64-apple-darwin.tar.gz"
+    AssetFilename: "rusty_usn-.*-x86_64-apple-darwin\\.tar\\.gz"
     OutputFolder: "NTFS"
     SkipDownload: false
 
   - Name: "RustyUsn-linux"
     RepoUrl: "https://github.com/forensicmatt/RustyUsn"
     DownloadMethod: "latestRelease"
-    DownloadName: "rusty_usn-v1.5.0-x86_64-pc-windows-msvc.zip"
+    AssetFilename: "rusty_usn-.*-x86_64-unknown-linux-gnu\\.tar\\.gz"
     OutputFolder: "NTFS"
     SkipDownload: false
 
   - Name: "RustyUsn-windows"
     RepoUrl: "https://github.com/forensicmatt/RustyUsn"
     DownloadMethod: "latestRelease"
-    DownloadName: " rusty_usn-v1.5.0-x86_64-unknown-linux-gnu.tar.gz"
+    AssetFilename: "rusty_usn-.*-x86_64-pc-windows-msvc\\.zip"
     OutputFolder: "NTFS"
     SkipDownload: false
 
@@ -129,6 +118,6 @@ tools:
   - Name: "XstReader"
     RepoUrl: "https://github.com/iluvadev/XstReader"
     DownloadMethod: "latestRelease"
-    DownloadName: "XstReader.v.1.15.0.zip"
+    AssetFilename: "XstReader\\.v\\..*\\.zip"
     OutputFolder: "Email"
     SkipDownload: false 
