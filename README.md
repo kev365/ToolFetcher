@@ -12,20 +12,29 @@ ToolFetcher is a PowerShell tool designed to fetch and manage a collection of DF
   - `specificFile` – Downloads a specific file directly
 
 - **Automated Extraction & Management:**  
-  - Automatically extracts ZIP archives when applicable
-  - Creates `.downloaded.json` marker files to track managed files
-  - Preserves user modifications during updates
+  - Automatically extracts ZIP archives when applicable (Zip-Slip-safe)
+  - Creates `.downloaded.json` marker files (SHA256 manifest) to track managed files
+  - Preserves user modifications during updates; modified files are renamed `*.save1`/`save2`/...
   - Supports force re-download with complete directory overwrite
+  - Skips tools that are already up-to-date (compares marker version to upstream tag/commit)
+
+- **Parallel Downloads & Interactive TUI:**
+  - `-Parallel` runs downloads concurrently via runspaces (PowerShell 7+; falls back to sequential on PS 5.1)
+  - `-Interactive` launches a multi-select picker (Out-ConsoleGridView) with live local/remote version status
+  - `-DryRun` previews what `-UpdateAll` will touch without writing anything
 
 - **External YAML Configuration:**  
-  ToolFetcher loads its tool configuration from an external YAML file that supports:
+  ToolFetcher loads its tool configuration from one or more external YAML files that support:
   - Multiple download methods
   - Custom output folders
   - Asset type filtering (win64, win32, linux64, linux32, macos64, macos32, arm64, arm32)
-  - Skip download options
+  - Optional `Category` tags for the `-Tag` filter
+  - Optional `ExpectedSha256` per-tool integrity pinning
+  - Skip download options and placeholder/wishlist entries
   - Extraction control
-  - Branch selection
+  - Branch selection (or auto-detect via the repo's `default_branch`)
   - Local or remote YAML file support
+  - Multi-file composition: `-tf tools.yaml,tool_groups/registry_analysis.yaml`
 
 - **Enhanced Logging & Debugging:**  
   - Multiple log levels (Error, Warning, Info, Debug, Trace)
@@ -41,20 +50,26 @@ ToolFetcher is a PowerShell tool designed to fetch and manage a collection of DF
 
 ## Requirements
 
-- **PowerShell:** Version 5.1 or later (or PowerShell Core)
-- **Internet Connection:** Required for downloading tools and GitHub API access
-- **powershell-yaml Module:**  
-  This module is required to parse the external YAML configuration file. The script automatically checks for and installs it if requested.
+- **PowerShell:**
+  - **5.1+** for the standard CLI (download, update, list, dry-run).
+  - **7+** required for `-Parallel` (concurrent downloads) and `-Interactive` (TUI). On PS 5.1, `-Parallel` falls back to sequential with a warning; `-Interactive` exits with a clear error.
+- **Internet Connection:** Required for downloading tools and GitHub API access.
+- **`powershell-yaml` Module:**  
+  Required to parse YAML configuration files. The script offers to install it on first run (pinned version - see `$script:RequiredYamlVersion` in the script).
+- **`Microsoft.PowerShell.ConsoleGuiTools` Module** *(only if using `-Interactive`)*:  
+  The script offers to install it on first interactive launch.
 
 ## Configuration & Parameters
 
 ToolFetcher uses a parameter-based approach for flexibility. Key parameters include:
 
 - **`-ToolsFile` (alias `-tf`):**  
-  Specifies the YAML configuration file. This can be a local file or a URL.  
+  Specifies one or more YAML configuration files (local paths or URLs).
+  Accepts a comma-separated list - the resulting `tools` arrays are concatenated.
+  The first file's `tooldirectory` wins; conflicting values produce a warning.  
   *Default:* `"tools.yaml"`  
-  If the specified file is not found or is unreachable, the script offers to use a default URL:  
-  ```
+  If a specified file is not found or unreachable, the script offers to fall back to:  
+  ```text
   https://raw.githubusercontent.com/kev365/ToolFetcher/refs/heads/main/tools.yaml
   ```
 
@@ -120,18 +135,65 @@ ToolFetcher uses a parameter-based approach for flexibility. Key parameters incl
 The YAML configuration file supports the following fields for each tool:
 
 ```yaml
-Name: "ToolName"      # Tool identifier, also used to name the parent folder
-RepoUrl: ""           # URL goes here
-DownloadMethod: ""    # Options: gitClone | latestRelease | branchZip | specificFile
-OutputFolder: ""      # Appends a subdirectory to $toolsFolder
-Branch: ""            # Defaults to master if not provided, also checks main if master is not available
-DownloadName: ""      # Used to download a particular file from the latestRelease
-AssetFilename: ""     # Used to specify exact filename to download from latestRelease (supports regex)
-AssetType: ""         # Options: win64 | win32 | linux64 | linux32 | macos64 | macos32 | arm64 | arm32
-SpecificFilePath: ""  # Used with the 'specificFile' DownloadMethod to specify file path in repository
-Extract: true         # Whether to extract the downloaded file (default: true)
-SkipDownload: false   # Whether to skip downloading this tool (default: false)
+Name: "ToolName"        # Tool identifier, also used to name the parent folder.
+                        # Path separators and '..' are rejected.
+RepoUrl: ""             # URL goes here. Plaintext http:// produces a warning.
+DownloadMethod: ""      # Options: gitClone | latestRelease | branchZip | specificFile
+                        # (case-insensitive; normalized at load)
+OutputFolder: ""        # Relative subdirectory under -ToolsDirectory.
+                        # Absolute paths and '..' are rejected.
+Category: ""            # Optional tag used by the -Tag CLI filter
+                        # (e.g. "registry", "memory"). Free-form string.
+Branch: ""              # If omitted, the repo's default_branch is queried via
+                        # the GitHub API at download time. Set explicitly to
+                        # pin to a specific branch (e.g. "develop").
+DownloadName: ""        # Exact filename match for latestRelease assets.
+                        # Prefer AssetFilename (regex) for tools whose release
+                        # filenames embed a version - DownloadName breaks
+                        # silently when upstream bumps version.
+AssetFilename: ""       # Regex match against latestRelease asset names.
+                        # The first match wins.
+AssetType: ""           # Options: win64 | win32 | linux64 | linux32 |
+                        #          macos64 | macos32 | arm64 | arm32
+SpecificFilePath: ""    # Used with the 'specificFile' DownloadMethod to
+                        # specify file path in repository.
+ExpectedSha256: ""      # Optional. If set, the downloaded file's SHA256 is
+                        # verified against this value; mismatch fails the
+                        # tool with no on-disk write. See Security
+                        # Considerations.
+Extract: true           # Whether to extract the downloaded ZIP (default: true)
+SkipDownload: false     # Whether to skip downloading this tool (default: false)
 ```
+
+**Placeholder entries** — a tool entry with `Name` set but `RepoUrl` and
+`DownloadMethod` both empty is treated as a wishlist item: it passes
+validation, appears in `-list` output as `[PLACEHOLDER]`, and is silently
+skipped by the dispatcher. Useful for tracking tools you intend to add later.
+
+## Tool Groups
+
+The [`tool_groups/`](tool_groups/) directory contains curated YAML bundles
+organized by analysis domain. Each file is a standalone tools list you can
+load on its own or merge with others via the comma-separated `-tf` syntax.
+
+| Group file | Focus |
+| --- | --- |
+| `_tool_template.yaml` | Field reference (not a real group) |
+| `crypto_password_recovery.yaml` | CyberChef, hashcat, John the Ripper, KeeFarce |
+| `disk_analysis.yaml` | Autopsy, ExifTool, INDXRipper, MFTECmd, Oletools, RustyUsn, WinPrefetchView, XstReader |
+| `log_analysis.yaml` | APT-Hunter, chainsaw, EvtxECmd, EvtxHussar, hayabusa, hindsight, SumECmd |
+| `memory_analysis.yaml` | capa, CobaltStrikeParser, MemProcFS, RdpCacheStitcher, Volatility2/3 |
+| `miscellaneous.yaml` | Sysinternals, dnSpy, ILSpy, jadx, KAPE, OneDriveExplorer, sidr, VS Code, ... |
+| `mobile_forensics.yaml` | ALEAPP, ILEAPP, mac_apt variants, plist_time_dump, WhatsApp Viewer |
+| `network_analysis.yaml` | NetworkMiner, Wireshark |
+| `nirsoft_tools.yaml` | Nirsoft utility collection |
+| `registry_analysis.yaml` | AmCache-EvilHunter, RECmd, RegRipper3.0, ShellBagsExplorer |
+| `wordlists.yaml` | rockyou, SecLists |
+| `zimmerman_tools.yaml` | Eric Zimmerman's full .NET 6 tool collection |
+
+To create your own group: copy `_tool_template.yaml`, fill in the entries,
+and load it with `-tf my_group.yaml`. Multi-file load merges the `tools`
+arrays from each file; the first file's `tooldirectory` wins.
 
 ## Usage Examples
 
@@ -190,6 +252,71 @@ SkipDownload: false   # Whether to skip downloading this tool (default: false)
    .\ToolFetcher.ps1 -PromptForPAT
    ```
 
+10. **Compose Multiple Tool Groups:**
+    ```powershell
+    # Merge curated bundles. tools arrays are concatenated.
+    .\ToolFetcher.ps1 -tf tools.yaml,tool_groups\registry_analysis.yaml,tool_groups\memory_analysis.yaml -td "C:\dfir"
+    ```
+
+11. **Filter by Category Tag:**
+    ```powershell
+    # Only download tools whose YAML entry has Category: "registry"
+    .\ToolFetcher.ps1 -Tag registry -td "C:\dfir"
+    ```
+
+12. **Preview an Update Without Writing:**
+    ```powershell
+    # Dry run - shows "[DRY-RUN] Would <method> tool: X -> path" for each candidate, no network downloads
+    .\ToolFetcher.ps1 -upall -DryRun -td "C:\dfir"
+    ```
+
+13. **Parallel Downloads (PowerShell 7+):**
+    ```powershell
+    # 8-way concurrent download. On PS 5.1 falls back to sequential with a warning.
+    .\ToolFetcher.ps1 -Parallel -ThrottleLimit 8 -PromptForPAT -td "C:\dfir"
+    ```
+
+14. **Interactive TUI (PowerShell 7+):**
+    ```powershell
+    # Multi-select picker with live local/remote version status.
+    # Pair with -PromptForPAT - the upfront status check otherwise hits
+    # GitHub's 60/hr unauthenticated rate limit fast.
+    .\ToolFetcher.ps1 -Interactive -PromptForPAT -td "C:\dfir"
+    ```
+
+## Update Behavior
+
+Each successful download writes a `.downloaded.json` marker file inside the
+tool's folder. The marker captures version metadata plus a SHA256 manifest of
+every file ToolFetcher placed there. This is what makes safe updates possible.
+
+**On `-UpdateAll` / `-UpdateTools <names>`:**
+
+1. **Skip up-to-date.** For `latestRelease` tools, the marker's `Version` is
+   compared to GitHub's current `tag_name`. For `gitClone`/`branchZip`, the
+   marker's `CommitHash` is compared to the branch HEAD. If they match, the
+   tool is logged as up-to-date and skipped (no download). Use `-ForceDownload`
+   to bypass.
+2. **Remove only managed files.** When a re-download is required, ToolFetcher
+   walks the marker's manifest and removes only the files whose SHA256 still
+   matches what was originally written. User-added files in the same folder
+   are untouched.
+3. **Back up modified files.** If a managed file's SHA256 has changed since
+   download (i.e. you edited it), it's renamed to `<name>.save1` (or `.save2`,
+   `.save3`, ... if a backup already exists) instead of being deleted.
+4. **Write fresh content.** The new download is staged in
+   `%TEMP%/ToolFetcher_<pid>/<tool-name>/` (per-tool subfolder so concurrent
+   downloads can't collide), copied into the output folder, and a new marker
+   is written.
+
+**On `-DryRun`:** the dispatcher logs what *would* happen but performs no
+file removals, downloads, or marker writes. Useful for previewing
+`-UpdateAll` against a large tool set.
+
+**Force re-download (`-ForceDownload`):** wipes the output folder including
+managed-file removal and ignores both the version-skip and the
+`SkipDownload: true` flag (when combined with `-UpdateAll`).
+
 ## Error Handling
 
 ToolFetcher provides comprehensive error handling and user guidance:
@@ -239,14 +366,39 @@ configuration files you supply. A few things to keep in mind:
 
 ## Future Considerations
 
-- **Parallel Download and Extraction:**  
-  Separate download and extraction processes for improved performance.
-  
-- **Additional Archive Formats:**  
-  Expand support beyond ZIP archives to include other formats.
+- **Verify the v3 `AssetFilename` regex patterns against current releases.**
+  Phase 4 converted 15 version-locked `DownloadName` entries to regex
+  `AssetFilename` matchers (Autopsy, hashcat, CyberChef, capa, jadx,
+  Microsoft-Analyzer-Suite, several DB Browser / RustyUsn variants, etc.)
+  but each pattern was inferred from the previously hardcoded filename and
+  has not been live-tested against the upstream's current asset naming.
+  Some may need tuning when an upstream renames `64bit` to `x64` etc.
 
-- **Non-GitHub Support:**  
-  Current focus is primarily on GitHub-based downloads.
+- **Persistent runspace pool for `-Parallel`.** The current implementation
+  dot-sources `ToolFetcher.ps1 -SourceOnly` once per tool, which has
+  startup overhead. A long-lived runspace pool with thread-local engine
+  state would amortize that cost and meaningfully speed up large
+  parallel runs.
+
+- **Full multi-pane TUI.** The v3 `-Interactive` mode uses `Out-ConsoleGridView`
+  - a single multi-select grid. A richer Terminal.Gui layout (tool list /
+  details / live download queue / status bar with background update polling)
+  was scoped in the Phase 8 plan but deferred in favor of shipping the
+  simpler picker.
+
+- **Additional Archive Formats:**
+  Expand support beyond ZIP archives - `.7z` (hashcat, john) and `.tar.gz`
+  (RustyUsn macOS/Linux assets) currently can't be extracted automatically.
+
+- **Non-GitHub Support:**
+  Current focus is primarily on GitHub-based downloads. Direct-URL
+  downloads work via `specificFile`, but the version-comparison shortcut
+  on `-UpdateAll` requires a GitHub API endpoint and so doesn't help
+  non-GitHub assets like the Eric Zimmerman `.NET 6` zips.
+
+- **Schema validation for YAML.** The current validator checks structural
+  fields; a JSON-Schema-style validator would catch typos like
+  `DownloadMethod: "latetsRelease"` before runtime.
 
 ## License
 
