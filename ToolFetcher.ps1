@@ -194,6 +194,15 @@ param (
     [Parameter(HelpMessage = 'Show what would be downloaded/updated without writing anything. No network downloads, no file changes; useful for previewing -UpdateAll.')]
     [Alias('dry')]
     [switch]$DryRun = $false,
+
+    [Parameter(HelpMessage = 'Run downloads in parallel (PowerShell 7+ only). On PS 5.1 a warning is shown and execution falls back to sequential. Use -ThrottleLimit to tune concurrency.')]
+    [switch]$Parallel = $false,
+
+    [Parameter(HelpMessage = 'Maximum concurrent downloads when -Parallel is set. Default: 4.')]
+    [int]$ThrottleLimit = 4,
+
+    [Parameter(DontShow = $true)]
+    [switch]$SourceOnly = $false,
     
     [Parameter(HelpMessage = 'Update all previously downloaded tools that have downloads enabled (skipdownload: false). Updates preserve user modifications by only removing managed files (tracked in .downloaded.json).')]
     [Alias('upall')]
@@ -677,6 +686,63 @@ function Get-DefaultValue {
 # -----------------------------------------------
 # Function: Add Configuration Defaults
 # -----------------------------------------------
+function Resolve-ToolsFileContent {
+    param (
+        [Parameter(Mandatory=$true)][string]$Path,
+        [Parameter(Mandatory=$true)][string]$DefaultUrl
+    )
+
+    # Returns the YAML content string for $Path, or $null if it can't be loaded
+    # and the user declines the default-URL fallback.
+
+    if ($Path -match '^https?://') {
+        if ($Path -match '^http://') {
+            Write-LogWarning "ToolsFile URL '$Path' uses plaintext HTTP. The remote YAML controls all subsequent downloads - switch to HTTPS to prevent tampering."
+        }
+        $sourceUrl = $Path
+        try {
+            $null = Invoke-WebRequest -Uri $Path -Method Head -UseBasicParsing -ErrorAction Stop
+            Write-LogInfo "Fetching tools configuration from URL: $Path"
+        }
+        catch {
+            Write-LogWarning "URL '$Path' is not available."
+            $choice = Read-Host "Use the default URL ($DefaultUrl) instead? (Y/N)"
+            if ($choice -match '^(?i:Y(es)?)$') { $sourceUrl = $DefaultUrl }
+            else { return $null }
+        }
+        try {
+            return (Invoke-WebRequest -Uri $sourceUrl -UseBasicParsing).Content
+        }
+        catch {
+            Write-LogError "Failed to fetch YAML from URL: $sourceUrl. Exception: $_"
+            return $null
+        }
+    }
+
+    $resolved = if ([System.IO.Path]::IsPathRooted($Path)) { $Path } else { Join-Path $PSScriptRoot $Path }
+    if (-not (Test-Path -Path $resolved)) {
+        Write-LogWarning "Local tools file '$Path' not found at '$resolved'."
+        $choice = Read-Host "Use the default URL ($DefaultUrl) instead? (Y/N)"
+        if ($choice -notmatch '^(?i:Y(es)?)$') { return $null }
+        try {
+            return (Invoke-WebRequest -Uri $DefaultUrl -UseBasicParsing).Content
+        }
+        catch {
+            Write-LogError "Failed to fetch default URL: $_"
+            return $null
+        }
+    }
+
+    Write-LogInfo "Using local yaml file: $resolved"
+    try {
+        return Get-Content -Path $resolved -Raw
+    }
+    catch {
+        Write-LogError "Failed to read YAML file at: $resolved. Exception: $_"
+        return $null
+    }
+}
+
 function Add-ConfigurationDefaults {
     param ([Parameter(Mandatory = $true)]$Config)
     
@@ -735,6 +801,12 @@ function Add-ConfigurationDefaults {
     return $updatedConfig
 }
 
+# When dot-sourced with -SourceOnly (used by parallel runspaces to import
+# functions/state without re-running the main flow), skip both main-flow
+# blocks. Function defs above and below this gate still execute so the
+# parent caller has the engine available.
+if (-not $SourceOnly) {
+
 # Enable file logging only if explicitly requested
 if ($Log) {
     $script:LoggingEnabled = $true
@@ -748,67 +820,7 @@ else {
 Write-LogInfo "ToolFetcher v$script:Version started"
 
 
-# -----------------------------------------------
-# Helper: Resolve and load a single tools-file path/URL
-# -----------------------------------------------
 $defaultToolsFileUrl = "https://raw.githubusercontent.com/kev365/ToolFetcher/refs/heads/main/tools.yaml"
-
-function Resolve-ToolsFileContent {
-    param (
-        [Parameter(Mandatory=$true)][string]$Path,
-        [Parameter(Mandatory=$true)][string]$DefaultUrl
-    )
-
-    # Returns the YAML content string for $Path, or $null if it can't be loaded
-    # and the user declines the default-URL fallback.
-
-    if ($Path -match '^https?://') {
-        if ($Path -match '^http://') {
-            Write-LogWarning "ToolsFile URL '$Path' uses plaintext HTTP. The remote YAML controls all subsequent downloads - switch to HTTPS to prevent tampering."
-        }
-        $sourceUrl = $Path
-        try {
-            $null = Invoke-WebRequest -Uri $Path -Method Head -UseBasicParsing -ErrorAction Stop
-            Write-LogInfo "Fetching tools configuration from URL: $Path"
-        }
-        catch {
-            Write-LogWarning "URL '$Path' is not available."
-            $choice = Read-Host "Use the default URL ($DefaultUrl) instead? (Y/N)"
-            if ($choice -match '^(?i:Y(es)?)$') { $sourceUrl = $DefaultUrl }
-            else { return $null }
-        }
-        try {
-            return (Invoke-WebRequest -Uri $sourceUrl -UseBasicParsing).Content
-        }
-        catch {
-            Write-LogError "Failed to fetch YAML from URL: $sourceUrl. Exception: $_"
-            return $null
-        }
-    }
-
-    $resolved = if ([System.IO.Path]::IsPathRooted($Path)) { $Path } else { Join-Path $PSScriptRoot $Path }
-    if (-not (Test-Path -Path $resolved)) {
-        Write-LogWarning "Local tools file '$Path' not found at '$resolved'."
-        $choice = Read-Host "Use the default URL ($DefaultUrl) instead? (Y/N)"
-        if ($choice -notmatch '^(?i:Y(es)?)$') { return $null }
-        try {
-            return (Invoke-WebRequest -Uri $DefaultUrl -UseBasicParsing).Content
-        }
-        catch {
-            Write-LogError "Failed to fetch default URL: $_"
-            return $null
-        }
-    }
-
-    Write-LogInfo "Using local yaml file: $resolved"
-    try {
-        return Get-Content -Path $resolved -Raw
-    }
-    catch {
-        Write-LogError "Failed to read YAML file at: $resolved. Exception: $_"
-        return $null
-    }
-}
 
 # -----------------------------------------------
 # Tools Configuration: Load and merge YAML file(s)
@@ -1034,6 +1046,8 @@ if (-not (Test-Path -Path $ToolsDirectory)) {
     }
 }
 
+} # end: if (-not $SourceOnly) for main-flow-A
+
 # -----------------------------------------------
 # Function: Process ZIP Staging
 # -----------------------------------------------
@@ -1047,7 +1061,9 @@ function Invoke-ZipStaging {
     )
 
     Write-LogTrace "Starting ZIP staging process for $ToolName from $ZipUrl"
-    $stagingFolder = $script:StagingRoot
+    # Per-tool subfolder so parallel downloads with the same URL filename don't collide.
+    $safeName = ($ToolName -replace '[^A-Za-z0-9_.-]', '_')
+    $stagingFolder = Join-Path $script:StagingRoot $safeName
     if (-not (Test-Path $stagingFolder)) {
         Write-LogDebug "Creating staging folder: $stagingFolder"
         New-Item -Path $stagingFolder -ItemType Directory -Force | Out-Null
@@ -1405,9 +1421,11 @@ function Save-NonZipFile {
         [Parameter(Mandatory=$false)][hashtable]$Headers = @{ "User-Agent" = "PowerShell" }
     )
     
-    $stagingFolder = $script:StagingRoot
+    # Per-tool subfolder so parallel downloads with the same URL filename don't collide.
+    $safeName = ($ToolConfig.Name -replace '[^A-Za-z0-9_.-]', '_')
+    $stagingFolder = Join-Path $script:StagingRoot $safeName
     if (-not (Test-Path $stagingFolder)) { New-Item -Path $stagingFolder -ItemType Directory -Force | Out-Null }
-    
+
     $fileName = Split-Path $FileUrl -Leaf
     $tempFile = Join-Path $stagingFolder $fileName
     
@@ -2043,6 +2061,156 @@ function Save-GitCloneTool {
 }
 
 # -----------------------------------------------
+# Function: Invoke Tool Work (one tool's full update + dispatch)
+# -----------------------------------------------
+# Encapsulates one iteration of the dispatcher loop so it can be invoked
+# either sequentially (foreach) or in parallel (ForEach-Object -Parallel).
+# All mutable state (Tool config, target dir, PAT, mode flags) is passed
+# explicitly so the function works inside a fresh runspace.
+function Invoke-ToolWork {
+    param (
+        [Parameter(Mandatory=$true)]$Tool,
+        [Parameter(Mandatory=$true)][string]$ToolsDirectory,
+        [Parameter(Mandatory=$false)][string]$GitHubPAT = "",
+        [Parameter(Mandatory=$false)][string]$UpdateMode = $null,
+        [Parameter(Mandatory=$false)][string[]]$UpdateToolList = @(),
+        [Parameter(Mandatory=$false)][switch]$ForceDownload,
+        [Parameter(Mandatory=$false)][switch]$DryRun
+    )
+
+    try {
+        # Skip placeholder entries (Name set, RepoUrl + DownloadMethod empty).
+        if ([string]::IsNullOrWhiteSpace($Tool.RepoUrl) -and [string]::IsNullOrWhiteSpace($Tool.DownloadMethod)) {
+            Write-LogDebug "Skipping placeholder entry: $($Tool.Name)"
+            return
+        }
+
+        if (-not [string]::IsNullOrEmpty($Tool.OutputFolder)) {
+            $toolOutputFolder = Join-Path -Path $ToolsDirectory -ChildPath (Join-Path $Tool.OutputFolder $Tool.Name)
+        }
+        else {
+            $toolOutputFolder = Join-Path -Path $ToolsDirectory -ChildPath $Tool.Name
+        }
+        $markerFile = Join-Path $toolOutputFolder ".downloaded.json"
+
+        $processTool = $false
+
+        if ($UpdateMode -eq "specific") {
+            if ($UpdateToolList -contains $Tool.Name.ToLower()) {
+                $processTool = $true
+                Write-Host "===========================================" -ForegroundColor White
+                if (Test-Path $toolOutputFolder) {
+                    Write-LogInfo "Updating tool: $($Tool.Name)"
+                    if (Test-Path $markerFile) {
+                        if ($DryRun) {
+                            Write-LogInfo "[DRY-RUN] Would remove managed files for $($Tool.Name)."
+                        } else {
+                            Write-LogDebug "Update: Removing previous files for $($Tool.Name)."
+                            Remove-ManagedFiles -OutputFolder $toolOutputFolder
+                        }
+                    }
+                }
+                else {
+                    Write-LogInfo "Tool $($Tool.Name) not found locally. Will download it."
+                }
+            }
+        }
+        elseif ($UpdateMode -eq "general") {
+            if (Test-Path $toolOutputFolder) {
+                if ($ForceDownload) {
+                    $processTool = $true
+                    Write-Host "===========================================" -ForegroundColor White
+                    Write-LogInfo "Force updating tool: $($Tool.Name)"
+                    if (Test-Path $markerFile) {
+                        if ($DryRun) {
+                            Write-LogInfo "[DRY-RUN] Would remove managed files for $($Tool.Name)."
+                        } else {
+                            Write-LogDebug "Update: Removing previous files for $($Tool.Name)."
+                            Remove-ManagedFiles -OutputFolder $toolOutputFolder
+                        }
+                    }
+                    else {
+                        Write-LogDebug "Update: No marker file found for $($Tool.Name); preserving user files."
+                    }
+                }
+                elseif (-not $Tool.skipdownload) {
+                    $processTool = $true
+                    Write-Host "===========================================" -ForegroundColor White
+                    Write-LogInfo "Updating tool: $($Tool.Name)"
+                    if (Test-Path $markerFile) {
+                        if ($DryRun) {
+                            Write-LogInfo "[DRY-RUN] Would remove managed files for $($Tool.Name)."
+                        } else {
+                            Write-LogDebug "Update: Removing previous files for $($Tool.Name)."
+                            Remove-ManagedFiles -OutputFolder $toolOutputFolder
+                        }
+                    }
+                    else {
+                        Write-LogDebug "Update: No marker file found for $($Tool.Name); preserving user files."
+                    }
+                }
+                else {
+                    Write-LogInfo "Skipping update for $($Tool.Name) -- skipdownload is enabled. Use -force to override."
+                }
+            }
+        }
+        else {
+            if ($ForceDownload) {
+                $processTool = $true
+                Write-Host "===========================================" -ForegroundColor White
+                Write-LogInfo "Force downloading $($Tool.Name)..."
+            }
+            else {
+                if ($Tool.skipdownload) {
+                    Write-LogInfo "Skipping $($Tool.Name) -- skipdownload is enabled."
+                }
+                elseif (Test-Path $markerFile) {
+                    Write-LogInfo "Skipping $($Tool.Name) -- already downloaded."
+                }
+                else {
+                    $processTool = $true
+                    Write-Host "===========================================" -ForegroundColor White
+                    Write-LogInfo "Started working on $($Tool.Name)..."
+                }
+            }
+        }
+
+        if (-not $processTool) { return }
+
+        if ($DryRun) {
+            Write-LogInfo "[DRY-RUN] Would $($Tool.DownloadMethod) tool: $($Tool.Name) -> $toolOutputFolder"
+            Write-Host "===========================================" -ForegroundColor White
+            return
+        }
+
+        switch ($Tool.DownloadMethod) {
+            "gitClone" {
+                Save-GitCloneTool -ToolConfig $Tool -ToolsDirectory $ToolsDirectory -GitHubPAT $GitHubPAT
+            }
+            "latestRelease" {
+                Save-LatestReleaseTool -ToolConfig $Tool -ToolsDirectory $ToolsDirectory -GitHubPAT $GitHubPAT
+            }
+            "branchZip" {
+                Save-BranchZipTool -ToolConfig $Tool -ToolsDirectory $ToolsDirectory -GitHubPAT $GitHubPAT
+            }
+            "specificFile" {
+                Save-SpecificFileTool -ToolConfig $Tool -ToolsDirectory $ToolsDirectory -GitHubPAT $GitHubPAT
+            }
+            default {
+                Write-LogError "Download method '$($Tool.DownloadMethod)' not recognized for $($Tool.Name)."
+            }
+        }
+        Write-LogInfo "Finished working on $($Tool.Name)."
+        Write-Host "===========================================" -ForegroundColor White
+    }
+    catch {
+        Write-LogError "Failed to process tool $($Tool.Name). Exception: $_"
+    }
+}
+
+if (-not $SourceOnly) {
+
+# -----------------------------------------------
 # Dispatcher: Loop Through Tools and Process
 # -----------------------------------------------
 # First check if the tools directory exists
@@ -2051,142 +2219,45 @@ if (-not [System.IO.Directory]::Exists($ToolsDirectory)) {
     exit 1
 }
 
-foreach ($tool in $tools) {
-    try {
-        # Skip placeholder entries (Name set, RepoUrl + DownloadMethod empty).
-        # These are wishlist items kept for visibility but not yet downloadable.
-        if ([string]::IsNullOrWhiteSpace($tool.RepoUrl) -and [string]::IsNullOrWhiteSpace($tool.DownloadMethod)) {
-            Write-LogDebug "Skipping placeholder entry: $($tool.Name)"
-            continue
-        }
+# Decide between sequential and parallel dispatch.
+$useParallel = $Parallel -and ($PSVersionTable.PSVersion.Major -ge 7)
+if ($Parallel -and -not $useParallel) {
+    Write-LogWarning "-Parallel requires PowerShell 7+ (you're on $($PSVersionTable.PSVersion)). Falling back to sequential."
+}
 
-        if (-not [string]::IsNullOrEmpty($tool.OutputFolder)) {
-            $toolOutputFolder = Join-Path -Path $ToolsDirectory -ChildPath (Join-Path $tool.OutputFolder $tool.Name)
-        }
-        else {
-            $toolOutputFolder = Join-Path -Path $ToolsDirectory -ChildPath $tool.Name
-        }
-        $markerFile = Join-Path $toolOutputFolder ".downloaded.json"
-        
-        $processTool = $false
+if ($useParallel) {
+    Write-LogInfo "Running with parallel dispatch (ThrottleLimit=$ThrottleLimit)."
+    $scriptPath = $PSCommandPath
+    if ([string]::IsNullOrEmpty($scriptPath)) { $scriptPath = $MyInvocation.MyCommand.Path }
+    $logFileSnapshot     = $script:LogFile
+    $logEnabledSnapshot  = $script:LoggingEnabled
 
-        if ($updateMode -eq "specific") {
-            if ($updateToolList -contains $tool.Name.ToLower()) {
-                $processTool = $true
-                Write-Host "===========================================" -ForegroundColor White
-                
-                # If the tool is already downloaded, update it
-                if (Test-Path $toolOutputFolder) {
-                    Write-LogInfo "Updating tool: $($tool.Name)"
-                    if (Test-Path $markerFile) {
-                        if ($DryRun) {
-                            Write-LogInfo "[DRY-RUN] Would remove managed files for $($tool.Name)."
-                        } else {
-                            Write-LogDebug "Update: Removing previous files for $($tool.Name)."
-                            Remove-ManagedFiles -OutputFolder $toolOutputFolder
-                        }
-                    }
-                }
-                # If the tool is not downloaded yet, we'll download it
-                else {
-                    Write-LogInfo "Tool $($tool.Name) not found locally. Will download it."
-                }
-            }
-        }
-        elseif ($updateMode -eq "general") {
-            # Only update tools that are already downloaded
-            if (Test-Path $toolOutputFolder) {
-                if ($ForceDownload) {
-                    # When force is used with UpdateAll, bypass the skipdownload setting
-                    $processTool = $true
-                    Write-Host "===========================================" -ForegroundColor White
-                    Write-LogInfo "Force updating tool: $($tool.Name)"
-                    if (Test-Path $markerFile) {
-                        if ($DryRun) {
-                            Write-LogInfo "[DRY-RUN] Would remove managed files for $($tool.Name)."
-                        } else {
-                            Write-LogDebug "Update: Removing previous files for $($tool.Name)."
-                            Remove-ManagedFiles -OutputFolder $toolOutputFolder
-                        }
-                    }
-                    else {
-                        Write-LogDebug "Update: No marker file found for $($tool.Name); preserving user files."
-                    }
-                }
-                elseif (-not $tool.skipdownload) {
-                    $processTool = $true
-                    Write-Host "===========================================" -ForegroundColor White
-                    Write-LogInfo "Updating tool: $($tool.Name)"
-                    if (Test-Path $markerFile) {
-                        if ($DryRun) {
-                            Write-LogInfo "[DRY-RUN] Would remove managed files for $($tool.Name)."
-                        } else {
-                            Write-LogDebug "Update: Removing previous files for $($tool.Name)."
-                            Remove-ManagedFiles -OutputFolder $toolOutputFolder
-                        }
-                    }
-                    else {
-                        Write-LogDebug "Update: No marker file found for $($tool.Name); preserving user files."
-                    }
-                }
-                else {
-                    # Add messaging for skipped tools
-                    Write-LogInfo "Skipping update for $($tool.Name) -- skipdownload is enabled. Use -force to override."
-                }
-            }
-        }
-        else {
-            if ($ForceDownload) {
-                $processTool = $true
-                Write-Host "===========================================" -ForegroundColor White
-                Write-LogInfo "Force downloading $($tool.Name)..."
-            }
-            else {
-                if ($tool.skipdownload) {
-                    Write-LogInfo "Skipping $($tool.Name) -- skipdownload is enabled."
-                }
-                elseif (Test-Path $markerFile) {
-                    Write-LogInfo "Skipping $($tool.Name) -- already downloaded."
-                }
-                else {
-                    $processTool = $true
-                    Write-Host "===========================================" -ForegroundColor White
-                    Write-LogInfo "Started working on $($tool.Name)..."
-                }
-            }
-        }
-        
-        if (-not $processTool) { continue }
+    $tools | ForEach-Object -Parallel {
+        # Each runspace dot-sources the script with -SourceOnly to import every
+        # function and script-scope state. We then restore log settings from
+        # the parent so file logging works across runspaces.
+        . $using:scriptPath -SourceOnly
+        $script:LogFile        = $using:logFileSnapshot
+        $script:LoggingEnabled = $using:logEnabledSnapshot
 
-        if ($DryRun) {
-            Write-LogInfo "[DRY-RUN] Would $($tool.DownloadMethod) tool: $($tool.Name) -> $toolOutputFolder"
-            Write-Host "===========================================" -ForegroundColor White
-            continue
-        }
-
-        switch ($tool.DownloadMethod) {
-            "gitClone" {
-                Save-GitCloneTool -ToolConfig $tool -ToolsDirectory $ToolsDirectory
-            }
-            "latestRelease" {
-                Save-LatestReleaseTool -ToolConfig $tool -ToolsDirectory $ToolsDirectory -GitHubPAT $GitHubPAT
-            }
-            "branchZip" {
-                Save-BranchZipTool -ToolConfig $tool -ToolsDirectory $ToolsDirectory -GitHubPAT $GitHubPAT
-            }
-            "specificFile" {
-                Save-SpecificFileTool -ToolConfig $tool -ToolsDirectory $ToolsDirectory -GitHubPAT $GitHubPAT
-            }
-            default {
-                Write-LogError "Download method '$($tool.DownloadMethod)' not recognized for $($tool.Name)."
-            }
-        }
-        Write-LogInfo "Finished working on $($tool.Name)."
-        Write-Host "===========================================" -ForegroundColor White
-    }
-    catch {
-        Write-LogError "Failed to process tool $($tool.Name). Exception: $_"
-        continue
+        Invoke-ToolWork -Tool $_ `
+                        -ToolsDirectory $using:ToolsDirectory `
+                        -GitHubPAT $using:GitHubPAT `
+                        -UpdateMode $using:updateMode `
+                        -UpdateToolList $using:updateToolList `
+                        -ForceDownload:$using:ForceDownload `
+                        -DryRun:$using:DryRun
+    } -ThrottleLimit $ThrottleLimit
+}
+else {
+    foreach ($tool in $tools) {
+        Invoke-ToolWork -Tool $tool `
+                        -ToolsDirectory $ToolsDirectory `
+                        -GitHubPAT $GitHubPAT `
+                        -UpdateMode $updateMode `
+                        -UpdateToolList $updateToolList `
+                        -ForceDownload:$ForceDownload `
+                        -DryRun:$DryRun
     }
 }
 
@@ -2194,3 +2265,5 @@ foreach ($tool in $tools) {
 if (Test-Path $script:StagingRoot) {
     Remove-Item -Path $script:StagingRoot -Recurse -Force -ErrorAction SilentlyContinue
 }
+
+} # end: if (-not $SourceOnly) for main-flow-B (dispatcher)
