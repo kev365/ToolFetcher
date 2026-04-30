@@ -268,16 +268,16 @@ ___  __   __           ___  ___ ___  __        ___  __
 # values used by Show-Banner and the Write-Log* family. Add or tweak by
 # editing this hashtable - keys flow through to the theme picker.
 $script:ColorThemes = [ordered]@{
-    "default"    = @{ Banner='Cyan';        BannerSub='DarkCyan';    Info='Cyan';     Warning='Yellow';      Accent='Green';       Success='Green'  }
-    "matrix"     = @{ Banner='Green';       BannerSub='DarkGreen';   Info='Green';    Warning='DarkYellow';  Accent='DarkGreen';   Success='Green'  }
-    "ocean"      = @{ Banner='Blue';        BannerSub='DarkBlue';    Info='Cyan';     Warning='Yellow';      Accent='DarkCyan';    Success='Cyan'   }
-    "fire"       = @{ Banner='Red';         BannerSub='DarkRed';     Info='Yellow';   Warning='DarkYellow';  Accent='Red';         Success='Yellow' }
-    "neon"       = @{ Banner='Magenta';     BannerSub='DarkMagenta'; Info='Magenta';  Warning='Yellow';      Accent='Cyan';        Success='Green'  }
-    "monochrome" = @{ Banner='White';       BannerSub='Gray';        Info='White';    Warning='Gray';        Accent='DarkGray';    Success='White'  }
-    "sunset"     = @{ Banner='DarkYellow';  BannerSub='DarkRed';     Info='Yellow';   Warning='Red';         Accent='DarkRed';     Success='Yellow' }
-    "forest"     = @{ Banner='DarkGreen';   BannerSub='Green';       Info='Green';    Warning='DarkYellow';  Accent='DarkCyan';    Success='Green'  }
-    "purple"     = @{ Banner='DarkMagenta'; BannerSub='Magenta';     Info='Magenta';  Warning='DarkYellow';  Accent='Magenta';     Success='Green'  }
-    "ice"        = @{ Banner='White';       BannerSub='Cyan';        Info='Cyan';     Warning='Yellow';      Accent='DarkCyan';    Success='Cyan'   }
+    "default"    = @{ Banner='Cyan';        BannerSub='DarkCyan';    Info='Cyan';        Warning='Yellow';      Accent='Green';       Success='Green'  }
+    "matrix"     = @{ Banner='Green';       BannerSub='DarkGreen';   Info='Green';       Warning='DarkYellow';  Accent='DarkGreen';   Success='Green'  }
+    "ocean"      = @{ Banner='Blue';        BannerSub='DarkBlue';    Info='Blue';        Warning='Yellow';      Accent='DarkCyan';    Success='Cyan'   }
+    "fire"       = @{ Banner='Red';         BannerSub='DarkRed';     Info='Yellow';      Warning='DarkYellow';  Accent='Red';         Success='Yellow' }
+    "neon"       = @{ Banner='Magenta';     BannerSub='DarkMagenta'; Info='Magenta';     Warning='Yellow';      Accent='Cyan';        Success='Green'  }
+    "monochrome" = @{ Banner='White';       BannerSub='Gray';        Info='White';       Warning='Gray';        Accent='DarkGray';    Success='White'  }
+    "sunset"     = @{ Banner='DarkYellow';  BannerSub='DarkRed';     Info='DarkYellow';  Warning='Red';         Accent='DarkRed';     Success='Yellow' }
+    "forest"     = @{ Banner='DarkGreen';   BannerSub='Green';       Info='DarkGreen';   Warning='DarkYellow';  Accent='DarkCyan';    Success='Green'  }
+    "purple"     = @{ Banner='DarkMagenta'; BannerSub='Magenta';     Info='DarkMagenta'; Warning='DarkYellow';  Accent='Magenta';     Success='Green'  }
+    "ice"        = @{ Banner='White';       BannerSub='Cyan';        Info='White';       Warning='Yellow';      Accent='DarkCyan';    Success='Cyan'   }
 }
 # Active theme - mutated by Set-Theme. Defaults to "default" until the
 # YAML theme: field is read or the user picks one in Show-ThemeSelector.
@@ -298,6 +298,9 @@ function Show-Banner {
         Write-Host $line -ForegroundColor $script:Theme.Banner
     }
     Write-Host ("                                                  v$script:Version") -ForegroundColor $script:Theme.BannerSub
+    # Theme badge - shown in Banner color so the user can SEE the theme even
+    # when log Info colors happen to overlap between themes.
+    Write-Host "  Theme: $script:ThemeName  (-ChooseTheme to change)" -ForegroundColor $script:Theme.Banner
     Write-Host ""
 }
 

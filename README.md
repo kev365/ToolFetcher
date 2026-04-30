@@ -142,8 +142,15 @@ ToolFetcher uses a parameter-based approach for flexibility. Key parameters incl
   themes (`default`, `matrix`, `ocean`, `fire`, `neon`, `monochrome`, `sunset`,
   `forest`, `purple`, `ice`); the banner repaints live as you scroll. Enter
   accepts and offers to save the chosen theme to your YAML's `theme:` field for
-  future runs; Esc keeps the current theme. Themes color the startup banner
-  and the Info/Warning log lines (errors stay red regardless).
+  future runs; Esc keeps the current theme. The active theme name is shown
+  beneath the banner at startup so you can confirm the saved value is being
+  used.
+
+  **Scope:** themes color the startup banner, the theme badge under it, and the
+  Info/Warning log lines (errors stay red regardless). The `-Interactive`
+  picker grid itself (`Out-ConsoleGridView`) uses Terminal.Gui's built-in
+  color scheme - those colors are not exposed to the host PowerShell session,
+  so the picker UI looks the same regardless of the chosen theme.
 
 ## YAML Configuration
 
