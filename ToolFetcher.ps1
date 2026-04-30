@@ -981,8 +981,10 @@ if ($ListTools) {
     exit 0
 }
 
-# Resolve the tools directory. Order: -ToolsDirectory param > YAML tooldirectory
-# > prompt the user (CLI mode) or defer to the TUI (-Interactive mode).
+# Resolve the tools directory. Order: -ToolsDirectory param > YAML
+# tooldirectory > the script's own folder ($PSScriptRoot). The directory
+# itself is created lazily by Initialize-OutputFolder when the first
+# download lands - this lets -list / -DryRun run without side effects.
 $tools = $config.tools
 
 if ($PSBoundParameters.ContainsKey('ToolsDirectory') -and -not [string]::IsNullOrWhiteSpace($ToolsDirectory)) {
@@ -991,35 +993,10 @@ if ($PSBoundParameters.ContainsKey('ToolsDirectory') -and -not [string]::IsNullO
 elseif (-not [string]::IsNullOrWhiteSpace($config.tooldirectory)) {
     $ToolsDirectory = $config.tooldirectory
 }
-elseif ($Interactive) {
-    # Interactive mode: leave $ToolsDirectory empty. The TUI prompts
-    # for it (and offers to save it back to the YAML) so the user
-    # gets one consolidated UX instead of two prompts.
-    $ToolsDirectory = ""
-}
 else {
-    # CLI mode and no directory available - explain why we're prompting
-    # and offer to persist the answer to the loaded YAML.
-    Write-LogWarning "No tools directory was passed via -ToolsDirectory and none is set in the loaded YAML."
-    if ($writableSource) {
-        Write-Host "  Provide a path now and we can save it as 'tooldirectory' in '$writableSource' for future runs." -ForegroundColor Gray
-    }
-    else {
-        Write-Host "  Provide a path now to use for this run (no local YAML to save it to)." -ForegroundColor Gray
-    }
-    $userInput = Read-Host "Tools folder path"
-    if ([string]::IsNullOrWhiteSpace($userInput)) {
-        Write-LogError "No tools directory specified. Exiting."
-        exit 1
-    }
-    $ToolsDirectory = $userInput.Trim('"').Trim("'")
-
-    if ($writableSource) {
-        $save = Read-Host "Save '$ToolsDirectory' to '$writableSource' as the default tooldirectory? (Y/N)"
-        if ($save -match '^(?i:Y(es)?)$') {
-            [void](Save-ToolDirectoryToConfig -Path $writableSource -ToolsDirectory $ToolsDirectory)
-        }
-    }
+    $ToolsDirectory = $PSScriptRoot
+    Write-LogInfo "No tools directory configured; defaulting to the script's folder: $ToolsDirectory"
+    Write-LogInfo "  (set 'tooldirectory:' in your YAML or use -ToolsDirectory to change this.)"
 }
 
 if ($Log -and -not [string]::IsNullOrWhiteSpace($ToolsDirectory)) {
@@ -1112,29 +1089,6 @@ if (-not [string]::IsNullOrEmpty($GitHubPAT)) {
     else { Write-LogInfo "GitHub PAT validated successfully." }
 }
 
-# -----------------------------------------------
-# Ensure the Tools Directory Exists
-# -----------------------------------------------
-# Skipped when -Interactive defers the directory choice to the TUI
-# (handled inside Show-ToolFetcherTUI after the user picks a path).
-if (-not [string]::IsNullOrWhiteSpace($ToolsDirectory) -and -not (Test-Path -Path $ToolsDirectory)) {
-    try {
-        # First check if the drive exists
-        $drive = [System.IO.Path]::GetPathRoot($ToolsDirectory)
-        if (-not [System.IO.Directory]::Exists($drive)) {
-            Write-LogError "Drive '$drive' does not exist. Please specify a valid drive."
-            exit 1
-        }
-        
-        New-Item -Path $ToolsDirectory -ItemType Directory -Force -ErrorAction Stop | Out-Null
-        Write-LogInfo "Created tools directory: $ToolsDirectory"
-    }
-    catch {
-        Write-LogError "Failed to create tools directory at '$ToolsDirectory'. Exception: $_"
-        exit 1
-    }
-}
-
 # Interactive mode short-circuits the rest of the main flow: it loads
 # the TUI module, presents a picker, then dispatches the user's
 # selection. The CLI dispatcher (main-flow-B) is bypassed.
@@ -1152,8 +1106,7 @@ if ($Interactive) {
     Show-ToolFetcherTUI -Tools $tools `
                         -ToolsDirectory $ToolsDirectory `
                         -GitHubPAT $GitHubPAT `
-                        -ThrottleLimit $ThrottleLimit `
-                        -WritableConfigPath $writableSource
+                        -ThrottleLimit $ThrottleLimit
     if (Test-Path $script:StagingRoot) {
         Remove-Item -Path $script:StagingRoot -Recurse -Force -ErrorAction SilentlyContinue
     }
@@ -1657,13 +1610,25 @@ function Initialize-OutputFolder {
         [Parameter(Mandatory=$true)]$ToolConfig,
         [Parameter(Mandatory=$true)][string]$ToolsDirectory
     )
-    
-    # First check if the tools directory exists
+
+    # Create the root tools directory on first use. Deferred from script
+    # startup so -list and -DryRun don't have side effects.
     if (-not [System.IO.Directory]::Exists($ToolsDirectory)) {
-        Write-LogError "Tools directory '$ToolsDirectory' does not exist. Cannot create output folder for $($ToolConfig.Name)."
-        return $null
+        $drive = [System.IO.Path]::GetPathRoot($ToolsDirectory)
+        if (-not [string]::IsNullOrEmpty($drive) -and -not [System.IO.Directory]::Exists($drive)) {
+            Write-LogError "Drive '$drive' does not exist. Cannot create '$ToolsDirectory' for $($ToolConfig.Name)."
+            return $null
+        }
+        try {
+            New-Item -Path $ToolsDirectory -ItemType Directory -Force -ErrorAction Stop | Out-Null
+            Write-LogInfo "Created tools directory: $ToolsDirectory"
+        }
+        catch {
+            Write-LogError "Failed to create tools directory '$ToolsDirectory' for $($ToolConfig.Name): $_"
+            return $null
+        }
     }
-    
+
     try {
         if (-not [string]::IsNullOrEmpty($ToolConfig.OutputFolder)) {
             $outputFolder = Join-Path -Path $ToolsDirectory -ChildPath (Join-Path $ToolConfig.OutputFolder $ToolConfig.Name)

@@ -75,7 +75,11 @@ ToolFetcher uses a parameter-based approach for flexibility. Key parameters incl
 
 - **`-ToolsDirectory` (alias `-td`):**  
   The directory where all downloaded tools will be stored.  
-  *Example:* `C:\tools`
+  *Example:* `C:\tools`  
+  Resolution order: `-ToolsDirectory` parameter -> YAML `tooldirectory:` field ->
+  the script's own folder (`$PSScriptRoot`). If a default is used, the script
+  logs which path it picked. The directory itself is created lazily on the
+  first download, so `-list` and `-DryRun` have no side effects.
 
 - **`-ForceDownload` (alias `-force`):**  
   Forces a complete re-download of a tool by overwriting its existing directory.

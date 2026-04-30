@@ -45,10 +45,9 @@ Max concurrent runspaces for both the status check and the download.
 function Show-ToolFetcherTUI {
     param (
         [Parameter(Mandatory=$true)][array]$Tools,
-        [Parameter(Mandatory=$false)][string]$ToolsDirectory = "",
+        [Parameter(Mandatory=$true)][string]$ToolsDirectory,
         [Parameter(Mandatory=$false)][string]$GitHubPAT = "",
-        [Parameter(Mandatory=$false)][int]$ThrottleLimit = 4,
-        [Parameter(Mandatory=$false)][string]$WritableConfigPath = $null
+        [Parameter(Mandatory=$false)][int]$ThrottleLimit = 4
     )
 
     if ($PSVersionTable.PSVersion.Major -lt 7) {
@@ -56,44 +55,9 @@ function Show-ToolFetcherTUI {
         return
     }
 
-    # Resolve the tools directory if it wasn't passed in or set in the YAML.
-    # The CLI flow defers the prompt to here so the user gets one consolidated UX.
-    if ([string]::IsNullOrWhiteSpace($ToolsDirectory)) {
-        Write-Host ""
-        Write-Host "  Tools directory not set." -ForegroundColor Yellow
-        if ($WritableConfigPath) {
-            Write-Host "  Provide a path now and we can save it as 'tooldirectory' in" -ForegroundColor Gray
-            Write-Host "  '$WritableConfigPath' for future runs." -ForegroundColor Gray
-        }
-        else {
-            Write-Host "  Provide a path now to use for this session (no local YAML to save it to)." -ForegroundColor Gray
-        }
-        $userInput = Read-Host "  Tools folder path"
-        if ([string]::IsNullOrWhiteSpace($userInput)) {
-            Write-LogError "No tools directory provided. Exiting."
-            return
-        }
-        $ToolsDirectory = $userInput.Trim('"').Trim("'")
-
-        if ($WritableConfigPath) {
-            $save = Read-Host "  Save '$ToolsDirectory' to '$WritableConfigPath' as the default tooldirectory? (Y/N)"
-            if ($save -match '^(?i:Y(es)?)$') {
-                [void](Save-ToolDirectoryToConfig -Path $WritableConfigPath -ToolsDirectory $ToolsDirectory)
-            }
-        }
-    }
-
-    # Make sure the directory exists before downloads land in it.
-    if (-not (Test-Path $ToolsDirectory)) {
-        try {
-            New-Item -ItemType Directory -Path $ToolsDirectory -Force -ErrorAction Stop | Out-Null
-            Write-LogInfo "Created tools directory: $ToolsDirectory"
-        }
-        catch {
-            Write-LogError "Failed to create tools directory '$ToolsDirectory': $_"
-            return
-        }
-    }
+    # The engine resolves $ToolsDirectory before calling us (param > YAML >
+    # $PSScriptRoot default), so we don't need to prompt here. Initialize-
+    # OutputFolder creates the directory lazily when the first download lands.
 
     if (-not (Get-Module -ListAvailable -Name Microsoft.PowerShell.ConsoleGuiTools)) {
         Write-LogInfo "The 'Microsoft.PowerShell.ConsoleGuiTools' module is required for -Interactive."

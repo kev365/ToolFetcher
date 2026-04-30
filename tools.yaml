@@ -1,4 +1,5 @@
-tooldirectory: "" # Must escape any backslashes or use single forward slashes
+tooldirectory: "" # Leave empty to default to the script's own folder ($PSScriptRoot).
+                  # If setting a path, escape backslashes (C:\\dfir\\tools) or use forward slashes (C:/dfir/tools).
 # Field reference: see tool_groups/_tool_template.yaml
 # Documentation:   https://dfir-kev.medium.com/tool-fetcher-86691e65731b
 
