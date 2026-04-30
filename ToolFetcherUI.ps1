@@ -130,6 +130,7 @@ function Show-ToolFetcherTUI {
             $tool = $_._Tool
             $headers = Get-GitHubHeaders -GitHubPAT $using:GitHubPAT
             $remote = $null
+            $errType = $null
             try {
                 if ($tool.DownloadMethod -ieq "latestRelease") {
                     $apiRepoUrl = $tool.RepoUrl -replace "https://github.com/", "https://api.github.com/repos/"
@@ -147,15 +148,34 @@ function Show-ToolFetcherTUI {
                     }
                 }
             }
-            catch { }
+            catch {
+                $msg = $_.Exception.Message
+                if ($msg -match '(?i)rate limit|API rate|403') { $errType = 'ratelimit' }
+                else { $errType = 'other' }
+            }
 
-            [pscustomobject]@{ Name = $_.Name; Remote = $remote }
+            [pscustomobject]@{ Name = $_.Name; Remote = $remote; ErrType = $errType }
         } -ThrottleLimit $ThrottleLimit
 
         # Index remote versions by name for fast lookup
         $remoteByName = @{}
         foreach ($r in $remoteVersions) {
             if ($r.Remote) { $remoteByName[$r.Name] = $r.Remote }
+        }
+
+        # Surface aggregate error info so an empty Remote column doesn't look mysterious.
+        $rateLimitCount = ($remoteVersions | Where-Object { $_.ErrType -eq 'ratelimit' } | Measure-Object).Count
+        $otherErrCount  = ($remoteVersions | Where-Object { $_.ErrType -eq 'other' } | Measure-Object).Count
+        $okCount        = ($remoteVersions | Where-Object { $_.Remote }            | Measure-Object).Count
+        Write-LogInfo "Remote check: $okCount succeeded, $rateLimitCount rate-limited, $otherErrCount other failures."
+        if ($rateLimitCount -gt 0) {
+            $hasPAT = -not [string]::IsNullOrWhiteSpace($GitHubPAT)
+            if (-not $hasPAT) {
+                Write-LogWarning "GitHub's unauthenticated rate limit (60/hr) was hit. Re-run with -PromptForPAT to use your GitHub token (5,000/hr) and populate the Remote column."
+            }
+            else {
+                Write-LogWarning "GitHub rate limit hit even with a PAT - check the token's scope/validity, or wait for the limit to reset."
+            }
         }
 
         # Apply remote info + final status
@@ -199,8 +219,33 @@ function Show-ToolFetcherTUI {
     $pickedNames = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
     foreach ($p in $picked) { [void]$pickedNames.Add($p.Name) }
 
-    $selectedTools = $rows | Where-Object { $pickedNames.Contains($_.Name) -and -not $_._Placeholder } | ForEach-Object { $_._Tool }
-    Write-LogInfo "Selected $($selectedTools.Count) tool(s) for download."
+    $selectedRows  = $rows | Where-Object { $pickedNames.Contains($_.Name) -and -not $_._Placeholder }
+    $selectedTools = $selectedRows | ForEach-Object { $_._Tool }
+
+    # --- Confirmation: tally + Enter to proceed, Esc/Space/N to cancel ---
+    $newCount    = ($selectedRows | Where-Object { [string]::IsNullOrWhiteSpace($_.Local) } | Measure-Object).Count
+    $updateCount = ($selectedRows | Where-Object { -not [string]::IsNullOrWhiteSpace($_.Local) } | Measure-Object).Count
+
+    Write-Host ""
+    Write-Host "  Selected $($selectedTools.Count) tool(s):" -ForegroundColor Cyan
+    foreach ($r in $selectedRows) {
+        $marker = if ([string]::IsNullOrWhiteSpace($r.Local)) { "[new]    " } else { "[update] " }
+        Write-Host ("    {0}{1,-30} {2}" -f $marker, $r.Name, $r.Group) -ForegroundColor Gray
+    }
+    Write-Host ""
+    Write-Host ("  $newCount new download(s), $updateCount update(s).") -ForegroundColor Cyan
+    Write-Host "  [Enter] confirm  [Esc/Space/N] cancel" -ForegroundColor Yellow
+
+    $key = [Console]::ReadKey($true)
+    while ($key.Key -notin 'Enter', 'Escape', 'Spacebar', 'N', 'Y') {
+        $key = [Console]::ReadKey($true)
+    }
+    if ($key.Key -in 'Escape', 'Spacebar', 'N') {
+        Write-LogInfo "Cancelled. Nothing was downloaded."
+        return
+    }
+
+    Write-LogInfo "Starting downloads for $($selectedTools.Count) tool(s)..."
 
     # --- Pass 4: dispatch ---
     if (-not (Test-Path $ToolsDirectory)) {

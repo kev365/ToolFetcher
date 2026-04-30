@@ -253,6 +253,22 @@ $script:Version = "3.0.0"
 # default, but pinning protects against supply-chain compromise of the module.
 $script:RequiredYamlVersion = "0.4.7"
 
+# Stick Letters ASCII banner shown at startup.
+$script:Banner = @'
+___  __   __           ___  ___ ___  __        ___  __
+ |  /  \ /  \ |       |__  |__   |  /  ` |__| |__  |__)
+ |  \__/ \__/ |___    |    |___  |  \__, |  | |___ |  \
+'@
+
+function Show-Banner {
+    Write-Host ""
+    foreach ($line in $script:Banner -split "`r?`n") {
+        Write-Host $line -ForegroundColor Cyan
+    }
+    Write-Host ("                                                  v$script:Version") -ForegroundColor DarkCyan
+    Write-Host ""
+}
+
 # Per-process staging folder under the system temp path. Each download writes
 # transient files here, then copies the final result into $ToolsDirectory.
 # Lives outside $PSScriptRoot so the script can run from a read-only location,
@@ -858,6 +874,8 @@ function Add-ConfigurationDefaults {
 # blocks. Function defs above and below this gate still execute so the
 # parent caller has the engine available.
 if (-not $SourceOnly) {
+
+Show-Banner
 
 # Enable file logging only if explicitly requested
 if ($Log) {
