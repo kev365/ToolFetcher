@@ -202,6 +202,10 @@ param (
     [Alias('i')]
     [switch]$Interactive = $false,
 
+    [Parameter(HelpMessage = 'Open the color-theme picker (left/right arrows to cycle, Enter to accept). Selecting a theme offers to save it to the loaded YAML so it persists.')]
+    [Alias('theme')]
+    [switch]$ChooseTheme = $false,
+
     [Parameter(HelpMessage = 'Maximum concurrent downloads when -Parallel is set. Default: 4.')]
     [int]$ThrottleLimit = 4,
 
@@ -260,13 +264,93 @@ ___  __   __           ___  ___ ___  __        ___  __
  |  \__/ \__/ |___    |    |___  |  \__, |  | |___ |  \
 '@
 
+# Color themes. Each theme maps semantic roles to PowerShell ConsoleColor
+# values used by Show-Banner and the Write-Log* family. Add or tweak by
+# editing this hashtable - keys flow through to the theme picker.
+$script:ColorThemes = [ordered]@{
+    "default"    = @{ Banner='Cyan';        BannerSub='DarkCyan';    Info='Cyan';     Warning='Yellow';      Accent='Green';       Success='Green'  }
+    "matrix"     = @{ Banner='Green';       BannerSub='DarkGreen';   Info='Green';    Warning='DarkYellow';  Accent='DarkGreen';   Success='Green'  }
+    "ocean"      = @{ Banner='Blue';        BannerSub='DarkBlue';    Info='Cyan';     Warning='Yellow';      Accent='DarkCyan';    Success='Cyan'   }
+    "fire"       = @{ Banner='Red';         BannerSub='DarkRed';     Info='Yellow';   Warning='DarkYellow';  Accent='Red';         Success='Yellow' }
+    "neon"       = @{ Banner='Magenta';     BannerSub='DarkMagenta'; Info='Magenta';  Warning='Yellow';      Accent='Cyan';        Success='Green'  }
+    "monochrome" = @{ Banner='White';       BannerSub='Gray';        Info='White';    Warning='Gray';        Accent='DarkGray';    Success='White'  }
+    "sunset"     = @{ Banner='DarkYellow';  BannerSub='DarkRed';     Info='Yellow';   Warning='Red';         Accent='DarkRed';     Success='Yellow' }
+    "forest"     = @{ Banner='DarkGreen';   BannerSub='Green';       Info='Green';    Warning='DarkYellow';  Accent='DarkCyan';    Success='Green'  }
+    "purple"     = @{ Banner='DarkMagenta'; BannerSub='Magenta';     Info='Magenta';  Warning='DarkYellow';  Accent='Magenta';     Success='Green'  }
+    "ice"        = @{ Banner='White';       BannerSub='Cyan';        Info='Cyan';     Warning='Yellow';      Accent='DarkCyan';    Success='Cyan'   }
+}
+# Active theme - mutated by Set-Theme. Defaults to "default" until the
+# YAML theme: field is read or the user picks one in Show-ThemeSelector.
+$script:ThemeName = "default"
+$script:Theme     = $script:ColorThemes["default"]
+
+function Set-Theme {
+    param([Parameter(Mandatory=$true)][string]$Name)
+    if ($script:ColorThemes.Contains($Name)) {
+        $script:ThemeName = $Name
+        $script:Theme     = $script:ColorThemes[$Name]
+    }
+}
+
 function Show-Banner {
     Write-Host ""
     foreach ($line in $script:Banner -split "`r?`n") {
-        Write-Host $line -ForegroundColor Cyan
+        Write-Host $line -ForegroundColor $script:Theme.Banner
     }
-    Write-Host ("                                                  v$script:Version") -ForegroundColor DarkCyan
+    Write-Host ("                                                  v$script:Version") -ForegroundColor $script:Theme.BannerSub
     Write-Host ""
+}
+
+# Persist a theme name into the same YAML file as Save-ToolDirectoryToConfig.
+# Replaces an existing 'theme:' line if present, otherwise prepends one.
+function Save-ThemeToConfig {
+    param(
+        [Parameter(Mandatory=$true)][string]$Path,
+        [Parameter(Mandatory=$true)][string]$ThemeName
+    )
+    try {
+        $content = Get-Content -Path $Path -Raw -ErrorAction Stop
+        $line = "theme: `"$ThemeName`""
+        if ($content -match '(?m)^theme:[^\r\n]*') {
+            $newContent = [regex]::Replace($content, '(?m)^theme:[^\r\n]*', $line, 1)
+        }
+        else {
+            $newContent = "$line`r`n" + $content
+        }
+        Set-Content -Path $Path -Value $newContent -NoNewline -Encoding UTF8 -ErrorAction Stop
+        Write-LogInfo "Saved theme '$ThemeName' to $Path"
+        return $true
+    }
+    catch {
+        Write-LogError "Failed to save theme to '$Path': $_"
+        return $false
+    }
+}
+
+# Interactive theme picker: shows the banner repainted in each theme as
+# the user cycles with arrow keys. Enter accepts, Esc keeps the current.
+# Returns $true if the theme changed (so the caller can offer to save).
+function Show-ThemeSelector {
+    $names    = @($script:ColorThemes.Keys)
+    $startIdx = [Math]::Max(0, $names.IndexOf($script:ThemeName))
+    $idx      = $startIdx
+
+    while ($true) {
+        Clear-Host
+        Set-Theme -Name $names[$idx]
+        Show-Banner
+        Write-Host ("  Theme: {0,-12}  ({1} of {2})" -f $script:ThemeName, ($idx + 1), $names.Count) -ForegroundColor $script:Theme.Accent
+        Write-Host "  [<- / ->] cycle  [Enter] accept  [Esc] keep current" -ForegroundColor $script:Theme.Info
+        Write-Host ""
+
+        $key = [Console]::ReadKey($true)
+        switch ($key.Key) {
+            'LeftArrow'  { $idx = ($idx - 1 + $names.Count) % $names.Count }
+            'RightArrow' { $idx = ($idx + 1) % $names.Count }
+            'Enter'      { return ($idx -ne $startIdx) }
+            'Escape'     { Set-Theme -Name $names[$startIdx]; return $false }
+        }
+    }
 }
 
 # Per-process staging folder under the system temp path. Each download writes
@@ -393,17 +477,18 @@ function Write-ToolLog {
 
 function Write-LogError {
     param ([string]$Message)
+    # Errors are always red regardless of theme (signal-not-style).
     Write-ToolLog -Message $Message -Level ([LogLevel]::Error) -ForegroundColor Red
 }
 
 function Write-LogWarning {
     param ([string]$Message)
-    Write-ToolLog -Message $Message -Level ([LogLevel]::Warning) -ForegroundColor Yellow
+    Write-ToolLog -Message $Message -Level ([LogLevel]::Warning) -ForegroundColor $script:Theme.Warning
 }
 
 function Write-LogInfo {
     param ([string]$Message)
-    Write-ToolLog -Message $Message -Level ([LogLevel]::Info) -ForegroundColor Cyan
+    Write-ToolLog -Message $Message -Level ([LogLevel]::Info) -ForegroundColor $script:Theme.Info
 }
 
 function Write-LogDebug {
@@ -875,8 +960,6 @@ function Add-ConfigurationDefaults {
 # parent caller has the engine available.
 if (-not $SourceOnly) {
 
-Show-Banner
-
 # Enable file logging only if explicitly requested
 if ($Log) {
     $script:LoggingEnabled = $true
@@ -921,6 +1004,8 @@ $primarySource   = $null
 # First local YAML we can write back to (e.g. to persist tooldirectory). $null
 # if every -ToolsFile entry was a URL.
 $writableSource  = $null
+# First non-empty 'theme:' value we encounter across the merged YAML files.
+$script:ConfiguredTheme = ""
 
 foreach ($tfPath in $ToolsFile) {
     $yamlContent = Resolve-ToolsFileContent -Path $tfPath -DefaultUrl $defaultToolsFileUrl
@@ -957,6 +1042,11 @@ foreach ($tfPath in $ToolsFile) {
         Write-LogWarning "tooldirectory in '$tfPath' ('$($cfg.tooldirectory)') differs from '$primarySource' ('$mergedToolDir'); using the first."
     }
 
+    # First file with a 'theme:' value wins.
+    if ([string]::IsNullOrWhiteSpace($script:ConfiguredTheme) -and $cfg.ContainsKey("theme") -and -not [string]::IsNullOrWhiteSpace($cfg.theme)) {
+        $script:ConfiguredTheme = $cfg.theme
+    }
+
     if ($null -eq $writableSource) {
         $local = Get-LocalToolsFilePath -Path $tfPath
         if ($local) { $writableSource = $local }
@@ -964,6 +1054,36 @@ foreach ($tfPath in $ToolsFile) {
 }
 
 $config = @{ tooldirectory = $mergedToolDir; tools = $mergedTools }
+
+# Apply theme from the first YAML that set 'theme:'. Banner is drawn after
+# this so it appears in the user's chosen colors.
+if (-not [string]::IsNullOrWhiteSpace($script:ConfiguredTheme)) {
+    if ($script:ColorThemes.Contains($script:ConfiguredTheme)) {
+        Set-Theme -Name $script:ConfiguredTheme
+    }
+    else {
+        Write-LogWarning "Unknown theme '$script:ConfiguredTheme' in YAML - falling back to 'default'. Available: $((@($script:ColorThemes.Keys)) -join ', ')."
+    }
+}
+
+# Theme picker: opens before the banner so the user sees their selection live.
+# Offers to save the chosen theme to the writable YAML on confirm.
+if ($ChooseTheme) {
+    if ([Console]::IsInputRedirected -or [Console]::IsOutputRedirected) {
+        Write-LogWarning "-ChooseTheme requires an interactive console (not a redirected/non-interactive shell)."
+    }
+    else {
+        $changed = Show-ThemeSelector
+        if ($changed -and $writableSource) {
+            $save = Read-Host "  Save theme '$script:ThemeName' to '$writableSource' for future runs? (Y/N)"
+            if ($save -match '^(?i:Y(es)?)$') {
+                [void](Save-ThemeToConfig -Path $writableSource -ThemeName $script:ThemeName)
+            }
+        }
+    }
+}
+
+Show-Banner
 
 # Validate the merged configuration
 $validationResult = Test-ToolConfiguration -Config $config

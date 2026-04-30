@@ -128,11 +128,22 @@ ToolFetcher uses a parameter-based approach for flexibility. Key parameters incl
 
 - **`-Interactive` (alias `-i`):**  
   Launch a TUI picker (`Out-ConsoleGridView`) showing every tool with its local
-  version and the latest upstream version. Multi-select, then Enter to run the
-  downloads through the parallel engine. Requires PowerShell 7+ and the
+  version and the latest upstream version. Multi-select, then Enter to see a
+  per-tool tally (`N new download(s), M update(s)`); Enter again to confirm or
+  Esc/Space to cancel without writing anything. Requires PowerShell 7+ and the
   `Microsoft.PowerShell.ConsoleGuiTools` module (offered for install on first run).
   Strongly recommend pairing with `-PromptForPAT` so the upfront status check
-  doesn't hit GitHub's 60/hr unauthenticated limit.
+  doesn't hit GitHub's 60/hr unauthenticated limit (the TUI now reports
+  `Remote check: N succeeded, M rate-limited, K other failures` after Pass 2
+  so an empty Remote column doesn't look mysterious).
+
+- **`-ChooseTheme` (alias `-theme`):**  
+  Open the color-theme picker. Left/right arrows cycle through the 10 built-in
+  themes (`default`, `matrix`, `ocean`, `fire`, `neon`, `monochrome`, `sunset`,
+  `forest`, `purple`, `ice`); the banner repaints live as you scroll. Enter
+  accepts and offers to save the chosen theme to your YAML's `theme:` field for
+  future runs; Esc keeps the current theme. Themes color the startup banner
+  and the Info/Warning log lines (errors stay red regardless).
 
 ## YAML Configuration
 
