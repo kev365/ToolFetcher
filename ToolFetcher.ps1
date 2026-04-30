@@ -1089,30 +1089,6 @@ if (-not [string]::IsNullOrEmpty($GitHubPAT)) {
     else { Write-LogInfo "GitHub PAT validated successfully." }
 }
 
-# Interactive mode short-circuits the rest of the main flow: it loads
-# the TUI module, presents a picker, then dispatches the user's
-# selection. The CLI dispatcher (main-flow-B) is bypassed.
-if ($Interactive) {
-    if ($PSVersionTable.PSVersion.Major -lt 7) {
-        Write-LogError "-Interactive requires PowerShell 7+ (you're on $($PSVersionTable.PSVersion))."
-        exit 1
-    }
-    $uiPath = Join-Path $PSScriptRoot "ToolFetcherUI.ps1"
-    if (-not (Test-Path $uiPath)) {
-        Write-LogError "Could not find ToolFetcherUI.ps1 next to the engine ($uiPath)."
-        exit 1
-    }
-    . $uiPath
-    Show-ToolFetcherTUI -Tools $tools `
-                        -ToolsDirectory $ToolsDirectory `
-                        -GitHubPAT $GitHubPAT `
-                        -ThrottleLimit $ThrottleLimit
-    if (Test-Path $script:StagingRoot) {
-        Remove-Item -Path $script:StagingRoot -Recurse -Force -ErrorAction SilentlyContinue
-    }
-    exit 0
-}
-
 } # end: if (-not $SourceOnly) for main-flow-A
 
 # -----------------------------------------------
@@ -2289,14 +2265,36 @@ function Invoke-ToolWork {
 
 if (-not $SourceOnly) {
 
+# Interactive mode short-circuits the dispatcher: it loads the TUI module,
+# presents a picker, runs the user's selection, and exits. This branch is
+# placed AFTER all engine function definitions so Show-ToolFetcherTUI can
+# call Get-ToolMarker / Invoke-ToolWork / etc. directly.
+if ($Interactive) {
+    if ($PSVersionTable.PSVersion.Major -lt 7) {
+        Write-LogError "-Interactive requires PowerShell 7+ (you're on $($PSVersionTable.PSVersion))."
+        exit 1
+    }
+    $uiPath = Join-Path $PSScriptRoot "ToolFetcherUI.ps1"
+    if (-not (Test-Path $uiPath)) {
+        Write-LogError "Could not find ToolFetcherUI.ps1 next to the engine ($uiPath)."
+        exit 1
+    }
+    . $uiPath
+    Show-ToolFetcherTUI -Tools $tools `
+                        -ToolsDirectory $ToolsDirectory `
+                        -GitHubPAT $GitHubPAT `
+                        -ThrottleLimit $ThrottleLimit
+    if (Test-Path $script:StagingRoot) {
+        Remove-Item -Path $script:StagingRoot -Recurse -Force -ErrorAction SilentlyContinue
+    }
+    exit 0
+}
+
 # -----------------------------------------------
 # Dispatcher: Loop Through Tools and Process
 # -----------------------------------------------
-# First check if the tools directory exists
-if (-not [System.IO.Directory]::Exists($ToolsDirectory)) {
-    Write-LogError "Tools directory '$ToolsDirectory' does not exist. Cannot process any tools."
-    exit 1
-}
+# The tools directory is created lazily by Initialize-OutputFolder when the
+# first download lands - no need for an upfront existence check here.
 
 # Decide between sequential and parallel dispatch.
 $useParallel = $Parallel -and ($PSVersionTable.PSVersion.Major -ge 7)
