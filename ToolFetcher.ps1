@@ -687,8 +687,56 @@ function Get-DefaultValue {
     }
 }
 
+# Returns the resolved local file path for a tools-file argument, or $null
+# if the argument is a URL or doesn't exist on disk. Used to identify
+# which YAML file (if any) the engine can write back to (e.g. to persist
+# a newly-set tooldirectory).
+function Get-LocalToolsFilePath {
+    param([Parameter(Mandatory=$true)][string]$Path)
+    if ($Path -match '^https?://') { return $null }
+    $resolved = if ([System.IO.Path]::IsPathRooted($Path)) { $Path } else { Join-Path $PSScriptRoot $Path }
+    if (Test-Path -Path $resolved -PathType Leaf) { return $resolved }
+    return $null
+}
+
+# Persist a tooldirectory value into a local YAML file. If the file
+# already has a 'tooldirectory:' line, replace its value (preserving
+# inline comments). Otherwise prepend a new line at the top.
+function Save-ToolDirectoryToConfig {
+    param(
+        [Parameter(Mandatory=$true)][string]$Path,
+        [Parameter(Mandatory=$true)][string]$ToolsDirectory
+    )
+    try {
+        $content = Get-Content -Path $Path -Raw -ErrorAction Stop
+        # YAML double-quoted strings need each '\' written as '\\'. Note that
+        # PowerShell's -replace does NOT interpret '\\' as an escape in the
+        # replacement string, so the RHS here is literally two backslashes.
+        $yamlValue = $ToolsDirectory -replace '\\', '\\'
+        $line = "tooldirectory: `"$yamlValue`""
+
+        if ($content -match '(?m)^tooldirectory:[^\r\n]*') {
+            # Replace existing value, preserve any trailing inline comment if it's
+            # a fresh write (we just rebuild the line).
+            $newContent = [regex]::Replace($content, '(?m)^tooldirectory:[^\r\n]*', $line, 1)
+        }
+        else {
+            $newContent = "$line`r`n" + $content
+        }
+
+        # Preserve UTF-8 (no BOM) - matches what Get-Content -Raw + Set-Content -Encoding UTF8 expect.
+        Set-Content -Path $Path -Value $newContent -NoNewline -Encoding UTF8 -ErrorAction Stop
+        Write-LogInfo "Saved tooldirectory '$ToolsDirectory' to $Path"
+        return $true
+    }
+    catch {
+        Write-LogError "Failed to save tooldirectory to '$Path': $_"
+        return $false
+    }
+}
+
 # -----------------------------------------------
-# Function: Add Configuration Defaults
+# Function: Resolve and load a single tools-file path/URL
 # -----------------------------------------------
 function Resolve-ToolsFileContent {
     param (
@@ -852,6 +900,9 @@ Import-Module -Name powershell-yaml -ErrorAction Stop
 $mergedTools     = @()
 $mergedToolDir   = ""
 $primarySource   = $null
+# First local YAML we can write back to (e.g. to persist tooldirectory). $null
+# if every -ToolsFile entry was a URL.
+$writableSource  = $null
 
 foreach ($tfPath in $ToolsFile) {
     $yamlContent = Resolve-ToolsFileContent -Path $tfPath -DefaultUrl $defaultToolsFileUrl
@@ -886,6 +937,11 @@ foreach ($tfPath in $ToolsFile) {
     }
     elseif ($cfg.ContainsKey("tooldirectory") -and -not [string]::IsNullOrWhiteSpace($cfg.tooldirectory) -and $cfg.tooldirectory -ne $mergedToolDir) {
         Write-LogWarning "tooldirectory in '$tfPath' ('$($cfg.tooldirectory)') differs from '$primarySource' ('$mergedToolDir'); using the first."
+    }
+
+    if ($null -eq $writableSource) {
+        $local = Get-LocalToolsFilePath -Path $tfPath
+        if ($local) { $writableSource = $local }
     }
 }
 
@@ -925,21 +981,48 @@ if ($ListTools) {
     exit 0
 }
 
-$ToolsDirectory = if ($PSBoundParameters.ContainsKey('ToolsDirectory') -and -not [string]::IsNullOrWhiteSpace($ToolsDirectory)) {
-    $ToolsDirectory
-} elseif (-not [string]::IsNullOrWhiteSpace($config.tooldirectory)) {
-    $config.tooldirectory
-} else {
-    $userInput = Read-Host "Please provide a location for the tools folder"
+# Resolve the tools directory. Order: -ToolsDirectory param > YAML tooldirectory
+# > prompt the user (CLI mode) or defer to the TUI (-Interactive mode).
+$tools = $config.tools
+
+if ($PSBoundParameters.ContainsKey('ToolsDirectory') -and -not [string]::IsNullOrWhiteSpace($ToolsDirectory)) {
+    # User passed -ToolsDirectory explicitly; use it as-is.
+}
+elseif (-not [string]::IsNullOrWhiteSpace($config.tooldirectory)) {
+    $ToolsDirectory = $config.tooldirectory
+}
+elseif ($Interactive) {
+    # Interactive mode: leave $ToolsDirectory empty. The TUI prompts
+    # for it (and offers to save it back to the YAML) so the user
+    # gets one consolidated UX instead of two prompts.
+    $ToolsDirectory = ""
+}
+else {
+    # CLI mode and no directory available - explain why we're prompting
+    # and offer to persist the answer to the loaded YAML.
+    Write-LogWarning "No tools directory was passed via -ToolsDirectory and none is set in the loaded YAML."
+    if ($writableSource) {
+        Write-Host "  Provide a path now and we can save it as 'tooldirectory' in '$writableSource' for future runs." -ForegroundColor Gray
+    }
+    else {
+        Write-Host "  Provide a path now to use for this run (no local YAML to save it to)." -ForegroundColor Gray
+    }
+    $userInput = Read-Host "Tools folder path"
     if ([string]::IsNullOrWhiteSpace($userInput)) {
         Write-LogError "No tools directory specified. Exiting."
         exit 1
     }
-    $userInput
-}
-$tools = $config.tools
+    $ToolsDirectory = $userInput.Trim('"').Trim("'")
 
-if ($Log) {
+    if ($writableSource) {
+        $save = Read-Host "Save '$ToolsDirectory' to '$writableSource' as the default tooldirectory? (Y/N)"
+        if ($save -match '^(?i:Y(es)?)$') {
+            [void](Save-ToolDirectoryToConfig -Path $writableSource -ToolsDirectory $ToolsDirectory)
+        }
+    }
+}
+
+if ($Log -and -not [string]::IsNullOrWhiteSpace($ToolsDirectory)) {
     $logFilePath = Join-Path -Path $ToolsDirectory -ChildPath "ToolFetcher_$(Get-Date -Format 'yyyyMMdd_HHmmss').log"
     Enable-FileLogging -LogPath $logFilePath
 }
@@ -1032,7 +1115,9 @@ if (-not [string]::IsNullOrEmpty($GitHubPAT)) {
 # -----------------------------------------------
 # Ensure the Tools Directory Exists
 # -----------------------------------------------
-if (-not (Test-Path -Path $ToolsDirectory)) {
+# Skipped when -Interactive defers the directory choice to the TUI
+# (handled inside Show-ToolFetcherTUI after the user picks a path).
+if (-not [string]::IsNullOrWhiteSpace($ToolsDirectory) -and -not (Test-Path -Path $ToolsDirectory)) {
     try {
         # First check if the drive exists
         $drive = [System.IO.Path]::GetPathRoot($ToolsDirectory)
@@ -1064,7 +1149,11 @@ if ($Interactive) {
         exit 1
     }
     . $uiPath
-    Show-ToolFetcherTUI -Tools $tools -ToolsDirectory $ToolsDirectory -GitHubPAT $GitHubPAT -ThrottleLimit $ThrottleLimit
+    Show-ToolFetcherTUI -Tools $tools `
+                        -ToolsDirectory $ToolsDirectory `
+                        -GitHubPAT $GitHubPAT `
+                        -ThrottleLimit $ThrottleLimit `
+                        -WritableConfigPath $writableSource
     if (Test-Path $script:StagingRoot) {
         Remove-Item -Path $script:StagingRoot -Recurse -Force -ErrorAction SilentlyContinue
     }
