@@ -921,17 +921,18 @@ if ($ListTools) {
     exit 0
 }
 
+# Resolution order: -ToolsDirectory > YAML tooldirectory > $PSScriptRoot.
+# Folder creation is deferred to Initialize-OutputFolder so -list and
+# -DryRun produce zero on-disk side effects.
 $ToolsDirectory = if ($PSBoundParameters.ContainsKey('ToolsDirectory') -and -not [string]::IsNullOrWhiteSpace($ToolsDirectory)) {
     $ToolsDirectory
 } elseif (-not [string]::IsNullOrWhiteSpace($config.tooldirectory)) {
     $config.tooldirectory
 } else {
-    $userInput = Read-Host "Please provide a location for the tools folder"
-    if ([string]::IsNullOrWhiteSpace($userInput)) {
-        Write-LogError "No tools directory specified. Exiting."
-        exit 1
-    }
-    $userInput
+    $defaultDir = $PSScriptRoot
+    Write-LogInfo "No tools directory configured; defaulting to the script's folder: $defaultDir"
+    Write-LogInfo "  (set 'tooldirectory:' in your YAML or use -ToolsDirectory to change this.)"
+    $defaultDir
 }
 $tools = $config.tools
 
@@ -1023,27 +1024,6 @@ if (-not [string]::IsNullOrEmpty($GitHubPAT)) {
         }
     }
     else { Write-LogInfo "GitHub PAT validated successfully." }
-}
-
-# -----------------------------------------------
-# Ensure the Tools Directory Exists
-# -----------------------------------------------
-if (-not (Test-Path -Path $ToolsDirectory)) {
-    try {
-        # First check if the drive exists
-        $drive = [System.IO.Path]::GetPathRoot($ToolsDirectory)
-        if (-not [System.IO.Directory]::Exists($drive)) {
-            Write-LogError "Drive '$drive' does not exist. Please specify a valid drive."
-            exit 1
-        }
-        
-        New-Item -Path $ToolsDirectory -ItemType Directory -Force -ErrorAction Stop | Out-Null
-        Write-LogInfo "Created tools directory: $ToolsDirectory"
-    }
-    catch {
-        Write-LogError "Failed to create tools directory at '$ToolsDirectory'. Exception: $_"
-        exit 1
-    }
 }
 
 } # end: if (-not $SourceOnly) for main-flow-A
@@ -1544,12 +1524,22 @@ function Initialize-OutputFolder {
         [Parameter(Mandatory=$true)][string]$ToolsDirectory
     )
     
-    # First check if the tools directory exists
+    # Lazily create the tools directory on first use (drive-existence sanity check).
     if (-not [System.IO.Directory]::Exists($ToolsDirectory)) {
-        Write-LogError "Tools directory '$ToolsDirectory' does not exist. Cannot create output folder for $($ToolConfig.Name)."
-        return $null
+        $drive = [System.IO.Path]::GetPathRoot($ToolsDirectory)
+        if (-not [System.IO.Directory]::Exists($drive)) {
+            Write-LogError "Drive '$drive' does not exist. Cannot create tools directory '$ToolsDirectory'."
+            return $null
+        }
+        try {
+            New-Item -Path $ToolsDirectory -ItemType Directory -Force -ErrorAction Stop | Out-Null
+            Write-LogInfo "Created tools directory: $ToolsDirectory"
+        } catch {
+            Write-LogError "Failed to create tools directory at '$ToolsDirectory'. Exception: $_"
+            return $null
+        }
     }
-    
+
     try {
         if (-not [string]::IsNullOrEmpty($ToolConfig.OutputFolder)) {
             $outputFolder = Join-Path -Path $ToolsDirectory -ChildPath (Join-Path $ToolConfig.OutputFolder $ToolConfig.Name)
@@ -2213,12 +2203,6 @@ if (-not $SourceOnly) {
 # -----------------------------------------------
 # Dispatcher: Loop Through Tools and Process
 # -----------------------------------------------
-# First check if the tools directory exists
-if (-not [System.IO.Directory]::Exists($ToolsDirectory)) {
-    Write-LogError "Tools directory '$ToolsDirectory' does not exist. Cannot process any tools."
-    exit 1
-}
-
 # Decide between sequential and parallel dispatch.
 $useParallel = $Parallel -and ($PSVersionTable.PSVersion.Major -ge 7)
 if ($Parallel -and -not $useParallel) {
