@@ -59,13 +59,13 @@ tools:
     SkipDownload: false
 
   - Name: "MFTECmd"
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/MFTECmd.zip"
+    RepoUrl: "https://download.ericzimmermanstools.com/net9/MFTECmd.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "NTFS"
     SkipDownload: false
 
   - Name: "MFTExplorer"
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/MFTExplorer.zip"
+    RepoUrl: "https://download.ericzimmermanstools.com/net9/MFTExplorer.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "NTFS"
     SkipDownload: false

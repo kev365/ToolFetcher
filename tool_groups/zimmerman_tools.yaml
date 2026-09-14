@@ -17,127 +17,127 @@
 tools:
   
   - Name: "AmcacheParser"
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/AmcacheParser.zip"
+    RepoUrl: "https://download.ericzimmermanstools.com/net9/AmcacheParser.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "ez_tools"
     SkipDownload: false
 
   - Name: "AppCompatCacheParser"
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/AppCompatCacheParser.zip"
+    RepoUrl: "https://download.ericzimmermanstools.com/net9/AppCompatCacheParser.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "ez_tools"
     SkipDownload: false
 
   - Name: "EvtxECmd"
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/EvtxECmd.zip"
+    RepoUrl: "https://download.ericzimmermanstools.com/net9/EvtxECmd.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "ez_tools"
     SkipDownload: false
 
   - Name: "EZViewer"
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/EZViewer.zip"
+    RepoUrl: "https://download.ericzimmermanstools.com/net9/EZViewer.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "ez_tools"
     SkipDownload: false
 
   - Name: "iisGeolocate"
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/iisGeolocate.zip"
+    RepoUrl: "https://download.ericzimmermanstools.com/net9/iisGeolocate.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "ez_tools"
     SkipDownload: false
 
   - Name: "JLECmd"
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/JLECmd.zip"
+    RepoUrl: "https://download.ericzimmermanstools.com/net9/JLECmd.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "ez_tools"
     SkipDownload: false
 
   - Name: "JumpListExplorer"
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/JumpListExplorer.zip"
+    RepoUrl: "https://download.ericzimmermanstools.com/net9/JumpListExplorer.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "ez_tools"
     SkipDownload: false
 
   - Name: "LECmd"
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/LECmd.zip"
+    RepoUrl: "https://download.ericzimmermanstools.com/net9/LECmd.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "ez_tools"
     SkipDownload: false
 
   - Name: "MFTECmd"
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/MFTECmd.zip"
+    RepoUrl: "https://download.ericzimmermanstools.com/net9/MFTECmd.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "ez_tools"
     SkipDownload: false
 
   - Name: "MFTExplorer"
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/MFTExplorer.zip"
+    RepoUrl: "https://download.ericzimmermanstools.com/net9/MFTExplorer.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "ez_tools"
     SkipDownload: false
 
   - Name: "PECmd"
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/PECmd.zip"
+    RepoUrl: "https://download.ericzimmermanstools.com/net9/PECmd.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "ez_tools"
     SkipDownload: false
 
   - Name: "RBCmd"
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/RBCmd.zip"
+    RepoUrl: "https://download.ericzimmermanstools.com/net9/RBCmd.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "ez_tools"
     SkipDownload: false
 
   - Name: "RECmd"
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/RECmd.zip"
+    RepoUrl: "https://download.ericzimmermanstools.com/net9/RECmd.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "ez_tools"
     SkipDownload: false
 
   - Name: "RecentFileCacheParser"
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/RecentFileCacheParser.zip"
+    RepoUrl: "https://download.ericzimmermanstools.com/net9/RecentFileCacheParser.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "ez_tools"
     SkipDownload: false
 
   - Name: "RegistryExplorer"
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/RegistryExplorer.zip"
+    RepoUrl: "https://download.ericzimmermanstools.com/net9/RegistryExplorer.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "ez_tools"
     SkipDownload: false
 
   - Name: "rla"
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/rla.zip"
+    RepoUrl: "https://download.ericzimmermanstools.com/net9/rla.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "ez_tools"
     SkipDownload: false
 
   - Name: "SBECmd"
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/SBECmd.zip"
+    RepoUrl: "https://download.ericzimmermanstools.com/net9/SBECmd.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "ez_tools"
     SkipDownload: false
 
   - Name: "SDBExplorer"
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/SDBExplorer.zip"
+    RepoUrl: "https://download.ericzimmermanstools.com/net9/SDBExplorer.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "ez_tools"
     SkipDownload: false
 
   - Name: "ShellBagsExplorer"
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/ShellBagsExplorer.zip"
+    RepoUrl: "https://download.ericzimmermanstools.com/net9/ShellBagsExplorer.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "ez_tools"
     SkipDownload: false
 
   - Name: "SQLECmd"
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/SQLECmd.zip"
+    RepoUrl: "https://download.ericzimmermanstools.com/net9/SQLECmd.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "ez_tools"
     SkipDownload: false
 
   - Name: "SumECmd"
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/SumECmd.zip"
+    RepoUrl: "https://download.ericzimmermanstools.com/net9/SumECmd.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "ez_tools"
     SkipDownload: false
@@ -149,19 +149,19 @@ tools:
     SkipDownload: false
 
   - Name: "TimelineExplorer"
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/TimelineExplorer.zip"
+    RepoUrl: "https://download.ericzimmermanstools.com/net9/TimelineExplorer.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "ez_tools"
     SkipDownload: false
 
   - Name: "VSCMount"
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/VSCMount.zip"
+    RepoUrl: "https://download.ericzimmermanstools.com/net9/VSCMount.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "ez_tools"
     SkipDownload: false
 
   - Name: "WxTCmd"
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/WxTCmd.zip"
+    RepoUrl: "https://download.ericzimmermanstools.com/net9/WxTCmd.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "ez_tools"
     SkipDownload: false

@@ -24,25 +24,25 @@ tools:
     SkipDownload: false
 
   - Name: "AmcacheParser"
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/AmcacheParser.zip"
+    RepoUrl: "https://download.ericzimmermanstools.com/net9/AmcacheParser.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "registry"
     SkipDownload: false
 
   - Name: "AppCompatCacheParser"
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/AppCompatCacheParser.zip"
+    RepoUrl: "https://download.ericzimmermanstools.com/net9/AppCompatCacheParser.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "registry"
     SkipDownload: false
 
   - Name: "RECmd"
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/RECmd.zip"
+    RepoUrl: "https://download.ericzimmermanstools.com/net9/RECmd.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "registry"
     SkipDownload: false
 
   - Name: "RecentFileCacheParser"
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/RecentFileCacheParser.zip"
+    RepoUrl: "https://download.ericzimmermanstools.com/net9/RecentFileCacheParser.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "registry"
     SkipDownload: false
@@ -83,7 +83,7 @@ tools:
     SkipDownload: false
 
   - Name: "RegistryExplorer"
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/RegistryExplorer.zip"
+    RepoUrl: "https://download.ericzimmermanstools.com/net9/RegistryExplorer.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "registry"
     SkipDownload: false
@@ -96,13 +96,13 @@ tools:
     SkipDownload: false
 
   - Name: "rla"
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/rla.zip"
+    RepoUrl: "https://download.ericzimmermanstools.com/net9/rla.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "registry"
     SkipDownload: false
 
   - Name: "SBECmd"
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/SBECmd.zip"
+    RepoUrl: "https://download.ericzimmermanstools.com/net9/SBECmd.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "registry"
     SkipDownload: false 
