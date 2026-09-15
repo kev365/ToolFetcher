@@ -20,7 +20,7 @@ tools:
     SkipDownload: false
 
   - Name: "EvtxECmd"
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/EvtxECmd.zip"
+    RepoUrl: "https://download.ericzimmermanstools.com/net9/EvtxECmd.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "logs"
     SkipDownload: false
@@ -61,7 +61,7 @@ tools:
     SkipDownload: false
 
   - Name: "SumECmd"
-    RepoUrl: "https://download.ericzimmermanstools.com/net6/SumECmd.zip"
+    RepoUrl: "https://download.ericzimmermanstools.com/net9/SumECmd.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "logs"
     SkipDownload: false 
