@@ -3,19 +3,20 @@
 # Field reference: see _tool_template.yaml
 # Documentation:   https://dfir-kev.medium.com/tool-fetcher-86691e65731b
 
+category: "network_analysis"
 tools:
-  
+
   - Name: "NetworkMiner"
     RepoUrl: "https://www.netresec.com/?page=NetworkMiner"
     DownloadMethod: ""
     DownloadName: ""
     OutputFolder: "network"
-    SkipDownload: false
+    SkipDownload: true
 
   - Name: "Wireshark"
     RepoUrl: "https://www.wireshark.org/download.html"
     DownloadMethod: ""
     DownloadName: ""
     OutputFolder: "network"
-    SkipDownload: false
+    SkipDownload: true
 

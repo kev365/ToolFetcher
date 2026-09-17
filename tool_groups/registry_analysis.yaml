@@ -3,95 +3,96 @@
 # Field reference: see _tool_template.yaml
 # Documentation:   https://dfir-kev.medium.com/tool-fetcher-86691e65731b
 
+category: "registry_analysis"
 tools:
-  
-  - Name: "AmCache-EvilHunter"
+
+  - Name: "AmCache-EvilHunter" # confirmed 2026-09-16
     RepoUrl: "https://github.com/cristianzsh/amcache-evilhunter"
     DownloadMethod: "latestrelease"
     DownloadName: "amcache_evilhunter.exe"
     OutputFolder: "registry"
     SkipDownload: false
 
-  - Name: "AmcacheParser"
+  - Name: "AmcacheParser" # confirmed 2026-09-16
     RepoUrl: "https://download.ericzimmermanstools.com/net9/AmcacheParser.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "registry"
     SkipDownload: false
 
-  - Name: "AppCompatCacheParser"
+  - Name: "AppCompatCacheParser" # confirmed 2026-09-16
     RepoUrl: "https://download.ericzimmermanstools.com/net9/AppCompatCacheParser.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "registry"
     SkipDownload: false
 
-  - Name: "RECmd"
+  - Name: "RECmd" # confirmed 2026-09-16
     RepoUrl: "https://download.ericzimmermanstools.com/net9/RECmd.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "registry"
     SkipDownload: false
 
-  - Name: "RecentFileCacheParser"
+  - Name: "RecentFileCacheParser" # confirmed 2026-09-16
     RepoUrl: "https://download.ericzimmermanstools.com/net9/RecentFileCacheParser.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "registry"
     SkipDownload: false
 
-  - Name: "RegDllView"
-    RepoUrl: "https://www.nirsoft.net/utils/registered_dll_view.html"
+  - Name: "RegDllView" # confirmed 2026-09-16
+    RepoUrl: "https://www.nirsoft.net/utils/regdllview-x64.zip"
     DownloadMethod: "specificFile"
     DownloadName: "RegDllView.zip"
     OutputFolder: "registry"
     SkipDownload: false
 
-  - Name: "RegFromApp"
-    RepoUrl: "https://www.nirsoft.net/utils/reg_file_from_application.html"
+  - Name: "RegFromApp" # confirmed 2026-09-16
+    RepoUrl: "https://www.nirsoft.net/utils/regfromapp-x64.zip"
     DownloadMethod: "specificFile"
     DownloadName: "RegFromApp.zip"
     OutputFolder: "registry"
     SkipDownload: false
 
-  - Name: "reg_hunter"
+  - Name: "reg_hunter" # confirmed 2026-09-16
     RepoUrl: "https://github.com/theflakes/reg_hunter"
     DownloadMethod: "latestRelease"
     DownloadName: "reg_hunter.exe"
     OutputFolder: "registry"
     SkipDownload: false
 
-  - Name: "RegRipper3.0"
+  - Name: "RegRipper3.0" # confirmed 2026-09-16
     RepoUrl: "https://github.com/keydet89/RegRipper3.0"
     DownloadMethod: "branchZip"
     Branch: "master"
     OutputFolder: "registry"
     SkipDownload: false
 
-  - Name: "RegScanner"
-    RepoUrl: "https://www.nirsoft.net/utils/regscanner.html"
+  - Name: "RegScanner" # confirmed 2026-09-16
+    RepoUrl: "https://www.nirsoft.net/utils/regscanner-x64.zip"
     DownloadMethod: "specificFile"
     DownloadName: "RegScanner.zip"
     OutputFolder: "registry"
     SkipDownload: false
 
-  - Name: "RegistryExplorer"
+  - Name: "RegistryExplorer" # confirmed 2026-09-16
     RepoUrl: "https://download.ericzimmermanstools.com/net9/RegistryExplorer.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "registry"
     SkipDownload: false
 
-  - Name: "RegistryScanner"
+  - Name: "RegistryScanner" # 2026-09-16: github.com/forensicmatt/RegistryScanner no longer exists (404); no replacement found
     RepoUrl: "https://github.com/forensicmatt/RegistryScanner"
     DownloadMethod: "latestRelease"
     DownloadName: "RegistryScanner.exe"
     OutputFolder: "registry"
-    SkipDownload: false
+    SkipDownload: true
 
-  - Name: "rla"
+  - Name: "rla" # confirmed 2026-09-16
     RepoUrl: "https://download.ericzimmermanstools.com/net9/rla.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "registry"
     SkipDownload: false
 
-  - Name: "SBECmd"
+  - Name: "SBECmd" # confirmed 2026-09-16
     RepoUrl: "https://download.ericzimmermanstools.com/net9/SBECmd.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "registry"
-    SkipDownload: false 
+    SkipDownload: false

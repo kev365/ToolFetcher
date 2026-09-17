@@ -2,25 +2,20 @@
 
 # Field reference: see _tool_template.yaml
 # Documentation:   https://dfir-kev.medium.com/tool-fetcher-86691e65731b
+# NirSoft serves the per-utility zips without a referer; the full NirLauncher bundle
+# (nirsoft_package_enc_*.zip) requires one and is password-protected, so it is not listed here.
 
+category: "nirsoft_tools"
 tools:
-  
-  - Name: ""
-    RepoUrl: ""
-    DownloadMethod: "specificFile"
-    OutputFolder: "nirsoft"
-    SkipDownload: false 
 
-  - Name: "RegDllView"
-    RepoUrl: ""
+  - Name: "RegDllView" # confirmed 2026-09-16
+    RepoUrl: "https://www.nirsoft.net/utils/regdllview-x64.zip"
     DownloadMethod: "specificFile"
-    DownloadName: ""
     OutputFolder: "nirsoft"
     SkipDownload: false
 
-  - Name: "RegFromApp"
-    RepoUrl: ""
+  - Name: "RegFromApp" # confirmed 2026-09-16
+    RepoUrl: "https://www.nirsoft.net/utils/regfromapp-x64.zip"
     DownloadMethod: "specificFile"
-    DownloadName: ""
     OutputFolder: "nirsoft"
     SkipDownload: false

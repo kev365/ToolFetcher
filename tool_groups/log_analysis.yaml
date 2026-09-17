@@ -3,65 +3,66 @@
 # Field reference: see _tool_template.yaml
 # Documentation:   https://dfir-kev.medium.com/tool-fetcher-86691e65731b
 
+category: "log_analysis"
 tools:
-  
-  - Name: "APT-Hunter"
+
+  - Name: "APT-Hunter" # confirmed 2026-09-16
     RepoUrl: "https://github.com/ahmedkhlief/APT-Hunter"
     DownloadMethod: "latestRelease"
     DownloadName: "APT-Hunter.zip"
     OutputFolder: "logs"
     SkipDownload: false
 
-  - Name: "chainsaw"
-    RepoUrl: "https://github.com/WithSecureLabs/chainsaw"
+  - Name: "chainsaw" # confirmed 2026-09-16
+    RepoUrl: "https://github.com/WithSecureOpenSource/chainsaw"
     DownloadMethod: "latestRelease"
     DownloadName: "chainsaw_x86_64-pc-windows-msvc.zip"
     OutputFolder: "logs"
     SkipDownload: false
 
-  - Name: "EvtxECmd"
+  - Name: "EvtxECmd" # confirmed 2026-09-16
     RepoUrl: "https://download.ericzimmermanstools.com/net9/EvtxECmd.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "logs"
     SkipDownload: false
 
-  - Name: "EvtxHussar"
+  - Name: "EvtxHussar" # confirmed 2026-09-16
     RepoUrl: "https://github.com/yarox24/EvtxHussar"
     DownloadMethod: "latestRelease"
     AssetType: "win64"
     OutputFolder: "logs"
     SkipDownload: false
 
-  - Name: "hayabusa"
+  - Name: "hayabusa" # confirmed 2026-09-16
     RepoUrl: "https://github.com/Yamato-Security/hayabusa"
     DownloadMethod: "latestRelease"
-    AssetType: "win64"
+    AssetFilename: "hayabusa-.*-win-x64\\.zip" # explicit: the release also ships win-x64-live-response
     OutputFolder: "logs"
     SkipDownload: false
 
-  - Name: "hayabusa-rules"
+  - Name: "hayabusa-rules" # confirmed 2026-09-16
     RepoUrl: "https://github.com/Yamato-Security/hayabusa-rules"
     DownloadMethod: "branchZip"
     Branch: "main"
     OutputFolder: "logs"
     SkipDownload: false
 
-  - Name: "hindsight"
-    RepoUrl: "https://github.com/obsidianforensics/hindsight"
+  - Name: "hindsight" # confirmed 2026-09-16
+    RepoUrl: "https://github.com/RyanDFIR/hindsight"
     DownloadMethod: "latestRelease"
     DownloadName: "hindsight.exe"
     OutputFolder: "logs"
     SkipDownload: false
 
-  - Name: "hindsight_gui"
-    RepoUrl: "https://github.com/obsidianforensics/hindsight"
+  - Name: "hindsight_gui" # confirmed 2026-09-16
+    RepoUrl: "https://github.com/RyanDFIR/hindsight"
     DownloadMethod: "latestRelease"
     DownloadName: "hindsight_gui.exe"
     OutputFolder: "logs"
     SkipDownload: false
 
-  - Name: "SumECmd"
+  - Name: "SumECmd" # confirmed 2026-09-16
     RepoUrl: "https://download.ericzimmermanstools.com/net9/SumECmd.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "logs"
-    SkipDownload: false 
+    SkipDownload: false

@@ -3,19 +3,19 @@
 # Field reference: see _tool_template.yaml
 # Documentation:   https://dfir-kev.medium.com/tool-fetcher-86691e65731b
 
+category: "wordlists"
 tools:
-  
-  - Name: "rockyou"
+
+  - Name: "rockyou" # confirmed 2026-09-16
     RepoUrl: "https://github.com/brannondorsey/naive-hashcat/releases/download/data/rockyou.txt"
     DownloadMethod: "specificFile"
     DownloadName: "rockyou.txt"
     OutputFolder: "Wordlists"
-    SkipDownload: false 
-
-  - Name: "SecLists"
-    RepoUrl: "https://github.com/danielmiessler/SecLists"
-    DownloadMethod: ""
-    Branch: ""
-    OutputFolder: "Wordlists"
     SkipDownload: false
 
+  - Name: "SecLists" # confirmed 2026-09-16
+    RepoUrl: "https://github.com/danielmiessler/SecLists" # no release assets; the master branch zip is well over 1 GB
+    DownloadMethod: "branchZip"
+    Branch: "master"
+    OutputFolder: "Wordlists"
+    SkipDownload: false

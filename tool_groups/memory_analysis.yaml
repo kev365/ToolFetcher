@@ -3,19 +3,20 @@
 # Field reference: see _tool_template.yaml
 # Documentation:   https://dfir-kev.medium.com/tool-fetcher-86691e65731b
 
+category: "memory_analysis"
 tools:
-  
-  - Name: "capa"
+
+  - Name: "capa" # confirmed 2026-09-16
     RepoUrl: "https://github.com/mandiant/capa"
     DownloadMethod: "latestRelease"
     AssetFilename: "capa-v.*-windows\\.zip"
     OutputFolder: "memory"
     SkipDownload: false
 
-  - Name: "CobaltStrikeParser"
-    RepoUrl: "https://github.com/Sentinel-One/CobaltStrikeParser"
-    DownloadMethod: "latestRelease"
-    DownloadName: "CobaltStrikeParser.zip"
+  - Name: "CobaltStrikeParser" # confirmed 2026-09-16
+    RepoUrl: "https://github.com/Sentinel-One/CobaltStrikeParser" # archived repo, no releases
+    DownloadMethod: "branchZip"
+    Branch: "master"
     OutputFolder: "memory"
     SkipDownload: false
 
@@ -24,23 +25,23 @@ tools:
     DownloadMethod: ""
     Branch: ""
     OutputFolder: "memory"
-    SkipDownload: false
+    SkipDownload: true
 
-  - Name: "MemProcFs"
+  - Name: "MemProcFs" # confirmed 2026-09-16
     RepoUrl: "https://github.com/ufrisk/MemProcFS"
     DownloadMethod: "latestrelease"
     DownloadName: "MemProcFS_files_and_binaries-win_x64-latest.zip"
     OutputFolder: "memory"
     SkipDownload: false
 
-  - Name: "MemProcFsAnalyzer"
+  - Name: "MemProcFsAnalyzer" # confirmed 2026-09-16
     RepoUrl: "https://github.com/LETHAL-FORENSICS/MemProcFS-Analyzer"
     DownloadMethod: "latestrelease"
     AssetFilename: "MemProcFS-Analyzer-v.*\\.zip"
     OutputFolder: "memory"
     SkipDownload: false
 
-  - Name: "RdpCacheStitcher"
+  - Name: "RdpCacheStitcher" # confirmed 2026-09-16
     RepoUrl: "https://github.com/BSI-Bund/RdpCacheStitcher/"
     DownloadMethod: "latestrelease"
     AssetFilename: "RdpCacheStitcher-.*-win64\\.zip"
@@ -52,25 +53,25 @@ tools:
     DownloadMethod: ""
     Branch: ""
     OutputFolder: "memory"
-    SkipDownload: false
+    SkipDownload: true
 
-  - Name: "vol2"
-    RepoUrl: "https://github.com/volatilityfoundation/volatility"
-    DownloadMethod: "branchZip"
-    Branch: "develop"
+  - Name: "vol2" # confirmed 2026-09-16
+    RepoUrl: "https://github.com/volatilityfoundation/volatility" # archived repo; the develop branch is gone, release 2.6.1 ships a Windows x64 standalone
+    DownloadMethod: "latestRelease"
+    AssetFilename: "volatility_.*_win64_standalone\\.zip"
     OutputFolder: "memory"
     SkipDownload: false
 
-  - Name: "vol3"
+  - Name: "vol3" # confirmed 2026-09-16
     RepoUrl: "https://github.com/volatilityfoundation/volatility3"
     DownloadMethod: "branchZip"
     Branch: "develop"
     OutputFolder: "memory"
     SkipDownload: false
 
-  - Name: "WMI_Forensics"
+  - Name: "WMI_Forensics" # confirmed 2026-09-16
     RepoUrl: "https://github.com/davidpany/WMI_Forensics"
     DownloadMethod: "branchZip"
     Branch: "master"
     OutputFolder: "memory"
-    SkipDownload: false 
+    SkipDownload: false
