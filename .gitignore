@@ -1,9 +1,21 @@
-# IDE-specific files
-.vscode/
-*.idea/
+# Files
 *.log
 .cursorrules
 *.mdc
+CLAUDE.md
+
 
 # Folders
 tmp/
+.cursor/
+.vscode/
+docs/
+
+# Editor / assistant state
+.remember/
+.claude/
+*.code-workspace
+
+# Tool download markers (a download run without -ToolsDirectory lands next to the script)
+.downloaded.json
+*.save[0-9]*

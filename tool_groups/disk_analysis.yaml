@@ -1,43 +1,33 @@
 # Disk Analysis Tools
 
-  # Documentation: https://dfir-kev.medium.com/tool-fetcher-86691e65731b
-  # -Template-
-  # Name: "ToolName"      # Tool identifier, also used to name the parent folder for the tool
-  # RepoUrl: ""           # URL goes here
-  # DownloadMethod: ""    # Options: gitClone | latestRelease | branchZip | specificFile
-  # OutputFolder: ""      # Appends a subdirectory to $toolsFolder
-  # Branch: ""            # Defaults to master if not provided, also checks main if master is not available
-  # DownloadName: ""      # Used to download a particular file from the latestRelease
-  # AssetFilename: ""     # Used to specify exact filename to download from latestRelease (supports regex)
-  # AssetType: ""         # Options: win64 | win32 | linux64 | linux32 | macos64 | macos32 | arm64 | arm32
-  # SpecificFilePath: ""  # Used with the 'specificFile' DownloadMethod to specify file path in repository
-  # Extract: true         # Whether to extract the downloaded file (default: true)
-  # SkipDownload: false   # Whether to skip downloading this tool (default: false)
+# Field reference: see _tool_template.yaml
+# Documentation:   https://dfir-kev.medium.com/tool-fetcher-86691e65731b
 
+category: "disk_analysis"
 tools:
- 
+
   - Name: "Arsenal-Image-Mounter"
     RepoUrl: ""
     DownloadMethod: ""
     DownloadName: ""
     OutputFolder: "disk_analysis"
-    SkipDownload: false
+    SkipDownload: true
 
-  - Name: "Autopsy"
+  - Name: "Autopsy" # confirmed 2026-09-16
     RepoUrl: "https://github.com/sleuthkit/autopsy"
     DownloadMethod: "latestRelease"
-    DownloadName: "autopsy-4.21.3-64bit.msi"
+    AssetFilename: "autopsy-.*-64bit\\.msi"
     OutputFolder: "disk_analysis"
     SkipDownload: false
 
-  - Name: "ExifTool"
-    RepoUrl: "https://exiftool.org/"
+  - Name: "ExifTool" # confirmed 2026-09-16
+    RepoUrl: "https://sourceforge.net/projects/exiftool/files/exiftool-13.59_64.zip/download" # version-locked: exiftool.org only links SourceForge; 13.59 current 2026-09-16
     DownloadMethod: "specificFile"
-    DownloadName: ""
+    DownloadName: "exiftool-13.59_64.zip"
     OutputFolder: "disk_analysis"
     SkipDownload: false
 
-  - Name: "Foremost"
+  - Name: "Foremost" # confirmed 2026-09-16
     RepoUrl: "https://github.com/korczis/foremost"
     DownloadMethod: "branchZip"
     Branch: "master"
@@ -49,35 +39,35 @@ tools:
     DownloadMethod: ""
     DownloadName: ""
     OutputFolder: "disk_analysis"
-    SkipDownload: false
+    SkipDownload: true
 
-  - Name: "INDXRipper"
+  - Name: "INDXRipper" # confirmed 2026-09-16
     RepoUrl: "https://github.com/harelsegev/INDXRipper"
     DownloadMethod: "latestRelease"
-    DownloadName: "INDXRipper-20231117-py3.12-amd64.zip"
+    AssetFilename: "INDXRipper-.*-amd64\\.zip"
     OutputFolder: "NTFS"
     SkipDownload: false
 
-  - Name: "MFTECmd"
+  - Name: "MFTECmd" # confirmed 2026-09-16
     RepoUrl: "https://download.ericzimmermanstools.com/net9/MFTECmd.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "NTFS"
     SkipDownload: false
 
-  - Name: "MFTExplorer"
+  - Name: "MFTExplorer" # confirmed 2026-09-16
     RepoUrl: "https://download.ericzimmermanstools.com/net9/MFTExplorer.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "NTFS"
     SkipDownload: false
 
-  - Name: "OfficeMalScanner"
-    RepoUrl: "https://github.com/unixfreak0037/officeparser"
-    DownloadMethod: "latestRelease"
-    DownloadName: "OfficeMalScanner.zip"
+  - Name: "OfficeMalScanner" # confirmed 2026-09-16
+    RepoUrl: "https://github.com/unixfreak0037/officeparser" # this repo is officeparser (Python), not OfficeMalScanner; it has no releases
+    DownloadMethod: "branchZip"
+    Branch: "master"
     OutputFolder: "disk_analysis"
     SkipDownload: false
 
-  - Name: "Oletools"
+  - Name: "Oletools" # confirmed 2026-09-16
     RepoUrl: "https://github.com/decalage2/oletools"
     DownloadMethod: "branchZip"
     Branch: "master"
@@ -89,26 +79,26 @@ tools:
     DownloadMethod: ""
     DownloadName: ""
     OutputFolder: "disk_analysis"
-    SkipDownload: false
+    SkipDownload: true
 
-  - Name: "RustyUsn-apple"
+  - Name: "RustyUsn-apple" # confirmed 2026-09-16
     RepoUrl: "https://github.com/forensicmatt/RustyUsn"
     DownloadMethod: "latestRelease"
-    DownloadName: " rusty_usn-v1.5.0-x86_64-apple-darwin.tar.gz"
+    AssetFilename: "rusty_usn-.*-x86_64-apple-darwin\\.tar\\.gz"
     OutputFolder: "NTFS"
     SkipDownload: false
 
-  - Name: "RustyUsn-linux"
+  - Name: "RustyUsn-linux" # confirmed 2026-09-16
     RepoUrl: "https://github.com/forensicmatt/RustyUsn"
     DownloadMethod: "latestRelease"
-    DownloadName: "rusty_usn-v1.5.0-x86_64-pc-windows-msvc.zip"
+    AssetFilename: "rusty_usn-.*-x86_64-unknown-linux-gnu\\.tar\\.gz"
     OutputFolder: "NTFS"
     SkipDownload: false
 
-  - Name: "RustyUsn-windows"
+  - Name: "RustyUsn-windows" # confirmed 2026-09-16
     RepoUrl: "https://github.com/forensicmatt/RustyUsn"
     DownloadMethod: "latestRelease"
-    DownloadName: " rusty_usn-v1.5.0-x86_64-unknown-linux-gnu.tar.gz"
+    AssetFilename: "rusty_usn-.*-x86_64-pc-windows-msvc\\.zip"
     OutputFolder: "NTFS"
     SkipDownload: false
 
@@ -117,18 +107,18 @@ tools:
     DownloadMethod: ""
     DownloadName: ""
     OutputFolder: "disk_analysis"
-    SkipDownload: false
+    SkipDownload: true
 
-  - Name: "WinPrefetchView"
-    RepoUrl: "https://www.nirsoft.net/utils/win_prefetch_view.html"
+  - Name: "WinPrefetchView" # confirmed 2026-09-16
+    RepoUrl: "https://www.nirsoft.net/utils/winprefetchview-x64.zip"
     DownloadMethod: "specificFile"
     DownloadName: "WinPrefetchView.zip"
     OutputFolder: "disk_analysis"
     SkipDownload: false
 
-  - Name: "XstReader"
+  - Name: "XstReader" # confirmed 2026-09-16
     RepoUrl: "https://github.com/iluvadev/XstReader"
     DownloadMethod: "latestRelease"
-    DownloadName: "XstReader.v.1.15.0.zip"
+    AssetFilename: "XstReader\\.App\\..*\\.zip" # XstReader.App 2.x is the current app; XstReader.v.1.x is the legacy build
     OutputFolder: "Email"
-    SkipDownload: false 
+    SkipDownload: false

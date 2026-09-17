@@ -6,19 +6,25 @@
   # RepoUrl: ""           # URL goes here
   # DownloadMethod: ""    # Options: gitClone | latestRelease | branchZip | specificFile
   # OutputFolder: ""      # Appends a subdirectory to $toolsFolder
-  # Branch: ""            # Defaults to master if not provided, also checks main if master is not available
-  # DownloadName: ""      # Used to download a particular file from the latestRelease
+  # Branch: ""            # If not provided, the repo's default_branch (e.g. main) is queried via the GitHub API
+  # DownloadName: ""      # latestRelease: exact asset name to download; specificFile: name to save as when the URL has no file name
   # AssetFilename: ""     # Used to specify exact filename to download from latestRelease (supports regex)
   # AssetType: ""         # Options: win64 | win32 | linux64 | linux32 | macos64 | macos32 | arm64 | arm32
   # SpecificFilePath: ""  # Used with the 'specificFile' DownloadMethod to specify file path in repository
   # Extract: true         # Whether to extract the downloaded file (default: true)
   # SkipDownload: false   # Whether to skip downloading this tool (default: false)
+  # Category: ""          # Optional. One tag or a list of tags for -Tag; overrides the file-level 'category'
+  # ExpectedSha256: ""    # Optional. Refuse to install anything whose SHA256 differs
+  #
+  # File-level keys (optional):
+  # tooldirectory: ""     # Where tools go when -ToolsDirectory is not given (first non-empty value wins when files are merged)
+  # category: ""          # Default Category for every entry in this file that has none (used by -Tag)
 
 tools:
-  
+
   - Name: ""
     RepoUrl: ""
-    DownloadMethod: ""  
+    DownloadMethod: ""
     OutputFolder: ""
     SkipDownload: false
 

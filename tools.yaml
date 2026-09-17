@@ -1,74 +1,63 @@
 tooldirectory: "" # Must escape any backslashes or use single forward slashes
-tools:
-  # Documentation: https://dfir-kev.medium.com/tool-fetcher-86691e65731b
-  # -Template-
-  # Name: "ToolName"      # Tool identifier, also used to name the parent folder for the tool
-  # RepoUrl: ""           # URL goes here
-  # DownloadMethod: ""    # Options: gitClone | latestRelease | branchZip | specificFile
-  # OutputFolder: ""      # Appends a subdirectory to $toolsFolder
-  # Branch: ""            # Defaults to master if not provided, also checks main if master is not available
-  # DownloadName: ""      # Used to download a particular file from the latestRelease
-  # AssetFilename: ""     # Used to specify exact filename to download from latestRelease (supports regex)
-  # AssetType: ""         # Options: win64 | win32 | linux64 | linux32 | macos64 | macos32 | arm64 | arm32
-  # SpecificFilePath: ""  # Used with the 'specificFile' DownloadMethod to specify file path in repository
-  # Extract: true         # Whether to extract the downloaded file (default: true)
-  # SkipDownload: false   # Whether to skip downloading this tool (default: false)
+# Field reference: see tool_groups/_tool_template.yaml
+# Documentation:   https://dfir-kev.medium.com/tool-fetcher-86691e65731b
 
-  - Name: "AmCache-EvilHunter"
+tools:
+  - Name: "AmCache-EvilHunter" # confirmed 2026-09-16
     RepoUrl: "https://github.com/cristianzsh/amcache-evilhunter"
     DownloadMethod: "latestrelease"
     DownloadName: "amcache_evilhunter.exe"
     OutputFolder: "WinRegistry"
     SkipDownload: false
 
-  - Name: "AmcacheParser"
+  - Name: "AmcacheParser" # confirmed 2026-09-16
     RepoUrl: "https://download.ericzimmermanstools.com/net9/AmcacheParser.zip" # .Net9
     DownloadMethod: "specificFile"
     OutputFolder: "WinRegistry"
     SkipDownload: false
 
-  - Name: "AppCompatCacheParser"
+  - Name: "AppCompatCacheParser" # confirmed 2026-09-16
     RepoUrl: "https://download.ericzimmermanstools.com/net9/AppCompatCacheParser.zip" # .Net9
     DownloadMethod: "specificFile"
     OutputFolder: "WinRegistry"
     SkipDownload: false
 
-  - Name: "APT-Hunter"
+  - Name: "APT-Hunter" # confirmed 2026-09-16
     RepoUrl: "https://github.com/ahmedkhlief/APT-Hunter"
     DownloadMethod: "latestRelease"
     DownloadName: "APT-Hunter.zip"
     OutputFolder: "WinEventlogs"
     SkipDownload: false
 
-  - Name: "BackstageParser"
+  - Name: "BackstageParser" # confirmed 2026-09-16
     RepoUrl: "https://github.com/ArsenalRecon/BackstageParser"
     DownloadMethod: "branchZip"
     Branch: "master"
     OutputFolder: "MSOffice"
     SkipDownload: false
 
-  - Name: "BitsParser"
+  - Name: "BitsParser" # confirmed 2026-09-16
     RepoUrl: "https://github.com/fireeye/BitsParser"
     DownloadMethod: "branchZip"
     Branch: "master"
     OutputFolder: "WinBITS"
     SkipDownload: false
 
-  - Name: "Bmc-Tools-Compiled"
+  - Name: "Bmc-Tools-Compiled" # confirmed 2026-09-16
     RepoUrl: "https://github.com/Qazeer/bmc-tools-compiled/"
     DownloadMethod: "latestrelease"
     DownloadName: "bmc-tools.exe"
     OutputFolder: "MISC"
     SkipDownload: false
 
-  - Name: "chainsaw"
-    RepoUrl: "https://github.com/WithSecureLabs/chainsaw"
+  - Name: "chainsaw" # confirmed 2026-09-16
+    RepoUrl: "https://github.com/WithSecureOpenSource/chainsaw"
     DownloadMethod: "latestRelease"
     DownloadName: "chainsaw_x86_64-pc-windows-msvc.zip"
     OutputFolder: "WinEventlogs"
     SkipDownload: false
 
-  - Name: "DHParser"
+  - Name: "DHParser" # confirmed 2026-09-16
     RepoUrl: "https://github.com/jklepsercyber/defender-detectionhistory-parser"
     DownloadMethod: "specificFile"
     SpecificFilePath: "/raw/refs/heads/main/dhparser.exe"
@@ -76,338 +65,338 @@ tools:
     OutputFolder: "WinDefender"
     SkipDownload: false
 
-  - Name: "EvtxECmd"
+  - Name: "EvtxECmd" # confirmed 2026-09-16
     RepoUrl: "https://download.ericzimmermanstools.com/net9/EvtxECmd.zip" # .Net9
     DownloadMethod: "specificFile"
     OutputFolder: "WinEventlogs"
     SkipDownload: false
 
-  - Name: "EvtxHussar"
+  - Name: "EvtxHussar" # confirmed 2026-09-16
     RepoUrl: "https://github.com/yarox24/EvtxHussar"
     DownloadMethod: "latestRelease"
     AssetType: "win64"
     OutputFolder: "WinEventlogs"
     SkipDownload: false
 
-  - Name: "EZViewer"
+  - Name: "EZViewer" # confirmed 2026-09-16
     RepoUrl: "https://download.ericzimmermanstools.com/net9/EZViewer.zip" # .Net9
     DownloadMethod: "specificFile"
     OutputFolder: "MISC"
     SkipDownload: false
 
-  - Name: "Forensic Timeliner"
+  - Name: "Forensic Timeliner" # confirmed 2026-09-16
     RepoUrl: "https://github.com/acquiredsecurity/forensic-timeliner"
     DownloadMethod: "branchZip"
     Branch: "main"
     OutputFolder: "Timelines"
     SkipDownload: false
 
-  - Name: "forensicsim"
+  - Name: "forensicsim" # confirmed 2026-09-16
     RepoUrl: "https://github.com/lxndrblz/forensicsim"
     DownloadMethod: "latestRelease"
     DownloadName: "forensicsim.zip"
     OutputFolder: "MSOffice"
     SkipDownload: false
 
-  - Name: "hasher"
+  - Name: "hasher" # confirmed 2026-09-16
     RepoUrl: "https://download.ericzimmermanstools.com/hasher.zip" # .Net4
     DownloadMethod: "specificFile"
     OutputFolder: "MISC"
     DownloadName: "hasher.zip"
     SkipDownload: false
 
-  - Name: "hayabusa"
+  - Name: "hayabusa" # confirmed 2026-09-16
     RepoUrl: "https://github.com/Yamato-Security/hayabusa"
     DownloadMethod: "latestRelease"
-    AssetType: "win64"
+    AssetFilename: "hayabusa-.*-win-x64\\.zip" # explicit: the release also ships win-x64-live-response
     OutputFolder: "WinEventlogs"
     SkipDownload: false
 
-  - Name: "hayabusa-rules"
+  - Name: "hayabusa-rules" # confirmed 2026-09-16
     RepoUrl: "https://github.com/Yamato-Security/hayabusa-rules"
     DownloadMethod: "branchZip"
     Branch: "main"
     OutputFolder: "WinEventlogs"
     SkipDownload: false
 
-  - Name: "hindsight"
-    RepoUrl: "https://github.com/obsidianforensics/hindsight"
+  - Name: "hindsight" # confirmed 2026-09-16
+    RepoUrl: "https://github.com/RyanDFIR/hindsight"
     DownloadMethod: "latestRelease"
     DownloadName: "hindsight.exe"
     OutputFolder: "WebHistory"
     SkipDownload: false
 
-  - Name: "hindsight_gui"
-    RepoUrl: "https://github.com/obsidianforensics/hindsight"
+  - Name: "hindsight_gui" # confirmed 2026-09-16
+    RepoUrl: "https://github.com/RyanDFIR/hindsight"
     DownloadMethod: "latestRelease"
     DownloadName: "hindsight_gui.exe"
     OutputFolder: "WebHistory"
     SkipDownload: false
 
-  - Name: "iisGeolocate"
+  - Name: "iisGeolocate" # confirmed 2026-09-16
     RepoUrl: "https://download.ericzimmermanstools.com/net9/iisGeolocate.zip" # .Net9
     DownloadMethod: "specificFile"
     OutputFolder: "MISC"
     SkipDownload: false
 
-  - Name: "INDXRipper"
+  - Name: "INDXRipper" # confirmed 2026-09-16
     RepoUrl: "https://github.com/harelsegev/INDXRipper"
     DownloadMethod: "latestRelease"
-    DownloadName: "INDXRipper-20231117-py3.12-amd64.zip"
+    AssetFilename: "INDXRipper-.*-amd64\\.zip"
     OutputFolder: "NTFS"
     SkipDownload: false
 
-  - Name: "JLECmd"
+  - Name: "JLECmd" # confirmed 2026-09-16
     RepoUrl: "https://download.ericzimmermanstools.com/net9/JLECmd.zip" # .Net9
     DownloadMethod: "specificFile"
     OutputFolder: "LNK-JMP"
     SkipDownload: false
 
-  - Name: "JumpListExplorer"
+  - Name: "JumpListExplorer" # confirmed 2026-09-16
     RepoUrl: "https://download.ericzimmermanstools.com/net9/JumpListExplorer.zip" # .Net9
     DownloadMethod: "specificFile"
     OutputFolder: "LNK-JMP"
     SkipDownload: false
 
-  - Name: "KStrike"
+  - Name: "KStrike" # confirmed 2026-09-16
     RepoUrl: "https://github.com/brimorlabs/KStrike"
     DownloadMethod: "branchZip"
     Branch: "master"
     OutputFolder: "SUM-UAL"
     SkipDownload: false
 
-  - Name: "LECmd"
+  - Name: "LECmd" # confirmed 2026-09-16
     RepoUrl: "https://download.ericzimmermanstools.com/net9/LECmd.zip" # .Net9
     DownloadMethod: "specificFile"
     OutputFolder: "LNK-JMP"
     SkipDownload: false
 
-  - Name: "LevelDBDumper"
+  - Name: "LevelDBDumper" # confirmed 2026-09-16
     RepoUrl: "https://github.com/mdawsonuk/LevelDBDumper"
     DownloadMethod: "latestRelease"
     DownloadName: "LevelDBDumper.exe" # 64-bit
     OutputFolder: "MSOffice"
     SkipDownload: false
 
-  - Name: "MemProcFs"
+  - Name: "MemProcFs" # confirmed 2026-09-16
     RepoUrl: "https://github.com/ufrisk/MemProcFS"
     DownloadMethod: "latestrelease"
     DownloadName: "MemProcFS_files_and_binaries-win_x64-latest.zip"
     OutputFolder: "Memory"
     SkipDownload: false
 
-  - Name: "MemProcFsAnalyzer"
+  - Name: "MemProcFsAnalyzer" # confirmed 2026-09-16
     RepoUrl: "https://github.com/LETHAL-FORENSICS/MemProcFS-Analyzer"
     DownloadMethod: "latestrelease"
-    DownloadName: "MemProcFS-Analyzer-v1.2.0.zip"
+    AssetFilename: "MemProcFS-Analyzer-v.*\\.zip"
     OutputFolder: "Memory"
     SkipDownload: false
 
-  - Name: "MFTECmd"
+  - Name: "MFTECmd" # confirmed 2026-09-16
     RepoUrl: "https://download.ericzimmermanstools.com/net9/MFTECmd.zip" # .Net9
     DownloadMethod: "specificFile"
     OutputFolder: "NTFS"
     SkipDownload: false
 
-  - Name: "MFTExplorer"
+  - Name: "MFTExplorer" # confirmed 2026-09-16
     RepoUrl: "https://download.ericzimmermanstools.com/net9/MFTExplorer.zip" # .Net9
     DownloadMethod: "specificFile"
     OutputFolder: "NTFS"
     SkipDownload: false
 
-  - Name: "Microsoft-Analyzer-Suite"
+  - Name: "Microsoft-Analyzer-Suite" # confirmed 2026-09-16
     RepoUrl: "https://github.com/LETHAL-FORENSICS/Microsoft-Analyzer-Suite"
     DownloadMethod: "latestrelease"
-    DownloadName: "Microsoft-Analyzer-Suite-v1.5.1.zip"
+    AssetFilename: "Microsoft-Analyzer-Suite-v.*\\.zip"
     OutputFolder: "CloudLogs"
     SkipDownload: false
 
-  - Name: "Nirsoft Utilities"
-    RepoUrl: "https://download.nirsoft.net/nirsoft_package_enc_1.30.19.zip"
+  - Name: "Nirsoft Utilities" # 2026-09-16: 1.30.19 is gone (current 1.30.25); download.nirsoft.net requires an HTTP Referer and the bundle is a password-protected zip, so it cannot be fetched or extracted by the script
+    RepoUrl: "https://download.nirsoft.net/nirsoft_package_enc_1.30.25.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "MISC"
-    SkipDownload: false
+    SkipDownload: true
 
-  - Name: "OneDriveExplorer"
+  - Name: "OneDriveExplorer" # confirmed 2026-09-16
     RepoUrl: "https://github.com/Beercow/OneDriveExplorer"
     DownloadMethod: "latestRelease"
     DownloadName: "ODE.zip"
     OutputFolder: "MSOffice"
     SkipDownload: false
 
-  - Name: "PECmd"
+  - Name: "PECmd" # confirmed 2026-09-16
     RepoUrl: "https://download.ericzimmermanstools.com/net9/PECmd.zip" # .Net9
     DownloadMethod: "specificFile"
     OutputFolder: "Prefetch"
     SkipDownload: false
 
-  - Name: "Plist_Time_Dump"
+  - Name: "Plist_Time_Dump" # confirmed 2026-09-16
     RepoUrl: "https://github.com/kev365/plist_time_dump"
     DownloadMethod: "branchZip"
-    Branch: "master"
+    Branch: "main"
     OutputFolder: "Apple"
     SkipDownload: false
 
-  - Name: "RBCmd"
+  - Name: "RBCmd" # confirmed 2026-09-16
     RepoUrl: "https://download.ericzimmermanstools.com/net9/RBCmd.zip" # .Net9
     DownloadMethod: "specificFile"
     OutputFolder: "RecycleBin"
     SkipDownload: false
 
-  - Name: "RdpCacheStitcher"
+  - Name: "RdpCacheStitcher" # confirmed 2026-09-16
     RepoUrl: "https://github.com/BSI-Bund/RdpCacheStitcher/"
     DownloadMethod: "latestrelease"
-    DownloadName: "RdpCacheStitcher-v1.1-win64.zipp"
+    AssetFilename: "RdpCacheStitcher-.*-win64\\.zip"
     OutputFolder: "MISC"
     SkipDownload: false
 
-  - Name: "RECmd"
+  - Name: "RECmd" # confirmed 2026-09-16
     RepoUrl: "https://download.ericzimmermanstools.com/net9/RECmd.zip" # .Net9
     DownloadMethod: "specificFile"
     OutputFolder: "WinRegistry"
     SkipDownload: false
 
-  - Name: "RecentFileCacheParser"
+  - Name: "RecentFileCacheParser" # confirmed 2026-09-16
     RepoUrl: "https://download.ericzimmermanstools.com/net9/RecentFileCacheParser.zip" # .Net9
     DownloadMethod: "specificFile"
     OutputFolder: "WinRegistry"
     SkipDownload: false
 
-  - Name: "reg_hunter"
+  - Name: "reg_hunter" # confirmed 2026-09-16
     RepoUrl: "https://github.com/theflakes/reg_hunter"
     DownloadMethod: "latestRelease"
     DownloadName: "reg_hunter.exe"
     OutputFolder: "WinRegistry"
     SkipDownload: false
 
-  - Name: "RegRipper 3.0"
+  - Name: "RegRipper 3.0" # confirmed 2026-09-16
     RepoUrl: "https://github.com/keydet89/RegRipper3.0"
     DownloadMethod: "gitClone"
     Branch: "master"
     OutputFolder: "WinRegistry"
     SkipDownload: false
 
-  - Name: "RegRipper3.0"
+  - Name: "RegRipper3.0" # confirmed 2026-09-16
     RepoUrl: "https://github.com/keydet89/RegRipper3.0"
     DownloadMethod: "branchZip"
     Branch: "master"
     OutputFolder: "WinRegistry"
     SkipDownload: false
 
-  - Name: "RegistryExplorer"
+  - Name: "RegistryExplorer" # confirmed 2026-09-16
     RepoUrl: "https://download.ericzimmermanstools.com/net9/RegistryExplorer.zip" # .Net9
     DownloadMethod: "specificFile"
     OutputFolder: "WinRegistry"
     SkipDownload: false
 
-  - Name: "rla"
+  - Name: "rla" # confirmed 2026-09-16
     RepoUrl: "https://download.ericzimmermanstools.com/net9/rla.zip" # .Net9
     DownloadMethod: "specificFile"
     OutputFolder: "WinRegistry"
     SkipDownload: false
 
-  - Name: "RustyUsn"
+  - Name: "RustyUsn" # confirmed 2026-09-16
     RepoUrl: "https://github.com/forensicmatt/RustyUsn"
     DownloadMethod: "latestRelease"
-    DownloadName: "rusty_usn-v1.5.0-x86_64-pc-windows-msvc.zip"
+    AssetFilename: "rusty_usn-.*-x86_64-pc-windows-msvc\\.zip"
     OutputFolder: "NTFS"
     SkipDownload: false
 
-  - Name: "SBECmd"
+  - Name: "SBECmd" # confirmed 2026-09-16
     RepoUrl: "https://download.ericzimmermanstools.com/net9/SBECmd.zip" # .Net9
     DownloadMethod: "specificFile"
     OutputFolder: "WinRegistry"
     SkipDownload: false
 
-  - Name: "SDBExplorer"
+  - Name: "SDBExplorer" # confirmed 2026-09-16
     RepoUrl: "https://download.ericzimmermanstools.com/net9/SDBExplorer.zip" # .Net9
     DownloadMethod: "specificFile"
     OutputFolder: "WinRegistry"
     SkipDownload: false
 
-  - Name: "SEPparser_cmd"
+  - Name: "SEPparser_cmd" # confirmed 2026-09-16
     RepoUrl: "https://github.com/Beercow/SEPparser/releases/latest/download/SEPparser.exe"
     DownloadMethod: "specificFile"
     OutputFolder: "SymantecLogs"
     SkipDownload: false
 
-  - Name: "SEPparser_gui"
+  - Name: "SEPparser_gui" # confirmed 2026-09-16
     RepoUrl: "https://github.com/Beercow/SEPparser/releases/latest/download/SEPparser_GUI.exe"
     DownloadMethod: "specificFile"
     OutputFolder: "SymantecLogs"
     SkipDownload: false
 
-  - Name: "ShellBagsExplorer"
+  - Name: "ShellBagsExplorer" # confirmed 2026-09-16
     RepoUrl: "https://download.ericzimmermanstools.com/net9/ShellBagsExplorer.zip" # .Net9
     DownloadMethod: "specificFile"
     OutputFolder: "WinRegistry"
     SkipDownload: false
 
-  - Name: "sidr"
+  - Name: "sidr" # confirmed 2026-09-16
     RepoUrl: "https://github.com/strozfriedberg/sidr"
     DownloadMethod: "latestRelease"
     DownloadName: "sidr.exe"
     OutputFolder: "WinSearchIndex"
     SkipDownload: false
 
-  - Name: "SQLECmd"
+  - Name: "SQLECmd" # confirmed 2026-09-16
     RepoUrl: "https://download.ericzimmermanstools.com/net9/SQLECmd.zip" # .Net9
     DownloadMethod: "specificFile"
     OutputFolder: "Database"
     SkipDownload: false
 
-  - Name: "SumECmd"
+  - Name: "SumECmd" # confirmed 2026-09-16
     RepoUrl: "https://download.ericzimmermanstools.com/net9/SumECmd.zip" # .Net9
     DownloadMethod: "specificFile"
     OutputFolder: "SUM-UAL"
     SkipDownload: false
 
-  - Name: "TimeApp"
+  - Name: "TimeApp" # confirmed 2026-09-16
     RepoUrl: "https://download.ericzimmermanstools.com/TimeApp.zip" # .Net4
     DownloadMethod: "specificFile"
     OutputFolder: "MISC"
     SkipDownload: false
 
-  - Name: "TimelineExplorer"
+  - Name: "TimelineExplorer" # confirmed 2026-09-16
     RepoUrl: "https://download.ericzimmermanstools.com/net9/TimelineExplorer.zip" # .Net9
     DownloadMethod: "specificFile"
     OutputFolder: "MISC"
     SkipDownload: false
 
-  - Name: "VSCMount"
+  - Name: "VSCMount" # confirmed 2026-09-16
     RepoUrl: "https://download.ericzimmermanstools.com/net9/VSCMount.zip" # .Net9
     DownloadMethod: "specificFile"
     OutputFolder: "VSC"
     SkipDownload: false
 
-  - Name: "Windows MBox Viewer"
+  - Name: "Windows MBox Viewer" # confirmed 2026-09-16
     RepoUrl: "https://github.com/eneam/mboxviewer"
     DownloadMethod: "latestRelease"
-    DownloadName: "mbox-viewer.exe-v1.0.3.47.zip"
+    AssetFilename: "mbox-viewer\\.exe-v.*\\.zip"
     OutputFolder: "Email"
     SkipDownload: false
 
-  - Name: "WMI-Parser"
+  - Name: "WMI-Parser" # confirmed 2026-09-16
     RepoUrl: "https://github.com/AndrewRathbun/WMI-Parser"
     DownloadMethod: "latestRelease"
     DownloadName: "WMI-Parser.zip"
     OutputFolder: "WMI"
     SkipDownload: false
 
-  - Name: "WxTCmd"
+  - Name: "WxTCmd" # confirmed 2026-09-16
     RepoUrl: "https://download.ericzimmermanstools.com/net9/WxTCmd.zip" # .Net9
     DownloadMethod: "specificFile"
     OutputFolder: "Win10Timeline"
     SkipDownload: false
 
-  - Name: "XstReader"
+  - Name: "XstReader" # confirmed 2026-09-16
     RepoUrl: "https://github.com/iluvadev/XstReader"
     DownloadMethod: "latestRelease"
-    DownloadName: "XstReader.v.1.15.0.zip"
+    AssetFilename: "XstReader\\.App\\..*\\.zip" # XstReader.App 2.x is the current app; XstReader.v.1.x is the legacy build
     OutputFolder: "Email"
     SkipDownload: false
 
-  - Name: "XWFIM"
+  - Name: "XWFIM" # confirmed 2026-09-16
     RepoUrl: "https://download.ericzimmermanstools.com/XWFIM.zip" # .Net4
     DownloadMethod: "specificFile"
     OutputFolder: "XWays"
