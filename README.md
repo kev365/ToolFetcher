@@ -55,6 +55,23 @@ ToolFetcher is a PowerShell tool designed to fetch and manage a collection of DF
   This module is required to parse the YAML configuration files. The script imports it if installed and otherwise offers to install a pinned version (0.4.7).
 - **.NET 9 runtime:** the Eric Zimmerman tools in the shipped configuration are the `net9` builds.
 
+## Getting Started
+
+1. Download `ToolFetcher-<version>.zip` from the [latest release](https://github.com/kev365/ToolFetcher/releases/latest) and extract it. The zip holds `ToolFetcher.ps1`, `tools.yaml` and the `tool_groups\` folder together, so the default configuration is found next to the script.
+2. If Windows marks the extracted files as downloaded from the internet, unblock them once:
+
+   ```powershell
+   Get-ChildItem -Path .\ToolFetcher -Recurse | Unblock-File
+   ```
+
+3. Run the script from the extracted folder, pointing `-ToolsDirectory` at where the tools should go:
+
+   ```powershell
+   .\ToolFetcher.ps1 -ToolsDirectory "D:\Tools"
+   ```
+
+   Use `-ListTools` to see what the configuration contains and `-DryRun` to preview a run without downloading anything. Working from a `git clone` of this repository is equivalent.
+
 ## Configuration & Parameters
 
 ToolFetcher uses a parameter-based approach for flexibility. Key parameters include:
