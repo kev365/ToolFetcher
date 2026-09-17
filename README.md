@@ -64,7 +64,15 @@ ToolFetcher is a PowerShell tool designed to fetch and manage a collection of DF
    Get-ChildItem -Path .\ToolFetcher -Recurse | Unblock-File
    ```
 
-3. Run the script from the extracted folder, pointing `-ToolsDirectory` at where the tools should go:
+3. If your execution policy blocks unsigned scripts (the default on Windows PowerShell 5.1 is `Restricted`), allow them for the current session only:
+
+   ```powershell
+   Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process
+   ```
+
+   This lasts until the window is closed and changes nothing on the machine. Alternatively, launch a one-off run with `powershell.exe -ExecutionPolicy Bypass -File .\ToolFetcher.ps1 ...`.
+
+4. Run the script from the extracted folder, pointing `-ToolsDirectory` at where the tools should go:
 
    ```powershell
    .\ToolFetcher.ps1 -ToolsDirectory "D:\Tools"
