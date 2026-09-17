@@ -1,4 +1,4 @@
-# ToolFetcher (v2.1.2)
+# ToolFetcher (v2.2.0)
 
 ToolFetcher is a PowerShell tool designed to fetch and manage a collection of DFIR and other GitHub tools. It streamlines the process of downloading, extracting, and organizing forensic utilities from various sources—whether by cloning Git repositories, downloading the latest releases via the GitHub API, or pulling specific files directly.
 
@@ -12,67 +12,83 @@ ToolFetcher is a PowerShell tool designed to fetch and manage a collection of DF
   - `specificFile` – Downloads a specific file directly
 
 - **Automated Extraction & Management:**  
-  - Automatically extracts ZIP archives when applicable
+  - Automatically extracts ZIP archives when applicable (Zip-Slip safe)
   - Creates `.downloaded.json` marker files to track managed files
-  - Preserves user modifications during updates
-  - Supports force re-download with complete directory overwrite
+  - Preserves user modifications during updates (changed files are kept as `.save1`, `.save2`, ...)
+  - Skips tools that are already up to date (release tag, commit, or upstream ETag) after verifying the installed files
+  - Never removes an installed tool until its replacement has been downloaded and extracted
+  - Force re-download with `-ForceDownload`
 
 - **External YAML Configuration:**  
-  ToolFetcher loads its tool configuration from an external YAML file that supports:
+  ToolFetcher loads its tool configuration from one or more YAML files that support:
   - Multiple download methods
   - Custom output folders
-  - Asset type filtering (win64, win32, linux64, linux32, macos64, macos32, arm64, arm32)
+  - Asset type filtering (win64, win32, linux64, linux32, macos64, macos32, arm64, arm32) or regex asset names
   - Skip download options
   - Extraction control
   - Branch selection
-  - Local or remote YAML file support
+  - Local or remote YAML files, merged when several are given
+  - Category tags for selective runs (`-Tag`)
+  - Optional SHA256 pinning per tool (`ExpectedSha256`)
 
 - **Enhanced Logging & Debugging:**  
   - Multiple log levels (Error, Warning, Info, Debug, Trace)
   - File logging with timestamps
   - Detailed debug output when enabled
-  - Comprehensive error messages with troubleshooting guidance
+  - Run summary at the end and a non-zero exit code when any tool failed
+  - GitHub tokens are scrubbed from all log output
 
 - **GitHub Integration:**  
-  - GitHub API rate limit handling
-  - Secure token input options
-  - PAT validation
+  - Conditional API requests: checking an unchanged tool costs no rate-limit quota
+  - Clear rate-limit diagnosis with the reset time, plus retries with backoff on transient errors
+  - Secure token input options and PAT validation
   - Support for private repositories
+
+- **Parallel Downloads (PowerShell 7+):**  
+  `-Parallel` downloads several tools at once (`-ThrottleLimit`, default 4). Metadata is resolved serially first, then only the downloads run in parallel. On Windows PowerShell 5.1 the script warns and runs sequentially.
 
 ## Requirements
 
-- **PowerShell:** Version 5.1 or later (or PowerShell Core)
+- **PowerShell:** Windows PowerShell 5.1 or PowerShell 7+
 - **Internet Connection:** Required for downloading tools and GitHub API access
 - **powershell-yaml Module:**  
-  This module is required to parse the external YAML configuration file. The script automatically checks for and installs it if requested.
+  This module is required to parse the YAML configuration files. The script imports it if installed and otherwise offers to install a pinned version (0.4.7).
+- **.NET 9 runtime:** the Eric Zimmerman tools in the shipped configuration are the `net9` builds.
 
 ## Configuration & Parameters
 
 ToolFetcher uses a parameter-based approach for flexibility. Key parameters include:
 
 - **`-ToolsFile` (alias `-tf`):**  
-  Specifies the YAML configuration file. This can be a local file or a URL.  
-  *Default:* `"tools.yaml"`  
-  If the specified file is not found or is unreachable, the script offers to use a default URL:  
+  One or more YAML configuration files (local paths or URLs). Several files can be given as an array or as a comma-separated list; their `tools` arrays are merged and the first non-empty `tooldirectory` wins.  
+  *Default:* `"tools.yaml"` next to the script  
+  If a file is not found or is unreachable, the script offers to use a default URL:  
   ```
   https://raw.githubusercontent.com/kev365/ToolFetcher/refs/heads/main/tools.yaml
   ```
 
 - **`-ToolsDirectory` (alias `-td`):**  
-  The directory where all downloaded tools will be stored.  
+  The directory where all downloaded tools will be stored. Relative paths are resolved against the current location. If neither this parameter nor `tooldirectory:` in the YAML is set, tools are downloaded next to the script and a warning says so. The directory is created on the first real download, so `-ListTools` and `-DryRun` leave nothing behind.  
   *Example:* `C:\tools`
 
+- **`-Tag`:**  
+  Only process entries whose `Category` matches one of the given tags. Each shipped `tool_groups/*.yaml` file carries a file-level `category:` (its file name), and entries can set their own `Category` (a string or a list).
+
+- **`-DryRun` (alias `-dry`):**  
+  Show what would be downloaded or updated without writing anything. In update mode this still asks upstream whether a tool changed, so the preview is accurate.
+
 - **`-ForceDownload` (alias `-force`):**  
-  Forces a complete re-download of a tool by overwriting its existing directory.
-  When used with `-UpdateAll`, it will update all downloaded tools, bypassing the skipdownload setting.
+  Re-download a tool even if it is installed and up to date. Managed files are replaced; modified managed files are kept as `.saveN` backups; user-added files are never touched.
+  When used with `-UpdateAll`, it also updates tools that have `skipdownload: true`.
 
 - **`-UpdateAll` (alias `-upall`):**  
-  Updates all previously downloaded tools that have downloads enabled (skipdownload: false).
-  Updates preserve user modifications by only removing managed files (tracked in .downloaded.json).
+  Updates all previously downloaded tools that have downloads enabled (skipdownload: false). Tools whose upstream has not changed and whose files are intact are skipped; modified or missing managed files trigger a fresh download. Use `-ForceDownload` to re-download everything.
 
-- **`-UpdateTools` (alias `-uptool`):**  
-  Specify tool names to update (comma-separated). If a tool is not already downloaded, it will be downloaded.
-  Updates preserve user modifications by only removing managed files (tracked in .downloaded.json).
+- **`-UpdateTools` (alias `-uptools`):**  
+  Specify tool names to update (comma-separated, repeated, or as an array). If a tool is not already downloaded, it will be downloaded. Up-to-date tools are skipped unless `-ForceDownload` is given.
+
+- **`-Parallel` and `-ThrottleLimit`:**  
+  Run downloads in parallel on PowerShell 7+ (`-ThrottleLimit` concurrent downloads, default 4). Ignored with a warning on Windows PowerShell 5.1.
 
 - **`-VerboseOutput` (alias `-vo`):**  
   Enables detailed debug output for troubleshooting.
@@ -81,34 +97,45 @@ ToolFetcher uses a parameter-based approach for flexibility. Key parameters incl
   Enables very detailed trace information (most verbose).
 
 - **`-Log` (alias `-l`):**  
-  Enables logging to a file in the tools directory.
+  Enables logging to a file in the tools directory (during a dry run against a missing tools directory the log goes to the temp folder instead).
 
 - **`-GitHubPAT` (alias `-pat`):**  
-  Optionally provide your GitHub Personal Access Token to avoid API rate limits.
+  Optionally provide your GitHub Personal Access Token to raise the API rate limit from 60 to 5,000 requests per hour and to reach private repositories.
 
 - **`-PromptForPAT` (alias `-ppat`):**  
   Securely prompt for GitHub Personal Access Token (recommended over -GitHubPAT).
 
 - **`-ListTools` (alias `-list`):**  
-  Lists all available tools in the configuration file.
+  Lists all available tools in the configuration file(s).
+
+### Exit codes
+
+`0` when every processed tool succeeded, was skipped, or was up to date; `1` when at least one tool failed or was skipped because of a GitHub rate limit. A run summary is printed (and logged) at the end.
 
 ## YAML Configuration
 
-The YAML configuration file supports the following fields for each tool:
+Each file has two optional top-level keys, `tooldirectory` and `category`, and a `tools` list. A file-level `category` applies to every entry in that file that has no `Category` of its own.
 
 ```yaml
-Name: "ToolName"      # Tool identifier, also used to name the parent folder
-RepoUrl: ""           # URL goes here
-DownloadMethod: ""    # Options: gitClone | latestRelease | branchZip | specificFile
-OutputFolder: ""      # Appends a subdirectory to $toolsFolder
-Branch: ""            # Defaults to master if not provided, also checks main if master is not available
-DownloadName: ""      # Used to download a particular file from the latestRelease
-AssetFilename: ""     # Used to specify exact filename to download from latestRelease (supports regex)
-AssetType: ""         # Options: win64 | win32 | linux64 | linux32 | macos64 | macos32 | arm64 | arm32
-SpecificFilePath: ""  # Used with the 'specificFile' DownloadMethod to specify file path in repository
-Extract: true         # Whether to extract the downloaded file (default: true)
-SkipDownload: false   # Whether to skip downloading this tool (default: false)
+tooldirectory: ""     # Optional. Where tools go when -ToolsDirectory is not given
+category: ""          # Optional. Default Category for every entry in this file (used by -Tag)
+tools:
+  - Name: "ToolName"      # Tool identifier, also used to name the parent folder
+    RepoUrl: ""           # URL goes here
+    DownloadMethod: ""    # Options: gitClone | latestRelease | branchZip | specificFile
+    OutputFolder: ""      # Appends a subdirectory to the tools directory
+    Branch: ""            # Optional. If omitted, the repository's default branch is looked up
+    DownloadName: ""      # latestRelease: exact asset file name; specificFile: name to save the file as when the URL does not end with one
+    AssetFilename: ""     # Regex for the asset file name (preferred: survives version bumps)
+    AssetType: ""         # Options: win64 | win32 | linux64 | linux32 | macos64 | macos32 | arm64 | arm32
+    SpecificFilePath: ""  # Used with the 'specificFile' DownloadMethod to specify file path in repository
+    Extract: true         # Whether to extract the downloaded file (default: true)
+    SkipDownload: false   # Whether to skip downloading this tool (default: false)
+    Category: ""          # Optional. One tag or a list of tags for -Tag (overrides the file-level category)
+    ExpectedSha256: ""    # Optional. Refuse to install anything whose SHA256 differs
 ```
+
+Entries with a `Name` but no `RepoUrl` or no `DownloadMethod` are treated as placeholders (wishlist items, or tools with no automated download): they are listed as `[PLACEHOLDER]` and skipped. `AssetType` picks the first release asset whose name carries a marker for that platform and architecture (for example `win64` needs `win` plus `x64`/`amd64`/`x86_64` and rejects `arm64`, `linux` and `darwin` builds); when a release ships several matching builds, use `AssetFilename` to name the one you want.
 
 ## Usage Examples
 
@@ -167,15 +194,40 @@ SkipDownload: false   # Whether to skip downloading this tool (default: false)
    .\ToolFetcher.ps1 -PromptForPAT
    ```
 
+10. **Merge Tool Groups and Filter by Category:**
+    ```powershell
+    .\ToolFetcher.ps1 -tf "tool_groups\registry_analysis.yaml,tool_groups\log_analysis.yaml" -Tag registry_analysis
+    ```
+
+11. **Preview an Update:**
+    ```powershell
+    .\ToolFetcher.ps1 -upall -DryRun
+    ```
+
+12. **Parallel Downloads (PowerShell 7+):**
+    ```powershell
+    .\ToolFetcher.ps1 -Parallel -ThrottleLimit 6
+    ```
+
+## Updating from v2.1
+
+See [CHANGELOG.md](CHANGELOG.md) for the full list of changes.
+
+- Installs made by v2.1 keep working: their `.downloaded.json` markers use MD5 digests, which are recognised and replaced by SHA256 markers on the next update. Nothing is backed up or removed spuriously.
+- The first `-UpdateAll` after upgrading re-downloads `branchZip` and `specificFile` tools once to record the upstream ETag; from then on unchanged tools are skipped.
+- With no `tooldirectory:` and no `-ToolsDirectory`, v2.1 prompted for a folder; v2.2 downloads next to the script and warns. Set one of the two to keep tools elsewhere.
+- Runs now exit with code `1` when a tool fails; v2.1 always exited `0`.
+
 ## Error Handling
 
 ToolFetcher provides comprehensive error handling and user guidance:
 
 - YAML syntax validation with helpful error messages
-- GitHub API error handling
+- GitHub API error handling, including rate-limit diagnosis with the reset time and a hint to use a token
+- Transient network errors are retried with backoff; stalled downloads time out
+- A failed download never removes the previous version of a tool
 - File system operation error handling
-- Network connectivity error handling
-- Detailed logging for troubleshooting
+- Detailed logging for troubleshooting and a run summary listing every problem
 
 ## Security Considerations
 
@@ -194,19 +246,19 @@ configuration files you supply. A few things to keep in mind:
   gets installed.
 - **Optional `ExpectedSha256` per tool.** For high-trust tools you can pin a
   known-good SHA256 in the YAML entry; ToolFetcher will refuse to install
-  anything that doesn't match. Recommended for `specificFile` and
-  `latestRelease` methods, where the content of an asset URL can change
-  silently.
+  anything that doesn't match, for every download method.
 - **Path traversal is rejected.** Tool `Name` and `OutputFolder` are validated
   at load time and at write time — entries containing `..`, absolute paths,
   or path separators in `Name` are refused so downloads can't escape your
-  `-ToolsDirectory`.
+  `-ToolsDirectory`. A configuration with such an entry is refused as a whole.
+- **Zip-Slip safe extraction.** Every archive entry must resolve inside the
+  staging folder before it is written.
 - **TLS 1.2+ enforced.** The script raises `[Net.ServicePointManager]::SecurityProtocol`
   to TLS 1.2 at startup so PS 5.1 on older Windows builds doesn't fall back
   to TLS 1.0.
-- **PAT scrubbing.** GitHub Personal Access Tokens (`ghp_...`, `github_pat_...`,
-  classic 40-char hex) are redacted from log output before display or
-  persistence.
+- **PAT scrubbing.** The token given to the script, and any GitHub token
+  (`ghp_...`, `github_pat_...`, classic 40-char hex) in `token`/`Bearer`
+  form, are redacted from log output before display or persistence.
 - **Plaintext HTTP warning.** `RepoUrl` or `-ToolsFile` values starting with
   `http://` produce a warning at validation time. They still work but are
   vulnerable to tampering in transit.
@@ -216,14 +268,11 @@ configuration files you supply. A few things to keep in mind:
 
 ## Future Considerations
 
-- **Parallel Download and Extraction:**  
-  Separate download and extraction processes for improved performance.
-  
 - **Additional Archive Formats:**  
   Expand support beyond ZIP archives to include other formats.
 
 - **Non-GitHub Support:**  
-  Current focus is primarily on GitHub-based downloads.
+  Current focus is primarily on GitHub-based downloads; `specificFile` already works with any HTTPS URL and uses ETag/Last-Modified to detect changes.
 
 ## License
 
