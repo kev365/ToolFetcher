@@ -20,8 +20,8 @@ tools:
     OutputFolder: "logs"
     SkipDownload: false
 
-  - Name: "EvtxECmd" # confirmed 2026-09-16
-    RepoUrl: "https://download.ericzimmermanstools.com/net9/EvtxECmd.zip"
+  - Name: "EvtxECmd" # confirmed 2026-11-02
+    RepoUrl: "https://download.ericzimmermanstools.com/net/EvtxECmd.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "logs"
     SkipDownload: false
@@ -61,8 +61,8 @@ tools:
     OutputFolder: "logs"
     SkipDownload: false
 
-  - Name: "SumECmd" # confirmed 2026-09-16
-    RepoUrl: "https://download.ericzimmermanstools.com/net9/SumECmd.zip"
+  - Name: "SumECmd" # confirmed 2026-11-02
+    RepoUrl: "https://download.ericzimmermanstools.com/net/SumECmd.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "logs"
     SkipDownload: false

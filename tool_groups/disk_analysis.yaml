@@ -48,14 +48,14 @@ tools:
     OutputFolder: "NTFS"
     SkipDownload: false
 
-  - Name: "MFTECmd" # confirmed 2026-09-16
-    RepoUrl: "https://download.ericzimmermanstools.com/net9/MFTECmd.zip"
+  - Name: "MFTECmd" # confirmed 2026-11-02
+    RepoUrl: "https://download.ericzimmermanstools.com/net/MFTECmd.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "NTFS"
     SkipDownload: false
 
-  - Name: "MFTExplorer" # confirmed 2026-09-16
-    RepoUrl: "https://download.ericzimmermanstools.com/net9/MFTExplorer.zip"
+  - Name: "MFTExplorer" # confirmed 2026-11-02
+    RepoUrl: "https://download.ericzimmermanstools.com/net/MFTExplorer.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "NTFS"
     SkipDownload: false

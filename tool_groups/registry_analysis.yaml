@@ -13,26 +13,26 @@ tools:
     OutputFolder: "registry"
     SkipDownload: false
 
-  - Name: "AmcacheParser" # confirmed 2026-09-16
-    RepoUrl: "https://download.ericzimmermanstools.com/net9/AmcacheParser.zip"
+  - Name: "AmcacheParser" # confirmed 2026-11-02
+    RepoUrl: "https://download.ericzimmermanstools.com/net/AmcacheParser.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "registry"
     SkipDownload: false
 
-  - Name: "AppCompatCacheParser" # confirmed 2026-09-16
-    RepoUrl: "https://download.ericzimmermanstools.com/net9/AppCompatCacheParser.zip"
+  - Name: "AppCompatCacheParser" # confirmed 2026-11-02
+    RepoUrl: "https://download.ericzimmermanstools.com/net/AppCompatCacheParser.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "registry"
     SkipDownload: false
 
-  - Name: "RECmd" # confirmed 2026-09-16
-    RepoUrl: "https://download.ericzimmermanstools.com/net9/RECmd.zip"
+  - Name: "RECmd" # confirmed 2026-11-02
+    RepoUrl: "https://download.ericzimmermanstools.com/net/RECmd.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "registry"
     SkipDownload: false
 
-  - Name: "RecentFileCacheParser" # confirmed 2026-09-16
-    RepoUrl: "https://download.ericzimmermanstools.com/net9/RecentFileCacheParser.zip"
+  - Name: "RecentFileCacheParser" # confirmed 2026-11-02
+    RepoUrl: "https://download.ericzimmermanstools.com/net/RecentFileCacheParser.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "registry"
     SkipDownload: false
@@ -72,8 +72,8 @@ tools:
     OutputFolder: "registry"
     SkipDownload: false
 
-  - Name: "RegistryExplorer" # confirmed 2026-09-16
-    RepoUrl: "https://download.ericzimmermanstools.com/net9/RegistryExplorer.zip"
+  - Name: "RegistryExplorer" # confirmed 2026-11-02
+    RepoUrl: "https://download.ericzimmermanstools.com/net/RegistryExplorer.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "registry"
     SkipDownload: false
@@ -85,14 +85,14 @@ tools:
     OutputFolder: "registry"
     SkipDownload: true
 
-  - Name: "rla" # confirmed 2026-09-16
-    RepoUrl: "https://download.ericzimmermanstools.com/net9/rla.zip"
+  - Name: "rla" # confirmed 2026-11-02
+    RepoUrl: "https://download.ericzimmermanstools.com/net/rla.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "registry"
     SkipDownload: false
 
-  - Name: "SBECmd" # confirmed 2026-09-16
-    RepoUrl: "https://download.ericzimmermanstools.com/net9/SBECmd.zip"
+  - Name: "SBECmd" # confirmed 2026-11-02
+    RepoUrl: "https://download.ericzimmermanstools.com/net/SBECmd.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "registry"
     SkipDownload: false

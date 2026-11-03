@@ -2,6 +2,12 @@
 
 All notable changes to ToolFetcher. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Tool definitions
+
+- Eric Zimmerman tools moved from the retired `net9` builds to the .NET 10 builds, published under `net/` on download.ericzimmermanstools.com; the `net9/` paths now return 404. hasher and XWFIM are no longer offered as .NET 4 builds at the site root, and TimeApp is switched to its `net/` build as well, so every Zimmerman entry needs the .NET 10 runtime. All 27 entries were checked on 2026-11-02.
+
 ## [2.2.0] - 2026-09-16
 
 ### Added

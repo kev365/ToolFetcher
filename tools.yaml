@@ -10,14 +10,14 @@ tools:
     OutputFolder: "WinRegistry"
     SkipDownload: false
 
-  - Name: "AmcacheParser" # confirmed 2026-09-16
-    RepoUrl: "https://download.ericzimmermanstools.com/net9/AmcacheParser.zip" # .Net9
+  - Name: "AmcacheParser" # confirmed 2026-11-02
+    RepoUrl: "https://download.ericzimmermanstools.com/net/AmcacheParser.zip" # .Net10
     DownloadMethod: "specificFile"
     OutputFolder: "WinRegistry"
     SkipDownload: false
 
-  - Name: "AppCompatCacheParser" # confirmed 2026-09-16
-    RepoUrl: "https://download.ericzimmermanstools.com/net9/AppCompatCacheParser.zip" # .Net9
+  - Name: "AppCompatCacheParser" # confirmed 2026-11-02
+    RepoUrl: "https://download.ericzimmermanstools.com/net/AppCompatCacheParser.zip" # .Net10
     DownloadMethod: "specificFile"
     OutputFolder: "WinRegistry"
     SkipDownload: false
@@ -65,8 +65,8 @@ tools:
     OutputFolder: "WinDefender"
     SkipDownload: false
 
-  - Name: "EvtxECmd" # confirmed 2026-09-16
-    RepoUrl: "https://download.ericzimmermanstools.com/net9/EvtxECmd.zip" # .Net9
+  - Name: "EvtxECmd" # confirmed 2026-11-02
+    RepoUrl: "https://download.ericzimmermanstools.com/net/EvtxECmd.zip" # .Net10
     DownloadMethod: "specificFile"
     OutputFolder: "WinEventlogs"
     SkipDownload: false
@@ -78,8 +78,8 @@ tools:
     OutputFolder: "WinEventlogs"
     SkipDownload: false
 
-  - Name: "EZViewer" # confirmed 2026-09-16
-    RepoUrl: "https://download.ericzimmermanstools.com/net9/EZViewer.zip" # .Net9
+  - Name: "EZViewer" # confirmed 2026-11-02
+    RepoUrl: "https://download.ericzimmermanstools.com/net/EZViewer.zip" # .Net10
     DownloadMethod: "specificFile"
     OutputFolder: "MISC"
     SkipDownload: false
@@ -98,8 +98,8 @@ tools:
     OutputFolder: "MSOffice"
     SkipDownload: false
 
-  - Name: "hasher" # confirmed 2026-09-16
-    RepoUrl: "https://download.ericzimmermanstools.com/hasher.zip" # .Net4
+  - Name: "hasher" # confirmed 2026-11-02
+    RepoUrl: "https://download.ericzimmermanstools.com/net/hasher.zip" # .Net10
     DownloadMethod: "specificFile"
     OutputFolder: "MISC"
     DownloadName: "hasher.zip"
@@ -133,8 +133,8 @@ tools:
     OutputFolder: "WebHistory"
     SkipDownload: false
 
-  - Name: "iisGeolocate" # confirmed 2026-09-16
-    RepoUrl: "https://download.ericzimmermanstools.com/net9/iisGeolocate.zip" # .Net9
+  - Name: "iisGeolocate" # confirmed 2026-11-02
+    RepoUrl: "https://download.ericzimmermanstools.com/net/iisGeolocate.zip" # .Net10
     DownloadMethod: "specificFile"
     OutputFolder: "MISC"
     SkipDownload: false
@@ -146,14 +146,14 @@ tools:
     OutputFolder: "NTFS"
     SkipDownload: false
 
-  - Name: "JLECmd" # confirmed 2026-09-16
-    RepoUrl: "https://download.ericzimmermanstools.com/net9/JLECmd.zip" # .Net9
+  - Name: "JLECmd" # confirmed 2026-11-02
+    RepoUrl: "https://download.ericzimmermanstools.com/net/JLECmd.zip" # .Net10
     DownloadMethod: "specificFile"
     OutputFolder: "LNK-JMP"
     SkipDownload: false
 
-  - Name: "JumpListExplorer" # confirmed 2026-09-16
-    RepoUrl: "https://download.ericzimmermanstools.com/net9/JumpListExplorer.zip" # .Net9
+  - Name: "JumpListExplorer" # confirmed 2026-11-02
+    RepoUrl: "https://download.ericzimmermanstools.com/net/JumpListExplorer.zip" # .Net10
     DownloadMethod: "specificFile"
     OutputFolder: "LNK-JMP"
     SkipDownload: false
@@ -165,8 +165,8 @@ tools:
     OutputFolder: "SUM-UAL"
     SkipDownload: false
 
-  - Name: "LECmd" # confirmed 2026-09-16
-    RepoUrl: "https://download.ericzimmermanstools.com/net9/LECmd.zip" # .Net9
+  - Name: "LECmd" # confirmed 2026-11-02
+    RepoUrl: "https://download.ericzimmermanstools.com/net/LECmd.zip" # .Net10
     DownloadMethod: "specificFile"
     OutputFolder: "LNK-JMP"
     SkipDownload: false
@@ -192,14 +192,14 @@ tools:
     OutputFolder: "Memory"
     SkipDownload: false
 
-  - Name: "MFTECmd" # confirmed 2026-09-16
-    RepoUrl: "https://download.ericzimmermanstools.com/net9/MFTECmd.zip" # .Net9
+  - Name: "MFTECmd" # confirmed 2026-11-02
+    RepoUrl: "https://download.ericzimmermanstools.com/net/MFTECmd.zip" # .Net10
     DownloadMethod: "specificFile"
     OutputFolder: "NTFS"
     SkipDownload: false
 
-  - Name: "MFTExplorer" # confirmed 2026-09-16
-    RepoUrl: "https://download.ericzimmermanstools.com/net9/MFTExplorer.zip" # .Net9
+  - Name: "MFTExplorer" # confirmed 2026-11-02
+    RepoUrl: "https://download.ericzimmermanstools.com/net/MFTExplorer.zip" # .Net10
     DownloadMethod: "specificFile"
     OutputFolder: "NTFS"
     SkipDownload: false
@@ -224,8 +224,8 @@ tools:
     OutputFolder: "MSOffice"
     SkipDownload: false
 
-  - Name: "PECmd" # confirmed 2026-09-16
-    RepoUrl: "https://download.ericzimmermanstools.com/net9/PECmd.zip" # .Net9
+  - Name: "PECmd" # confirmed 2026-11-02
+    RepoUrl: "https://download.ericzimmermanstools.com/net/PECmd.zip" # .Net10
     DownloadMethod: "specificFile"
     OutputFolder: "Prefetch"
     SkipDownload: false
@@ -237,8 +237,8 @@ tools:
     OutputFolder: "Apple"
     SkipDownload: false
 
-  - Name: "RBCmd" # confirmed 2026-09-16
-    RepoUrl: "https://download.ericzimmermanstools.com/net9/RBCmd.zip" # .Net9
+  - Name: "RBCmd" # confirmed 2026-11-02
+    RepoUrl: "https://download.ericzimmermanstools.com/net/RBCmd.zip" # .Net10
     DownloadMethod: "specificFile"
     OutputFolder: "RecycleBin"
     SkipDownload: false
@@ -250,14 +250,14 @@ tools:
     OutputFolder: "MISC"
     SkipDownload: false
 
-  - Name: "RECmd" # confirmed 2026-09-16
-    RepoUrl: "https://download.ericzimmermanstools.com/net9/RECmd.zip" # .Net9
+  - Name: "RECmd" # confirmed 2026-11-02
+    RepoUrl: "https://download.ericzimmermanstools.com/net/RECmd.zip" # .Net10
     DownloadMethod: "specificFile"
     OutputFolder: "WinRegistry"
     SkipDownload: false
 
-  - Name: "RecentFileCacheParser" # confirmed 2026-09-16
-    RepoUrl: "https://download.ericzimmermanstools.com/net9/RecentFileCacheParser.zip" # .Net9
+  - Name: "RecentFileCacheParser" # confirmed 2026-11-02
+    RepoUrl: "https://download.ericzimmermanstools.com/net/RecentFileCacheParser.zip" # .Net10
     DownloadMethod: "specificFile"
     OutputFolder: "WinRegistry"
     SkipDownload: false
@@ -283,14 +283,14 @@ tools:
     OutputFolder: "WinRegistry"
     SkipDownload: false
 
-  - Name: "RegistryExplorer" # confirmed 2026-09-16
-    RepoUrl: "https://download.ericzimmermanstools.com/net9/RegistryExplorer.zip" # .Net9
+  - Name: "RegistryExplorer" # confirmed 2026-11-02
+    RepoUrl: "https://download.ericzimmermanstools.com/net/RegistryExplorer.zip" # .Net10
     DownloadMethod: "specificFile"
     OutputFolder: "WinRegistry"
     SkipDownload: false
 
-  - Name: "rla" # confirmed 2026-09-16
-    RepoUrl: "https://download.ericzimmermanstools.com/net9/rla.zip" # .Net9
+  - Name: "rla" # confirmed 2026-11-02
+    RepoUrl: "https://download.ericzimmermanstools.com/net/rla.zip" # .Net10
     DownloadMethod: "specificFile"
     OutputFolder: "WinRegistry"
     SkipDownload: false
@@ -302,14 +302,14 @@ tools:
     OutputFolder: "NTFS"
     SkipDownload: false
 
-  - Name: "SBECmd" # confirmed 2026-09-16
-    RepoUrl: "https://download.ericzimmermanstools.com/net9/SBECmd.zip" # .Net9
+  - Name: "SBECmd" # confirmed 2026-11-02
+    RepoUrl: "https://download.ericzimmermanstools.com/net/SBECmd.zip" # .Net10
     DownloadMethod: "specificFile"
     OutputFolder: "WinRegistry"
     SkipDownload: false
 
-  - Name: "SDBExplorer" # confirmed 2026-09-16
-    RepoUrl: "https://download.ericzimmermanstools.com/net9/SDBExplorer.zip" # .Net9
+  - Name: "SDBExplorer" # confirmed 2026-11-02
+    RepoUrl: "https://download.ericzimmermanstools.com/net/SDBExplorer.zip" # .Net10
     DownloadMethod: "specificFile"
     OutputFolder: "WinRegistry"
     SkipDownload: false
@@ -326,8 +326,8 @@ tools:
     OutputFolder: "SymantecLogs"
     SkipDownload: false
 
-  - Name: "ShellBagsExplorer" # confirmed 2026-09-16
-    RepoUrl: "https://download.ericzimmermanstools.com/net9/ShellBagsExplorer.zip" # .Net9
+  - Name: "ShellBagsExplorer" # confirmed 2026-11-02
+    RepoUrl: "https://download.ericzimmermanstools.com/net/ShellBagsExplorer.zip" # .Net10
     DownloadMethod: "specificFile"
     OutputFolder: "WinRegistry"
     SkipDownload: false
@@ -339,32 +339,32 @@ tools:
     OutputFolder: "WinSearchIndex"
     SkipDownload: false
 
-  - Name: "SQLECmd" # confirmed 2026-09-16
-    RepoUrl: "https://download.ericzimmermanstools.com/net9/SQLECmd.zip" # .Net9
+  - Name: "SQLECmd" # confirmed 2026-11-02
+    RepoUrl: "https://download.ericzimmermanstools.com/net/SQLECmd.zip" # .Net10
     DownloadMethod: "specificFile"
     OutputFolder: "Database"
     SkipDownload: false
 
-  - Name: "SumECmd" # confirmed 2026-09-16
-    RepoUrl: "https://download.ericzimmermanstools.com/net9/SumECmd.zip" # .Net9
+  - Name: "SumECmd" # confirmed 2026-11-02
+    RepoUrl: "https://download.ericzimmermanstools.com/net/SumECmd.zip" # .Net10
     DownloadMethod: "specificFile"
     OutputFolder: "SUM-UAL"
     SkipDownload: false
 
-  - Name: "TimeApp" # confirmed 2026-09-16
-    RepoUrl: "https://download.ericzimmermanstools.com/TimeApp.zip" # .Net4
+  - Name: "TimeApp" # confirmed 2026-11-02
+    RepoUrl: "https://download.ericzimmermanstools.com/net/TimeApp.zip" # .Net10
     DownloadMethod: "specificFile"
     OutputFolder: "MISC"
     SkipDownload: false
 
-  - Name: "TimelineExplorer" # confirmed 2026-09-16
-    RepoUrl: "https://download.ericzimmermanstools.com/net9/TimelineExplorer.zip" # .Net9
+  - Name: "TimelineExplorer" # confirmed 2026-11-02
+    RepoUrl: "https://download.ericzimmermanstools.com/net/TimelineExplorer.zip" # .Net10
     DownloadMethod: "specificFile"
     OutputFolder: "MISC"
     SkipDownload: false
 
-  - Name: "VSCMount" # confirmed 2026-09-16
-    RepoUrl: "https://download.ericzimmermanstools.com/net9/VSCMount.zip" # .Net9
+  - Name: "VSCMount" # confirmed 2026-11-02
+    RepoUrl: "https://download.ericzimmermanstools.com/net/VSCMount.zip" # .Net10
     DownloadMethod: "specificFile"
     OutputFolder: "VSC"
     SkipDownload: false
@@ -383,8 +383,8 @@ tools:
     OutputFolder: "WMI"
     SkipDownload: false
 
-  - Name: "WxTCmd" # confirmed 2026-09-16
-    RepoUrl: "https://download.ericzimmermanstools.com/net9/WxTCmd.zip" # .Net9
+  - Name: "WxTCmd" # confirmed 2026-11-02
+    RepoUrl: "https://download.ericzimmermanstools.com/net/WxTCmd.zip" # .Net10
     DownloadMethod: "specificFile"
     OutputFolder: "Win10Timeline"
     SkipDownload: false
@@ -396,8 +396,8 @@ tools:
     OutputFolder: "Email"
     SkipDownload: false
 
-  - Name: "XWFIM" # confirmed 2026-09-16
-    RepoUrl: "https://download.ericzimmermanstools.com/XWFIM.zip" # .Net4
+  - Name: "XWFIM" # confirmed 2026-11-02
+    RepoUrl: "https://download.ericzimmermanstools.com/net/XWFIM.zip" # .Net10
     DownloadMethod: "specificFile"
     OutputFolder: "XWays"
     SkipDownload: false
