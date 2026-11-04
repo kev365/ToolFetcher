@@ -8,13 +8,13 @@
 category: "nirsoft_tools"
 tools:
 
-  - Name: "RegDllView" # confirmed 2026-09-16
+  - Name: "RegDllView" # confirmed 2026-11-02
     RepoUrl: "https://www.nirsoft.net/utils/regdllview-x64.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "nirsoft"
     SkipDownload: false
 
-  - Name: "RegFromApp" # confirmed 2026-09-16
+  - Name: "RegFromApp" # confirmed 2026-11-02
     RepoUrl: "https://www.nirsoft.net/utils/regfromapp-x64.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "nirsoft"

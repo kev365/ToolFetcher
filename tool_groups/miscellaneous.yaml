@@ -13,35 +13,35 @@ tools:
     OutputFolder: "misc"
     SkipDownload: true
 
-  - Name: "BackstageParser" # confirmed 2026-09-16
+  - Name: "BackstageParser" # confirmed 2026-11-02
     RepoUrl: "https://github.com/ArsenalRecon/BackstageParser"
     DownloadMethod: "branchZip"
     Branch: "master"
     OutputFolder: "misc"
     SkipDownload: false
 
-  - Name: "BitsParser" # confirmed 2026-09-16
+  - Name: "BitsParser" # confirmed 2026-11-02
     RepoUrl: "https://github.com/fireeye/BitsParser"
     DownloadMethod: "branchZip"
     Branch: "master"
     OutputFolder: "misc"
     SkipDownload: false
 
-  - Name: "Bmc-Tools-Compiled" # confirmed 2026-09-16
+  - Name: "Bmc-Tools-Compiled" # confirmed 2026-11-02
     RepoUrl: "https://github.com/Qazeer/bmc-tools-compiled/"
     DownloadMethod: "latestrelease"
     DownloadName: "bmc-tools.exe"
     OutputFolder: "misc"
     SkipDownload: false
 
-  - Name: "DB-Browser-SQLCipher" # 2026-09-16: v3.13.1 has no Windows SQLCipher build (only AppImage/dmg nightlies); re-enable when one ships
+  - Name: "DB-Browser-SQLCipher" # 2026-09-16: v3.13.1 has no Windows SQLCipher build (only AppImage/dmg nightlies); re-enable when one ships; unchanged 2026-11-02
     RepoUrl: "https://github.com/sqlitebrowser/sqlitebrowser"
     DownloadMethod: "latestRelease"
     AssetFilename: "DB\\.Browser\\.for\\.SQLCipher-.*-win64\\.(msi|zip)"
     OutputFolder: "misc"
     SkipDownload: true
 
-  - Name: "DB-Browser-SQLite" # confirmed 2026-09-16
+  - Name: "DB-Browser-SQLite" # confirmed 2026-11-02
     RepoUrl: "https://github.com/sqlitebrowser/sqlitebrowser"
     DownloadMethod: "latestRelease"
     AssetFilename: "DB\\.Browser\\.for\\.SQLite-(?!SQLCipher).*-win64\\.msi"
@@ -55,7 +55,7 @@ tools:
     OutputFolder: "misc"
     SkipDownload: true
 
-  - Name: "DHParser" # confirmed 2026-09-16
+  - Name: "DHParser" # confirmed 2026-11-02
     RepoUrl: "https://github.com/jklepsercyber/defender-detectionhistory-parser"
     DownloadMethod: "specificFile"
     SpecificFilePath: "/raw/refs/heads/main/dhparser.exe"
@@ -63,21 +63,28 @@ tools:
     OutputFolder: "misc"
     SkipDownload: false
 
-  - Name: "DidierStevensSuite" # confirmed 2026-09-16
+  - Name: "DidierStevensSuite" # confirmed 2026-11-02
     RepoUrl: "https://github.com/DidierStevens/DidierStevensSuite"
     DownloadMethod: "branchZip"
     Branch: "master"
     OutputFolder: "misc"
     SkipDownload: false
 
-  - Name: "dnSpy" # confirmed 2026-09-16
+  - Name: "dnSpy" # confirmed 2026-11-02
     RepoUrl: "https://github.com/dnSpyEx/dnSpy" # dnSpy/dnSpy is archived; dnSpyEx is the maintained fork
     DownloadMethod: "latestRelease"
     DownloadName: "dnSpy-net-win64.zip"
     OutputFolder: "misc"
     SkipDownload: false
 
-  - Name: "forensicsim" # confirmed 2026-09-16
+  - Name: "FLOSS" # confirmed 2026-11-03; obfuscated string extraction, companion to capa
+    RepoUrl: "https://github.com/mandiant/flare-floss"
+    DownloadMethod: "latestRelease"
+    AssetFilename: "floss-v.*-windows\\.zip$"
+    OutputFolder: "misc"
+    SkipDownload: false
+
+  - Name: "forensicsim" # confirmed 2026-11-02
     RepoUrl: "https://github.com/lxndrblz/forensicsim"
     DownloadMethod: "latestRelease"
     DownloadName: "forensicsim.zip"
@@ -98,14 +105,14 @@ tools:
     OutputFolder: "misc"
     SkipDownload: true
 
-  - Name: "ILSpy" # confirmed 2026-09-16
+  - Name: "ILSpy" # confirmed 2026-11-02
     RepoUrl: "https://github.com/icsharpcode/ILSpy"
     DownloadMethod: "latestRelease"
     AssetFilename: "ILSpy_windows_[0-9.]+-x64\\.zip" # v11 renamed the assets; framework-dependent x64 build (selfcontained variant also exists)
     OutputFolder: "misc"
     SkipDownload: false
 
-  - Name: "jadx" # confirmed 2026-09-16
+  - Name: "jadx" # confirmed 2026-11-02
     RepoUrl: "https://github.com/skylot/jadx"
     DownloadMethod: "latestRelease"
     AssetFilename: "jadx-.*-with-jre-win\\.zip"
@@ -119,28 +126,42 @@ tools:
     OutputFolder: "misc"
     SkipDownload: true
 
-  - Name: "KStrike" # confirmed 2026-09-16
+  - Name: "KStrike" # confirmed 2026-11-02
     RepoUrl: "https://github.com/brimorlabs/KStrike"
     DownloadMethod: "branchZip"
     Branch: "master"
     OutputFolder: "misc"
     SkipDownload: false
 
-  - Name: "LevelDBDumper" # confirmed 2026-09-16
+  - Name: "LevelDBDumper" # confirmed 2026-11-02
     RepoUrl: "https://github.com/mdawsonuk/LevelDBDumper"
     DownloadMethod: "latestRelease"
     DownloadName: "LevelDBDumper.exe"
     OutputFolder: "misc"
     SkipDownload: false
 
-  - Name: "Microsoft-Analyzer-Suite" # confirmed 2026-09-16
+  - Name: "Loki2" # confirmed 2026-11-03; IOC scanner; Loki 1.x (Python) is unmaintained
+    RepoUrl: "https://github.com/Neo23x0/Loki-RS" # renamed from Neo23x0/Loki2
+    DownloadMethod: "latestRelease"
+    AssetFilename: "loki-windows-x86_64-v.*\\.zip$"
+    OutputFolder: "misc"
+    SkipDownload: false
+
+  - Name: "Microsoft-Analyzer-Suite" # confirmed 2026-11-02
     RepoUrl: "https://github.com/LETHAL-FORENSICS/Microsoft-Analyzer-Suite"
     DownloadMethod: "latestrelease"
     AssetFilename: "Microsoft-Analyzer-Suite-v.*\\.zip"
     OutputFolder: "misc"
     SkipDownload: false
 
-  - Name: "OneDriveExplorer" # confirmed 2026-09-16
+  - Name: "Microsoft-Extractor-Suite" # confirmed 2026-11-03; PowerShell module, acquisition half of Microsoft-Analyzer-Suite; releases carry no assets
+    RepoUrl: "https://github.com/invictus-ir/Microsoft-Extractor-Suite"
+    DownloadMethod: "branchZip"
+    Branch: "main"
+    OutputFolder: "misc"
+    SkipDownload: false
+
+  - Name: "OneDriveExplorer" # confirmed 2026-11-02
     RepoUrl: "https://github.com/Beercow/OneDriveExplorer"
     DownloadMethod: "latestRelease"
     DownloadName: "ODE.zip"
@@ -161,7 +182,7 @@ tools:
     OutputFolder: "misc"
     SkipDownload: true
 
-  - Name: "Radare2" # confirmed 2026-09-16
+  - Name: "Radare2" # confirmed 2026-11-02
     RepoUrl: "https://github.com/radareorg/radare2"
     DownloadMethod: "latestRelease"
     AssetFilename: "radare2-[0-9.]+-w64\\.zip"
@@ -175,49 +196,63 @@ tools:
     OutputFolder: "misc"
     SkipDownload: true
 
-  - Name: "SEPparser_cmd" # confirmed 2026-09-16
+  - Name: "SEPparser_cmd" # confirmed 2026-11-02
     RepoUrl: "https://github.com/Beercow/SEPparser/releases/latest/download/SEPparser.exe"
     DownloadMethod: "specificFile"
     OutputFolder: "misc"
     SkipDownload: false
 
-  - Name: "SEPparser_gui" # confirmed 2026-09-16
+  - Name: "SEPparser_gui" # confirmed 2026-11-02
     RepoUrl: "https://github.com/Beercow/SEPparser/releases/latest/download/SEPparser_GUI.exe"
     DownloadMethod: "specificFile"
     OutputFolder: "misc"
     SkipDownload: false
 
-  - Name: "sidr" # confirmed 2026-09-16
+  - Name: "sidr" # confirmed 2026-11-02
     RepoUrl: "https://github.com/strozfriedberg/sidr"
     DownloadMethod: "latestRelease"
     DownloadName: "sidr.exe"
     OutputFolder: "misc"
     SkipDownload: false
 
-  - Name: "steghide" # confirmed 2026-09-16
+  - Name: "steghide" # confirmed 2026-11-02
     RepoUrl: "https://github.com/StegHigh/steghide" # moved from StefanoDeVuono/steghide
     DownloadMethod: "branchZip"
     Branch: "master"
     OutputFolder: "misc"
     SkipDownload: false
 
-  - Name: "SysinternalsSuite" # confirmed 2026-09-16
+  - Name: "SysinternalsSuite" # confirmed 2026-11-02
     RepoUrl: "https://download.sysinternals.com/files/SysinternalsSuite.zip"
     DownloadMethod: "specificFile"
     DownloadName: "SysinternalsSuite.zip"
     OutputFolder: "misc"
     SkipDownload: false
 
-  - Name: "Visual-Studio-Code" # confirmed 2026-09-16
+  - Name: "Visual-Studio-Code" # confirmed 2026-11-02
     RepoUrl: "https://update.code.visualstudio.com/latest/win32-x64-user/stable" # always the current stable x64 user installer
     DownloadMethod: "specificFile"
     DownloadName: "VSCodeUserSetup-x64.exe"
     OutputFolder: "misc"
     SkipDownload: false
 
-  - Name: "WMI-Parser" # confirmed 2026-09-16
+  - Name: "WMI-Parser" # confirmed 2026-11-02
     RepoUrl: "https://github.com/AndrewRathbun/WMI-Parser"
     DownloadMethod: "latestRelease"
     DownloadName: "WMI-Parser.zip"
+    OutputFolder: "misc"
+    SkipDownload: false
+
+  - Name: "YARA" # confirmed 2026-11-03; reference engine; the zip holds yara64.exe and yarac64.exe
+    RepoUrl: "https://github.com/VirusTotal/yara"
+    DownloadMethod: "latestRelease"
+    AssetFilename: "yara-.*-win64\\.zip$"
+    OutputFolder: "misc"
+    SkipDownload: false
+
+  - Name: "YARA-X" # confirmed 2026-11-03; Rust rewrite of YARA; the yara-x-capi zip is the C library, not the CLI
+    RepoUrl: "https://github.com/VirusTotal/yara-x"
+    DownloadMethod: "latestRelease"
+    AssetFilename: "^yara-x-v.*-x86_64-pc-windows-msvc\\.zip$"
     OutputFolder: "misc"
     SkipDownload: false

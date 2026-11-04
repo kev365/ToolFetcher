@@ -6,14 +6,14 @@
 category: "wordlists"
 tools:
 
-  - Name: "rockyou" # confirmed 2026-09-16
+  - Name: "rockyou" # confirmed 2026-11-02
     RepoUrl: "https://github.com/brannondorsey/naive-hashcat/releases/download/data/rockyou.txt"
     DownloadMethod: "specificFile"
     DownloadName: "rockyou.txt"
     OutputFolder: "Wordlists"
     SkipDownload: false
 
-  - Name: "SecLists" # confirmed 2026-09-16
+  - Name: "SecLists" # confirmed 2026-11-02
     RepoUrl: "https://github.com/danielmiessler/SecLists" # no release assets; the master branch zip is well over 1 GB
     DownloadMethod: "branchZip"
     Branch: "master"

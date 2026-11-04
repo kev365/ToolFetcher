@@ -6,7 +6,7 @@
 category: "registry_analysis"
 tools:
 
-  - Name: "AmCache-EvilHunter" # confirmed 2026-09-16
+  - Name: "AmCache-EvilHunter" # confirmed 2026-11-02
     RepoUrl: "https://github.com/cristianzsh/amcache-evilhunter"
     DownloadMethod: "latestrelease"
     DownloadName: "amcache_evilhunter.exe"
@@ -37,35 +37,35 @@ tools:
     OutputFolder: "registry"
     SkipDownload: false
 
-  - Name: "RegDllView" # confirmed 2026-09-16
+  - Name: "RegDllView" # confirmed 2026-11-02
     RepoUrl: "https://www.nirsoft.net/utils/regdllview-x64.zip"
     DownloadMethod: "specificFile"
     DownloadName: "RegDllView.zip"
     OutputFolder: "registry"
     SkipDownload: false
 
-  - Name: "RegFromApp" # confirmed 2026-09-16
+  - Name: "RegFromApp" # confirmed 2026-11-02
     RepoUrl: "https://www.nirsoft.net/utils/regfromapp-x64.zip"
     DownloadMethod: "specificFile"
     DownloadName: "RegFromApp.zip"
     OutputFolder: "registry"
     SkipDownload: false
 
-  - Name: "reg_hunter" # confirmed 2026-09-16
+  - Name: "reg_hunter" # confirmed 2026-11-02
     RepoUrl: "https://github.com/theflakes/reg_hunter"
     DownloadMethod: "latestRelease"
     DownloadName: "reg_hunter.exe"
     OutputFolder: "registry"
     SkipDownload: false
 
-  - Name: "RegRipper3.0" # confirmed 2026-09-16
+  - Name: "RegRipper3.0" # confirmed 2026-11-02
     RepoUrl: "https://github.com/keydet89/RegRipper3.0"
     DownloadMethod: "branchZip"
     Branch: "master"
     OutputFolder: "registry"
     SkipDownload: false
 
-  - Name: "RegScanner" # confirmed 2026-09-16
+  - Name: "RegScanner" # confirmed 2026-11-02
     RepoUrl: "https://www.nirsoft.net/utils/regscanner-x64.zip"
     DownloadMethod: "specificFile"
     DownloadName: "RegScanner.zip"
@@ -78,7 +78,7 @@ tools:
     OutputFolder: "registry"
     SkipDownload: false
 
-  - Name: "RegistryScanner" # 2026-09-16: github.com/forensicmatt/RegistryScanner no longer exists (404); no replacement found
+  - Name: "RegistryScanner" # 2026-09-16: github.com/forensicmatt/RegistryScanner no longer exists (404); no replacement found; still 404 on 2026-11-02
     RepoUrl: "https://github.com/forensicmatt/RegistryScanner"
     DownloadMethod: "latestRelease"
     DownloadName: "RegistryScanner.exe"
