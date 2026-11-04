@@ -18,6 +18,12 @@ tools:
     OutputFolder: "ez_tools"
     SkipDownload: false
 
+  - Name: "bstrings" # confirmed 2026-11-02
+    RepoUrl: "https://download.ericzimmermanstools.com/net/bstrings.zip"
+    DownloadMethod: "specificFile"
+    OutputFolder: "ez_tools"
+    SkipDownload: false
+
   - Name: "EvtxECmd" # confirmed 2026-11-02
     RepoUrl: "https://download.ericzimmermanstools.com/net/EvtxECmd.zip"
     DownloadMethod: "specificFile"
@@ -122,6 +128,12 @@ tools:
 
   - Name: "SQLECmd" # confirmed 2026-11-02
     RepoUrl: "https://download.ericzimmermanstools.com/net/SQLECmd.zip"
+    DownloadMethod: "specificFile"
+    OutputFolder: "ez_tools"
+    SkipDownload: false
+
+  - Name: "SrumECmd" # confirmed 2026-11-02
+    RepoUrl: "https://download.ericzimmermanstools.com/net/SrumECmd.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "ez_tools"
     SkipDownload: false

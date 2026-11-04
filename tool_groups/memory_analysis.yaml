@@ -6,17 +6,24 @@
 category: "memory_analysis"
 tools:
 
-  - Name: "capa" # confirmed 2026-09-16
+  - Name: "capa" # confirmed 2026-11-02
     RepoUrl: "https://github.com/mandiant/capa"
     DownloadMethod: "latestRelease"
     AssetFilename: "capa-v.*-windows\\.zip"
     OutputFolder: "memory"
     SkipDownload: false
 
-  - Name: "CobaltStrikeParser" # confirmed 2026-09-16
+  - Name: "CobaltStrikeParser" # confirmed 2026-11-02
     RepoUrl: "https://github.com/Sentinel-One/CobaltStrikeParser" # archived repo, no releases
     DownloadMethod: "branchZip"
     Branch: "master"
+    OutputFolder: "memory"
+    SkipDownload: false
+
+  - Name: "hollows_hunter" # confirmed 2026-11-03; system-wide pe-sieve sweep, standalone 64-bit exe
+    RepoUrl: "https://github.com/hasherezade/hollows_hunter"
+    DownloadMethod: "latestRelease"
+    DownloadName: "hollows_hunter64.exe"
     OutputFolder: "memory"
     SkipDownload: false
 
@@ -27,21 +34,28 @@ tools:
     OutputFolder: "memory"
     SkipDownload: true
 
-  - Name: "MemProcFs" # confirmed 2026-09-16
+  - Name: "MemProcFs" # confirmed 2026-11-02
     RepoUrl: "https://github.com/ufrisk/MemProcFS"
     DownloadMethod: "latestrelease"
     DownloadName: "MemProcFS_files_and_binaries-win_x64-latest.zip"
     OutputFolder: "memory"
     SkipDownload: false
 
-  - Name: "MemProcFsAnalyzer" # confirmed 2026-09-16
+  - Name: "MemProcFsAnalyzer" # confirmed 2026-11-02
     RepoUrl: "https://github.com/LETHAL-FORENSICS/MemProcFS-Analyzer"
     DownloadMethod: "latestrelease"
     AssetFilename: "MemProcFS-Analyzer-v.*\\.zip"
     OutputFolder: "memory"
     SkipDownload: false
 
-  - Name: "RdpCacheStitcher" # confirmed 2026-09-16
+  - Name: "pe-sieve" # confirmed 2026-11-03; in-memory PE and injection scanner, standalone 64-bit exe
+    RepoUrl: "https://github.com/hasherezade/pe-sieve"
+    DownloadMethod: "latestRelease"
+    DownloadName: "pe-sieve64.exe"
+    OutputFolder: "memory"
+    SkipDownload: false
+
+  - Name: "RdpCacheStitcher" # confirmed 2026-11-02
     RepoUrl: "https://github.com/BSI-Bund/RdpCacheStitcher/"
     DownloadMethod: "latestrelease"
     AssetFilename: "RdpCacheStitcher-.*-win64\\.zip"
@@ -55,21 +69,28 @@ tools:
     OutputFolder: "memory"
     SkipDownload: true
 
-  - Name: "vol2" # confirmed 2026-09-16
+  - Name: "vol2" # confirmed 2026-11-02
     RepoUrl: "https://github.com/volatilityfoundation/volatility" # archived repo; the develop branch is gone, release 2.6.1 ships a Windows x64 standalone
     DownloadMethod: "latestRelease"
     AssetFilename: "volatility_.*_win64_standalone\\.zip"
     OutputFolder: "memory"
     SkipDownload: false
 
-  - Name: "vol3" # confirmed 2026-09-16
+  - Name: "vol3" # confirmed 2026-11-02
     RepoUrl: "https://github.com/volatilityfoundation/volatility3"
     DownloadMethod: "branchZip"
     Branch: "develop"
     OutputFolder: "memory"
     SkipDownload: false
 
-  - Name: "WMI_Forensics" # confirmed 2026-09-16
+  - Name: "WinPmem" # confirmed 2026-11-03; memory acquisition; latest release is v4.0.rc1 (2020-10) and the mini x64 exe bundles the signed driver
+    RepoUrl: "https://github.com/Velocidex/WinPmem"
+    DownloadMethod: "latestRelease"
+    DownloadName: "winpmem_mini_x64_rc2.exe"
+    OutputFolder: "memory"
+    SkipDownload: false
+
+  - Name: "WMI_Forensics" # confirmed 2026-11-02
     RepoUrl: "https://github.com/davidpany/WMI_Forensics"
     DownloadMethod: "branchZip"
     Branch: "master"

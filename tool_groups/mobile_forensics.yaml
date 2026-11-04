@@ -6,14 +6,14 @@
 category: "mobile_forensics"
 tools:
 
-  - Name: "aleapp" # confirmed 2026-09-16
+  - Name: "aleapp" # confirmed 2026-11-02
     RepoUrl: "https://github.com/abrignoni/ALEAPP"
     DownloadMethod: "branchZip"
     Branch: "main"
     OutputFolder: "mobile"
     SkipDownload: false
 
-  - Name: "ileapp" # confirmed 2026-09-16
+  - Name: "ileapp" # confirmed 2026-11-02
     RepoUrl: "https://github.com/abrignoni/ILEAPP"
     DownloadMethod: "branchZip"
     Branch: "main"
@@ -27,35 +27,49 @@ tools:
     OutputFolder: "mobile"
     SkipDownload: true
 
-  - Name: "mac_apt" # confirmed 2026-09-16
+  - Name: "mac_apt" # confirmed 2026-11-02
     RepoUrl: "https://github.com/ydkhatri/mac_apt"
     DownloadMethod: "branchZip"
     Branch: "master"
     OutputFolder: "mobile"
     SkipDownload: false
 
-  - Name: "mac_apt_artifact_only" # confirmed 2026-09-16
+  - Name: "mac_apt_artifact_only" # confirmed 2026-11-02
     RepoUrl: "https://github.com/ydkhatri/mac_apt"
     DownloadMethod: "branchZip"
     Branch: "master"
     OutputFolder: "mobile"
     SkipDownload: false
 
-  - Name: "mac_apt_mounted_sys_data" # confirmed 2026-09-16
+  - Name: "mac_apt_mounted_sys_data" # confirmed 2026-11-02
     RepoUrl: "https://github.com/ydkhatri/mac_apt"
     DownloadMethod: "branchZip"
     Branch: "master"
     OutputFolder: "mobile"
     SkipDownload: false
 
-  - Name: "Plist_Time_Dump" # confirmed 2026-09-16
+  - Name: "Plist_Time_Dump" # confirmed 2026-11-02
     RepoUrl: "https://github.com/kev365/plist_time_dump"
     DownloadMethod: "branchZip"
     Branch: "main"
     OutputFolder: "mobile"
     SkipDownload: false
 
-  - Name: "WhatsApp-Viewer" # confirmed 2026-09-16
+  - Name: "RLEAPP" # confirmed 2026-11-03; LEAPP sibling for provider returns and exports
+    RepoUrl: "https://github.com/abrignoni/RLEAPP"
+    DownloadMethod: "latestRelease"
+    AssetFilename: "RLEAPP-.*-windows-x64-portable\\.zip$"
+    OutputFolder: "mobile"
+    SkipDownload: false
+
+  - Name: "VLEAPP" # confirmed 2026-11-03; LEAPP sibling for vehicle data
+    RepoUrl: "https://github.com/abrignoni/VLEAPP"
+    DownloadMethod: "latestRelease"
+    AssetFilename: "VLEAPP-.*-windows-x64-portable\\.zip$"
+    OutputFolder: "mobile"
+    SkipDownload: false
+
+  - Name: "WhatsApp-Viewer" # confirmed 2026-11-02
     RepoUrl: "https://github.com/andreas-mausch/whatsapp-viewer"
     DownloadMethod: "latestRelease"
     DownloadName: "WhatsApp.Viewer.zip"

@@ -13,21 +13,21 @@ tools:
     OutputFolder: "disk_analysis"
     SkipDownload: true
 
-  - Name: "Autopsy" # confirmed 2026-09-16
+  - Name: "Autopsy" # confirmed 2026-11-02
     RepoUrl: "https://github.com/sleuthkit/autopsy"
     DownloadMethod: "latestRelease"
-    AssetFilename: "autopsy-.*-64bit\\.msi"
+    AssetFilename: "autopsy-.*-64bit\\.msi$" # anchored: the release also ships a .msi.asc signature
     OutputFolder: "disk_analysis"
     SkipDownload: false
 
-  - Name: "ExifTool" # confirmed 2026-09-16
-    RepoUrl: "https://sourceforge.net/projects/exiftool/files/exiftool-13.59_64.zip/download" # version-locked: exiftool.org only links SourceForge; 13.59 current 2026-09-16
+  - Name: "ExifTool" # confirmed 2026-11-02
+    RepoUrl: "https://sourceforge.net/projects/exiftool/files/exiftool-13.60_64.zip/download" # version-locked: exiftool.org only links SourceForge; 13.60 current 2026-11-02
     DownloadMethod: "specificFile"
-    DownloadName: "exiftool-13.59_64.zip"
+    DownloadName: "exiftool-13.60_64.zip"
     OutputFolder: "disk_analysis"
     SkipDownload: false
 
-  - Name: "Foremost" # confirmed 2026-09-16
+  - Name: "Foremost" # confirmed 2026-11-02
     RepoUrl: "https://github.com/korczis/foremost"
     DownloadMethod: "branchZip"
     Branch: "master"
@@ -41,7 +41,7 @@ tools:
     OutputFolder: "disk_analysis"
     SkipDownload: true
 
-  - Name: "INDXRipper" # confirmed 2026-09-16
+  - Name: "INDXRipper" # confirmed 2026-11-02
     RepoUrl: "https://github.com/harelsegev/INDXRipper"
     DownloadMethod: "latestRelease"
     AssetFilename: "INDXRipper-.*-amd64\\.zip"
@@ -60,14 +60,14 @@ tools:
     OutputFolder: "NTFS"
     SkipDownload: false
 
-  - Name: "OfficeMalScanner" # confirmed 2026-09-16
+  - Name: "OfficeMalScanner" # confirmed 2026-11-02
     RepoUrl: "https://github.com/unixfreak0037/officeparser" # this repo is officeparser (Python), not OfficeMalScanner; it has no releases
     DownloadMethod: "branchZip"
     Branch: "master"
     OutputFolder: "disk_analysis"
     SkipDownload: false
 
-  - Name: "Oletools" # confirmed 2026-09-16
+  - Name: "Oletools" # confirmed 2026-11-02
     RepoUrl: "https://github.com/decalage2/oletools"
     DownloadMethod: "branchZip"
     Branch: "master"
@@ -81,21 +81,21 @@ tools:
     OutputFolder: "disk_analysis"
     SkipDownload: true
 
-  - Name: "RustyUsn-apple" # confirmed 2026-09-16
+  - Name: "RustyUsn-apple" # confirmed 2026-11-02
     RepoUrl: "https://github.com/forensicmatt/RustyUsn"
     DownloadMethod: "latestRelease"
     AssetFilename: "rusty_usn-.*-x86_64-apple-darwin\\.tar\\.gz"
     OutputFolder: "NTFS"
     SkipDownload: false
 
-  - Name: "RustyUsn-linux" # confirmed 2026-09-16
+  - Name: "RustyUsn-linux" # confirmed 2026-11-02
     RepoUrl: "https://github.com/forensicmatt/RustyUsn"
     DownloadMethod: "latestRelease"
     AssetFilename: "rusty_usn-.*-x86_64-unknown-linux-gnu\\.tar\\.gz"
     OutputFolder: "NTFS"
     SkipDownload: false
 
-  - Name: "RustyUsn-windows" # confirmed 2026-09-16
+  - Name: "RustyUsn-windows" # confirmed 2026-11-02
     RepoUrl: "https://github.com/forensicmatt/RustyUsn"
     DownloadMethod: "latestRelease"
     AssetFilename: "rusty_usn-.*-x86_64-pc-windows-msvc\\.zip"
@@ -109,14 +109,14 @@ tools:
     OutputFolder: "disk_analysis"
     SkipDownload: true
 
-  - Name: "WinPrefetchView" # confirmed 2026-09-16
+  - Name: "WinPrefetchView" # confirmed 2026-11-02
     RepoUrl: "https://www.nirsoft.net/utils/winprefetchview-x64.zip"
     DownloadMethod: "specificFile"
     DownloadName: "WinPrefetchView.zip"
     OutputFolder: "disk_analysis"
     SkipDownload: false
 
-  - Name: "XstReader" # confirmed 2026-09-16
+  - Name: "XstReader" # confirmed 2026-11-02
     RepoUrl: "https://github.com/iluvadev/XstReader"
     DownloadMethod: "latestRelease"
     AssetFilename: "XstReader\\.App\\..*\\.zip" # XstReader.App 2.x is the current app; XstReader.v.1.x is the legacy build

@@ -3,7 +3,7 @@ tooldirectory: "" # Must escape any backslashes or use single forward slashes
 # Documentation:   https://dfir-kev.medium.com/tool-fetcher-86691e65731b
 
 tools:
-  - Name: "AmCache-EvilHunter" # confirmed 2026-09-16
+  - Name: "AmCache-EvilHunter" # confirmed 2026-11-02
     RepoUrl: "https://github.com/cristianzsh/amcache-evilhunter"
     DownloadMethod: "latestrelease"
     DownloadName: "amcache_evilhunter.exe"
@@ -22,42 +22,48 @@ tools:
     OutputFolder: "WinRegistry"
     SkipDownload: false
 
-  - Name: "APT-Hunter" # confirmed 2026-09-16
+  - Name: "APT-Hunter" # confirmed 2026-11-02
     RepoUrl: "https://github.com/ahmedkhlief/APT-Hunter"
     DownloadMethod: "latestRelease"
-    DownloadName: "APT-Hunter.zip"
+    DownloadName: "APT-Hunter.exe" # V4.0 (2026-09-20) ships a single exe, no zip
     OutputFolder: "WinEventlogs"
     SkipDownload: false
 
-  - Name: "BackstageParser" # confirmed 2026-09-16
+  - Name: "BackstageParser" # confirmed 2026-11-02
     RepoUrl: "https://github.com/ArsenalRecon/BackstageParser"
     DownloadMethod: "branchZip"
     Branch: "master"
     OutputFolder: "MSOffice"
     SkipDownload: false
 
-  - Name: "BitsParser" # confirmed 2026-09-16
+  - Name: "BitsParser" # confirmed 2026-11-02
     RepoUrl: "https://github.com/fireeye/BitsParser"
     DownloadMethod: "branchZip"
     Branch: "master"
     OutputFolder: "WinBITS"
     SkipDownload: false
 
-  - Name: "Bmc-Tools-Compiled" # confirmed 2026-09-16
+  - Name: "Bmc-Tools-Compiled" # confirmed 2026-11-02
     RepoUrl: "https://github.com/Qazeer/bmc-tools-compiled/"
     DownloadMethod: "latestrelease"
     DownloadName: "bmc-tools.exe"
     OutputFolder: "MISC"
     SkipDownload: false
 
-  - Name: "chainsaw" # confirmed 2026-09-16
+  - Name: "bstrings" # confirmed 2026-11-02
+    RepoUrl: "https://download.ericzimmermanstools.com/net/bstrings.zip" # .Net10
+    DownloadMethod: "specificFile"
+    OutputFolder: "MISC"
+    SkipDownload: false
+
+  - Name: "chainsaw" # confirmed 2026-11-02
     RepoUrl: "https://github.com/WithSecureOpenSource/chainsaw"
     DownloadMethod: "latestRelease"
     DownloadName: "chainsaw_x86_64-pc-windows-msvc.zip"
     OutputFolder: "WinEventlogs"
     SkipDownload: false
 
-  - Name: "DHParser" # confirmed 2026-09-16
+  - Name: "DHParser" # confirmed 2026-11-02
     RepoUrl: "https://github.com/jklepsercyber/defender-detectionhistory-parser"
     DownloadMethod: "specificFile"
     SpecificFilePath: "/raw/refs/heads/main/dhparser.exe"
@@ -71,7 +77,7 @@ tools:
     OutputFolder: "WinEventlogs"
     SkipDownload: false
 
-  - Name: "EvtxHussar" # confirmed 2026-09-16
+  - Name: "EvtxHussar" # confirmed 2026-11-02
     RepoUrl: "https://github.com/yarox24/EvtxHussar"
     DownloadMethod: "latestRelease"
     AssetType: "win64"
@@ -84,14 +90,28 @@ tools:
     OutputFolder: "MISC"
     SkipDownload: false
 
-  - Name: "Forensic Timeliner" # confirmed 2026-09-16
-    RepoUrl: "https://github.com/acquiredsecurity/forensic-timeliner"
+  - Name: "FLOSS" # confirmed 2026-11-03; obfuscated string extraction, companion to capa
+    RepoUrl: "https://github.com/mandiant/flare-floss"
+    DownloadMethod: "latestRelease"
+    AssetFilename: "floss-v.*-windows\\.zip$"
+    OutputFolder: "Malware"
+    SkipDownload: false
+
+  - Name: "Forensic Timeliner" # confirmed 2026-11-02
+    RepoUrl: "https://github.com/AndrewRathbun/forensic-timeliner" # acquiredsecurity/forensic-timeliner was deleted (404, no redirect) by 2026-11-02; this mirror carries the v2.3 history
     DownloadMethod: "branchZip"
     Branch: "main"
     OutputFolder: "Timelines"
     SkipDownload: false
 
-  - Name: "forensicsim" # confirmed 2026-09-16
+  - Name: "forensic-webhistory" # confirmed 2026-11-03; cross-platform browser history extractor from the Forensic Timeliner author
+    RepoUrl: "https://github.com/acquiredsecurity/forensic-webhistory"
+    DownloadMethod: "latestRelease"
+    DownloadName: "forensic-webhistory-windows-x86_64.zip"
+    OutputFolder: "WebHistory"
+    SkipDownload: false
+
+  - Name: "forensicsim" # confirmed 2026-11-02
     RepoUrl: "https://github.com/lxndrblz/forensicsim"
     DownloadMethod: "latestRelease"
     DownloadName: "forensicsim.zip"
@@ -105,32 +125,39 @@ tools:
     DownloadName: "hasher.zip"
     SkipDownload: false
 
-  - Name: "hayabusa" # confirmed 2026-09-16
+  - Name: "hayabusa" # confirmed 2026-11-02
     RepoUrl: "https://github.com/Yamato-Security/hayabusa"
     DownloadMethod: "latestRelease"
     AssetFilename: "hayabusa-.*-win-x64\\.zip" # explicit: the release also ships win-x64-live-response
     OutputFolder: "WinEventlogs"
     SkipDownload: false
 
-  - Name: "hayabusa-rules" # confirmed 2026-09-16
+  - Name: "hayabusa-rules" # confirmed 2026-11-02
     RepoUrl: "https://github.com/Yamato-Security/hayabusa-rules"
     DownloadMethod: "branchZip"
     Branch: "main"
     OutputFolder: "WinEventlogs"
     SkipDownload: false
 
-  - Name: "hindsight" # confirmed 2026-09-16
+  - Name: "hindsight" # confirmed 2026-11-02
     RepoUrl: "https://github.com/RyanDFIR/hindsight"
     DownloadMethod: "latestRelease"
     DownloadName: "hindsight.exe"
     OutputFolder: "WebHistory"
     SkipDownload: false
 
-  - Name: "hindsight_gui" # confirmed 2026-09-16
+  - Name: "hindsight_gui" # confirmed 2026-11-02
     RepoUrl: "https://github.com/RyanDFIR/hindsight"
     DownloadMethod: "latestRelease"
     DownloadName: "hindsight_gui.exe"
     OutputFolder: "WebHistory"
+    SkipDownload: false
+
+  - Name: "hollows_hunter" # confirmed 2026-11-03; system-wide pe-sieve sweep, standalone 64-bit exe
+    RepoUrl: "https://github.com/hasherezade/hollows_hunter"
+    DownloadMethod: "latestRelease"
+    DownloadName: "hollows_hunter64.exe"
+    OutputFolder: "Memory"
     SkipDownload: false
 
   - Name: "iisGeolocate" # confirmed 2026-11-02
@@ -139,7 +166,7 @@ tools:
     OutputFolder: "MISC"
     SkipDownload: false
 
-  - Name: "INDXRipper" # confirmed 2026-09-16
+  - Name: "INDXRipper" # confirmed 2026-11-02
     RepoUrl: "https://github.com/harelsegev/INDXRipper"
     DownloadMethod: "latestRelease"
     AssetFilename: "INDXRipper-.*-amd64\\.zip"
@@ -158,7 +185,7 @@ tools:
     OutputFolder: "LNK-JMP"
     SkipDownload: false
 
-  - Name: "KStrike" # confirmed 2026-09-16
+  - Name: "KStrike" # confirmed 2026-11-02
     RepoUrl: "https://github.com/brimorlabs/KStrike"
     DownloadMethod: "branchZip"
     Branch: "master"
@@ -171,21 +198,28 @@ tools:
     OutputFolder: "LNK-JMP"
     SkipDownload: false
 
-  - Name: "LevelDBDumper" # confirmed 2026-09-16
+  - Name: "LevelDBDumper" # confirmed 2026-11-02
     RepoUrl: "https://github.com/mdawsonuk/LevelDBDumper"
     DownloadMethod: "latestRelease"
     DownloadName: "LevelDBDumper.exe" # 64-bit
     OutputFolder: "MSOffice"
     SkipDownload: false
 
-  - Name: "MemProcFs" # confirmed 2026-09-16
+  - Name: "Loki2" # confirmed 2026-11-03; IOC scanner; Loki 1.x (Python) is unmaintained
+    RepoUrl: "https://github.com/Neo23x0/Loki-RS" # renamed from Neo23x0/Loki2
+    DownloadMethod: "latestRelease"
+    AssetFilename: "loki-windows-x86_64-v.*\\.zip$"
+    OutputFolder: "Malware"
+    SkipDownload: false
+
+  - Name: "MemProcFs" # confirmed 2026-11-02
     RepoUrl: "https://github.com/ufrisk/MemProcFS"
     DownloadMethod: "latestrelease"
     DownloadName: "MemProcFS_files_and_binaries-win_x64-latest.zip"
     OutputFolder: "Memory"
     SkipDownload: false
 
-  - Name: "MemProcFsAnalyzer" # confirmed 2026-09-16
+  - Name: "MemProcFsAnalyzer" # confirmed 2026-11-02
     RepoUrl: "https://github.com/LETHAL-FORENSICS/MemProcFS-Analyzer"
     DownloadMethod: "latestrelease"
     AssetFilename: "MemProcFS-Analyzer-v.*\\.zip"
@@ -204,24 +238,38 @@ tools:
     OutputFolder: "NTFS"
     SkipDownload: false
 
-  - Name: "Microsoft-Analyzer-Suite" # confirmed 2026-09-16
+  - Name: "Microsoft-Analyzer-Suite" # confirmed 2026-11-02
     RepoUrl: "https://github.com/LETHAL-FORENSICS/Microsoft-Analyzer-Suite"
     DownloadMethod: "latestrelease"
     AssetFilename: "Microsoft-Analyzer-Suite-v.*\\.zip"
     OutputFolder: "CloudLogs"
     SkipDownload: false
 
-  - Name: "Nirsoft Utilities" # 2026-09-16: 1.30.19 is gone (current 1.30.25); download.nirsoft.net requires an HTTP Referer and the bundle is a password-protected zip, so it cannot be fetched or extracted by the script
+  - Name: "Microsoft-Extractor-Suite" # confirmed 2026-11-03; PowerShell module, acquisition half of Microsoft-Analyzer-Suite; releases carry no assets
+    RepoUrl: "https://github.com/invictus-ir/Microsoft-Extractor-Suite"
+    DownloadMethod: "branchZip"
+    Branch: "main"
+    OutputFolder: "CloudLogs"
+    SkipDownload: false
+
+  - Name: "Nirsoft Utilities" # 2026-09-16: 1.30.19 is gone (current 1.30.25); download.nirsoft.net requires an HTTP Referer and the bundle is a password-protected zip, so it cannot be fetched or extracted by the script; the URL now redirects to a 403 page (2026-11-02)
     RepoUrl: "https://download.nirsoft.net/nirsoft_package_enc_1.30.25.zip"
     DownloadMethod: "specificFile"
     OutputFolder: "MISC"
     SkipDownload: true
 
-  - Name: "OneDriveExplorer" # confirmed 2026-09-16
+  - Name: "OneDriveExplorer" # confirmed 2026-11-02
     RepoUrl: "https://github.com/Beercow/OneDriveExplorer"
     DownloadMethod: "latestRelease"
     DownloadName: "ODE.zip"
     OutputFolder: "MSOffice"
+    SkipDownload: false
+
+  - Name: "pe-sieve" # confirmed 2026-11-03; in-memory PE and injection scanner, standalone 64-bit exe
+    RepoUrl: "https://github.com/hasherezade/pe-sieve"
+    DownloadMethod: "latestRelease"
+    DownloadName: "pe-sieve64.exe"
+    OutputFolder: "Memory"
     SkipDownload: false
 
   - Name: "PECmd" # confirmed 2026-11-02
@@ -230,7 +278,7 @@ tools:
     OutputFolder: "Prefetch"
     SkipDownload: false
 
-  - Name: "Plist_Time_Dump" # confirmed 2026-09-16
+  - Name: "Plist_Time_Dump" # confirmed 2026-11-02
     RepoUrl: "https://github.com/kev365/plist_time_dump"
     DownloadMethod: "branchZip"
     Branch: "main"
@@ -243,7 +291,7 @@ tools:
     OutputFolder: "RecycleBin"
     SkipDownload: false
 
-  - Name: "RdpCacheStitcher" # confirmed 2026-09-16
+  - Name: "RdpCacheStitcher" # confirmed 2026-11-02
     RepoUrl: "https://github.com/BSI-Bund/RdpCacheStitcher/"
     DownloadMethod: "latestrelease"
     AssetFilename: "RdpCacheStitcher-.*-win64\\.zip"
@@ -262,21 +310,21 @@ tools:
     OutputFolder: "WinRegistry"
     SkipDownload: false
 
-  - Name: "reg_hunter" # confirmed 2026-09-16
+  - Name: "reg_hunter" # confirmed 2026-11-02
     RepoUrl: "https://github.com/theflakes/reg_hunter"
     DownloadMethod: "latestRelease"
     DownloadName: "reg_hunter.exe"
     OutputFolder: "WinRegistry"
     SkipDownload: false
 
-  - Name: "RegRipper 3.0" # confirmed 2026-09-16
+  - Name: "RegRipper 3.0" # confirmed 2026-11-02
     RepoUrl: "https://github.com/keydet89/RegRipper3.0"
     DownloadMethod: "gitClone"
     Branch: "master"
     OutputFolder: "WinRegistry"
     SkipDownload: false
 
-  - Name: "RegRipper3.0" # confirmed 2026-09-16
+  - Name: "RegRipper3.0" # confirmed 2026-11-02
     RepoUrl: "https://github.com/keydet89/RegRipper3.0"
     DownloadMethod: "branchZip"
     Branch: "master"
@@ -295,7 +343,14 @@ tools:
     OutputFolder: "WinRegistry"
     SkipDownload: false
 
-  - Name: "RustyUsn" # confirmed 2026-09-16
+  - Name: "RLEAPP" # confirmed 2026-11-03; LEAPP sibling for provider returns and exports
+    RepoUrl: "https://github.com/abrignoni/RLEAPP"
+    DownloadMethod: "latestRelease"
+    AssetFilename: "RLEAPP-.*-windows-x64-portable\\.zip$"
+    OutputFolder: "Mobile"
+    SkipDownload: false
+
+  - Name: "RustyUsn" # confirmed 2026-11-02
     RepoUrl: "https://github.com/forensicmatt/RustyUsn"
     DownloadMethod: "latestRelease"
     AssetFilename: "rusty_usn-.*-x86_64-pc-windows-msvc\\.zip"
@@ -314,13 +369,13 @@ tools:
     OutputFolder: "WinRegistry"
     SkipDownload: false
 
-  - Name: "SEPparser_cmd" # confirmed 2026-09-16
+  - Name: "SEPparser_cmd" # confirmed 2026-11-02
     RepoUrl: "https://github.com/Beercow/SEPparser/releases/latest/download/SEPparser.exe"
     DownloadMethod: "specificFile"
     OutputFolder: "SymantecLogs"
     SkipDownload: false
 
-  - Name: "SEPparser_gui" # confirmed 2026-09-16
+  - Name: "SEPparser_gui" # confirmed 2026-11-02
     RepoUrl: "https://github.com/Beercow/SEPparser/releases/latest/download/SEPparser_GUI.exe"
     DownloadMethod: "specificFile"
     OutputFolder: "SymantecLogs"
@@ -332,11 +387,18 @@ tools:
     OutputFolder: "WinRegistry"
     SkipDownload: false
 
-  - Name: "sidr" # confirmed 2026-09-16
+  - Name: "sidr" # confirmed 2026-11-02
     RepoUrl: "https://github.com/strozfriedberg/sidr"
     DownloadMethod: "latestRelease"
     DownloadName: "sidr.exe"
     OutputFolder: "WinSearchIndex"
+    SkipDownload: false
+
+  - Name: "Sigma" # confirmed 2026-11-03; SigmaHQ rule set that chainsaw and Zircolite consume; release zips are cut a few times a year
+    RepoUrl: "https://github.com/SigmaHQ/sigma"
+    DownloadMethod: "latestRelease"
+    DownloadName: "sigma_all_rules.zip"
+    OutputFolder: "WinEventlogs"
     SkipDownload: false
 
   - Name: "SQLECmd" # confirmed 2026-11-02
@@ -345,10 +407,30 @@ tools:
     OutputFolder: "Database"
     SkipDownload: false
 
+  - Name: "SrumECmd" # confirmed 2026-11-02
+    RepoUrl: "https://download.ericzimmermanstools.com/net/SrumECmd.zip" # .Net10
+    DownloadMethod: "specificFile"
+    OutputFolder: "SRUM"
+    SkipDownload: false
+
   - Name: "SumECmd" # confirmed 2026-11-02
     RepoUrl: "https://download.ericzimmermanstools.com/net/SumECmd.zip" # .Net10
     DownloadMethod: "specificFile"
     OutputFolder: "SUM-UAL"
+    SkipDownload: false
+
+  - Name: "Suzaku" # confirmed 2026-11-03; Sigma hunting for AWS CloudTrail logs
+    RepoUrl: "https://github.com/Yamato-Security/suzaku"
+    DownloadMethod: "latestRelease"
+    AssetFilename: "suzaku-.*-win-x64\\.zip$"
+    OutputFolder: "CloudLogs"
+    SkipDownload: false
+
+  - Name: "Takajo" # confirmed 2026-11-03; analyzes hayabusa results
+    RepoUrl: "https://github.com/Yamato-Security/takajo"
+    DownloadMethod: "latestRelease"
+    AssetFilename: "takajo-.*-win-x64\\.zip$"
+    OutputFolder: "WinEventlogs"
     SkipDownload: false
 
   - Name: "TimeApp" # confirmed 2026-11-02
@@ -363,20 +445,34 @@ tools:
     OutputFolder: "MISC"
     SkipDownload: false
 
+  - Name: "VLEAPP" # confirmed 2026-11-03; LEAPP sibling for vehicle data
+    RepoUrl: "https://github.com/abrignoni/VLEAPP"
+    DownloadMethod: "latestRelease"
+    AssetFilename: "VLEAPP-.*-windows-x64-portable\\.zip$"
+    OutputFolder: "Mobile"
+    SkipDownload: false
+
   - Name: "VSCMount" # confirmed 2026-11-02
     RepoUrl: "https://download.ericzimmermanstools.com/net/VSCMount.zip" # .Net10
     DownloadMethod: "specificFile"
     OutputFolder: "VSC"
     SkipDownload: false
 
-  - Name: "Windows MBox Viewer" # confirmed 2026-09-16
+  - Name: "Windows MBox Viewer" # confirmed 2026-11-02
     RepoUrl: "https://github.com/eneam/mboxviewer"
     DownloadMethod: "latestRelease"
     AssetFilename: "mbox-viewer\\.exe-v.*\\.zip"
     OutputFolder: "Email"
     SkipDownload: false
 
-  - Name: "WMI-Parser" # confirmed 2026-09-16
+  - Name: "WinPmem" # confirmed 2026-11-03; memory acquisition; latest release is v4.0.rc1 (2020-10) and the mini x64 exe bundles the signed driver
+    RepoUrl: "https://github.com/Velocidex/WinPmem"
+    DownloadMethod: "latestRelease"
+    DownloadName: "winpmem_mini_x64_rc2.exe"
+    OutputFolder: "Memory"
+    SkipDownload: false
+
+  - Name: "WMI-Parser" # confirmed 2026-11-02
     RepoUrl: "https://github.com/AndrewRathbun/WMI-Parser"
     DownloadMethod: "latestRelease"
     DownloadName: "WMI-Parser.zip"
@@ -389,7 +485,7 @@ tools:
     OutputFolder: "Win10Timeline"
     SkipDownload: false
 
-  - Name: "XstReader" # confirmed 2026-09-16
+  - Name: "XstReader" # confirmed 2026-11-02
     RepoUrl: "https://github.com/iluvadev/XstReader"
     DownloadMethod: "latestRelease"
     AssetFilename: "XstReader\\.App\\..*\\.zip" # XstReader.App 2.x is the current app; XstReader.v.1.x is the legacy build
@@ -400,4 +496,25 @@ tools:
     RepoUrl: "https://download.ericzimmermanstools.com/net/XWFIM.zip" # .Net10
     DownloadMethod: "specificFile"
     OutputFolder: "XWays"
+    SkipDownload: false
+
+  - Name: "YARA" # confirmed 2026-11-03; reference engine; the zip holds yara64.exe and yarac64.exe
+    RepoUrl: "https://github.com/VirusTotal/yara"
+    DownloadMethod: "latestRelease"
+    AssetFilename: "yara-.*-win64\\.zip$"
+    OutputFolder: "Malware"
+    SkipDownload: false
+
+  - Name: "YARA-X" # confirmed 2026-11-03; Rust rewrite of YARA; the yara-x-capi zip is the C library, not the CLI
+    RepoUrl: "https://github.com/VirusTotal/yara-x"
+    DownloadMethod: "latestRelease"
+    AssetFilename: "^yara-x-v.*-x86_64-pc-windows-msvc\\.zip$"
+    OutputFolder: "Malware"
+    SkipDownload: false
+
+  - Name: "Zircolite" # confirmed 2026-11-03; Sigma detection over EVTX, complements chainsaw and hayabusa
+    RepoUrl: "https://github.com/wagga40/Zircolite"
+    DownloadMethod: "latestRelease"
+    AssetFilename: "Zircolite-.*-windows-x64\\.zip$"
+    OutputFolder: "WinEventlogs"
     SkipDownload: false

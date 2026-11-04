@@ -6,14 +6,14 @@
 category: "log_analysis"
 tools:
 
-  - Name: "APT-Hunter" # confirmed 2026-09-16
+  - Name: "APT-Hunter" # confirmed 2026-11-02
     RepoUrl: "https://github.com/ahmedkhlief/APT-Hunter"
     DownloadMethod: "latestRelease"
-    DownloadName: "APT-Hunter.zip"
+    DownloadName: "APT-Hunter.exe" # V4.0 (2026-09-20) ships a single exe, no zip
     OutputFolder: "logs"
     SkipDownload: false
 
-  - Name: "chainsaw" # confirmed 2026-09-16
+  - Name: "chainsaw" # confirmed 2026-11-02
     RepoUrl: "https://github.com/WithSecureOpenSource/chainsaw"
     DownloadMethod: "latestRelease"
     DownloadName: "chainsaw_x86_64-pc-windows-msvc.zip"
@@ -26,43 +26,84 @@ tools:
     OutputFolder: "logs"
     SkipDownload: false
 
-  - Name: "EvtxHussar" # confirmed 2026-09-16
+  - Name: "EvtxHussar" # confirmed 2026-11-02
     RepoUrl: "https://github.com/yarox24/EvtxHussar"
     DownloadMethod: "latestRelease"
     AssetType: "win64"
     OutputFolder: "logs"
     SkipDownload: false
 
-  - Name: "hayabusa" # confirmed 2026-09-16
+  - Name: "forensic-webhistory" # confirmed 2026-11-03; cross-platform browser history extractor from the Forensic Timeliner author
+    RepoUrl: "https://github.com/acquiredsecurity/forensic-webhistory"
+    DownloadMethod: "latestRelease"
+    DownloadName: "forensic-webhistory-windows-x86_64.zip"
+    OutputFolder: "logs"
+    SkipDownload: false
+
+  - Name: "hayabusa" # confirmed 2026-11-02
     RepoUrl: "https://github.com/Yamato-Security/hayabusa"
     DownloadMethod: "latestRelease"
     AssetFilename: "hayabusa-.*-win-x64\\.zip" # explicit: the release also ships win-x64-live-response
     OutputFolder: "logs"
     SkipDownload: false
 
-  - Name: "hayabusa-rules" # confirmed 2026-09-16
+  - Name: "hayabusa-rules" # confirmed 2026-11-02
     RepoUrl: "https://github.com/Yamato-Security/hayabusa-rules"
     DownloadMethod: "branchZip"
     Branch: "main"
     OutputFolder: "logs"
     SkipDownload: false
 
-  - Name: "hindsight" # confirmed 2026-09-16
+  - Name: "hindsight" # confirmed 2026-11-02
     RepoUrl: "https://github.com/RyanDFIR/hindsight"
     DownloadMethod: "latestRelease"
     DownloadName: "hindsight.exe"
     OutputFolder: "logs"
     SkipDownload: false
 
-  - Name: "hindsight_gui" # confirmed 2026-09-16
+  - Name: "hindsight_gui" # confirmed 2026-11-02
     RepoUrl: "https://github.com/RyanDFIR/hindsight"
     DownloadMethod: "latestRelease"
     DownloadName: "hindsight_gui.exe"
     OutputFolder: "logs"
     SkipDownload: false
 
+  - Name: "Sigma" # confirmed 2026-11-03; SigmaHQ rule set that chainsaw and Zircolite consume; release zips are cut a few times a year
+    RepoUrl: "https://github.com/SigmaHQ/sigma"
+    DownloadMethod: "latestRelease"
+    DownloadName: "sigma_all_rules.zip"
+    OutputFolder: "logs"
+    SkipDownload: false
+
+  - Name: "SrumECmd" # confirmed 2026-11-02
+    RepoUrl: "https://download.ericzimmermanstools.com/net/SrumECmd.zip"
+    DownloadMethod: "specificFile"
+    OutputFolder: "logs"
+    SkipDownload: false
+
   - Name: "SumECmd" # confirmed 2026-11-02
     RepoUrl: "https://download.ericzimmermanstools.com/net/SumECmd.zip"
     DownloadMethod: "specificFile"
+    OutputFolder: "logs"
+    SkipDownload: false
+
+  - Name: "Suzaku" # confirmed 2026-11-03; Sigma hunting for AWS CloudTrail logs
+    RepoUrl: "https://github.com/Yamato-Security/suzaku"
+    DownloadMethod: "latestRelease"
+    AssetFilename: "suzaku-.*-win-x64\\.zip$"
+    OutputFolder: "logs"
+    SkipDownload: false
+
+  - Name: "Takajo" # confirmed 2026-11-03; analyzes hayabusa results
+    RepoUrl: "https://github.com/Yamato-Security/takajo"
+    DownloadMethod: "latestRelease"
+    AssetFilename: "takajo-.*-win-x64\\.zip$"
+    OutputFolder: "logs"
+    SkipDownload: false
+
+  - Name: "Zircolite" # confirmed 2026-11-03; Sigma detection over EVTX, complements chainsaw and hayabusa
+    RepoUrl: "https://github.com/wagga40/Zircolite"
+    DownloadMethod: "latestRelease"
+    AssetFilename: "Zircolite-.*-windows-x64\\.zip$"
     OutputFolder: "logs"
     SkipDownload: false

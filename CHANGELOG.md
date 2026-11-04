@@ -2,6 +2,17 @@
 
 All notable changes to ToolFetcher. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Tool definitions
+
+- Added the two Eric Zimmerman tools that were missing, `bstrings` and `SrumECmd` (.NET 10 builds), to `tools.yaml` and the `zimmerman_tools` group; `SrumECmd` also joins `log_analysis`. The configuration now carries all 29 tools on the official download page.
+- APT-Hunter: release V4.0 (2026-09-20) ships a single `APT-Hunter.exe` instead of `APT-Hunter.zip`; `DownloadName` updated in `tools.yaml` and `log_analysis` (the old name failed with "No matching asset").
+- Forensic Timeliner: `acquiredsecurity/forensic-timeliner` was deleted from GitHub without a redirect; the entry now follows `AndrewRathbun/forensic-timeliner`, a mirror that carries the full v2.3 history.
+- ExifTool bumped from the version-locked 13.59 to 13.60.
+- Hashcat and Autopsy `AssetFilename` patterns are anchored with `$` so the `.7z.asc` and `.msi.asc` signature files can never be selected (the script takes the first `-match`, which only worked because the archive is listed first).
+- Every entry in `tools.yaml` and the group files was checked against its upstream on 2026-11-02 and downloaded end to end with ToolFetcher; the `# confirmed` comments carry that date. Still skipped, with a refreshed note: RegistryScanner (repository still gone), DB Browser for SQLCipher (still no Windows build), the NirSoft bundle (URL now redirects to a 403 page).
+
 ## [2.2.1] - 2026-11-02
 
 ### Tool definitions
