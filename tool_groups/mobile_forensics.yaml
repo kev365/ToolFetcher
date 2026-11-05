@@ -6,17 +6,17 @@
 category: "mobile_forensics"
 tools:
 
-  - Name: "aleapp" # confirmed 2026-11-02
+  - Name: "aleapp" # confirmed 2026-11-04; portable Windows build (the main branch zip is source only)
     RepoUrl: "https://github.com/abrignoni/ALEAPP"
-    DownloadMethod: "branchZip"
-    Branch: "main"
+    DownloadMethod: "latestRelease"
+    AssetFilename: "ALEAPP-.*-windows-x64-portable\\.zip$"
     OutputFolder: "mobile"
     SkipDownload: false
 
-  - Name: "ileapp" # confirmed 2026-11-02
+  - Name: "ileapp" # confirmed 2026-11-04; portable Windows build (the main branch zip is 348 MB of source and test data)
     RepoUrl: "https://github.com/abrignoni/ILEAPP"
-    DownloadMethod: "branchZip"
-    Branch: "main"
+    DownloadMethod: "latestRelease"
+    AssetFilename: "iLEAPP-.*-windows-x64-portable\\.zip$"
     OutputFolder: "mobile"
     SkipDownload: false
 
