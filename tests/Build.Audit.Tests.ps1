@@ -45,6 +45,7 @@ Describe 'Audit functions' -Tag Build {
         (Get-AuditStatus -Record @{ SkipDownload = $true; RepoMissing = $true }) | Should -Be 'skipped'
         (Get-AuditStatus -Record @{ Transient = $true }) | Should -Be 'transient'
         (Get-AuditStatus -Record @{ Moved = $true }) | Should -Be 'warn'
+        (Get-AuditStatus -Record @{ Blocked = $true; DownloadMethod = 'latestRelease' }) | Should -Be 'warn'
         (Get-AuditStatus -Record @{ SignatureFirst = $true; Selected = 'x.asc' }) | Should -Be 'broken'
         (Get-AuditStatus -Record @{ HttpStatus = 206; ExpectBinary = $true; ContentType = 'application/zip' }) | Should -Be 'ok'
         (Get-AuditStatus -Record @{ HttpStatus = 200; ExpectBinary = $true; ContentType = 'text/html; charset=utf-8' }) | Should -Be 'broken'

@@ -25,7 +25,9 @@
                  checksum file picked first; HTTP 400 or above; an HTML page where a binary was expected.
       warn       repository moved or renamed; archived; more than one asset matches; a version-locked URL;
                  a redirect that does not resolve (still 3xx after 10 redirects, a redirect loop, or an
-                 HTTPS-to-HTTP downgrade), which is permanent and therefore not transient.
+                 HTTPS-to-HTTP downgrade), which is permanent and therefore not transient; a GitHub repository
+                 lookup refused with HTTP 403 outside the rate limit (access blocked, or a token not
+                 authorized for the owner's SSO).
       transient  network error, HTTP 5xx or 429 after a retry, or the GitHub rate limit; never fails the run.
       skipped    SkipDownload: true in every file that defines the entry, or a placeholder; never fails the run.
       ok         none of the above.
@@ -35,6 +37,9 @@
 
     Output: a console table sorted broken, warn, transient, ok, skipped; with -OutFile a JSON report;
     with -PassThru the records on the pipeline. The exit code is 1 when any record is broken, else 0.
+    A degraded run (rate limit reached, GitHub 401, or transient entries) still exits 0: it is reported by
+    the RateLimited, Unauthorized and TransientCount report fields, by console warnings for the first two,
+    and, when GITHUB_ACTIONS is set, by a ::warning:: annotation for each of the three.
 
     Record fields: Name, Sources ("<file>:<Name>" for every definition folded into the entry), Method,
     RepoUrl, Status, Detail, Latest (release tag), Published (release date), Selected (asset ToolFetcher
@@ -55,7 +60,8 @@
     never written to the console, the JSON report or a log. Direct URL probes do not send it.
 
 .PARAMETER OutFile
-    Writes the report as UTF-8 JSON: Generated, Authenticated, ToolsFiles, Records and Downloads.
+    Writes the report as UTF-8 JSON: Generated, Authenticated, RateLimited (the rate-limit gate tripped),
+    Unauthorized (GitHub answered 401), TransientCount, ToolsFiles, Records and Downloads.
 
 .PARAMETER Download
     LOCAL, MANUAL USE ONLY; never run it from GitHub Actions. After the static audit, runs ToolFetcher.ps1
@@ -119,6 +125,9 @@ $repoRoot = Get-RepoRoot
 $productScript = Join-Path $repoRoot 'ToolFetcher.ps1'
 . $productScript -SourceOnly
 . (Join-Path $PSScriptRoot 'AuditFunctions.ps1')
+# A non-terminating error in the load phase (an unreadable tool_groups folder, say) must stop the run rather
+# than audit a partial set and exit 0. Probe errors are still caught per entry in Get-EntryAudit (transient).
+$ErrorActionPreference = 'Stop'
 Import-PinnedYaml
 # Sets $script:GitHubPAT so the product's Format-RedactedMessage scrubs the token; file logging stays off.
 Set-ToolFetcherRunState -State @{ GitHubPAT = $token; LoggingEnabled = $false; VerboseOutput = $false; TraceOutput = $false; LogFile = $null; LogMutexName = $null }
@@ -229,7 +238,7 @@ function Get-GitHubRepoState {
         [Parameter(Mandatory)][hashtable]$Headers,
         [Parameter(Mandatory)]$Gate
     )
-    $state = [pscustomobject]@{ Ok = $false; Missing = $false; Transient = $false; Moved = $false; FullName = $null; Archived = $null; PushedAt = $null; DefaultBranch = $null; Error = '' }
+    $state = [pscustomobject]@{ Ok = $false; Missing = $false; Blocked = $false; Transient = $false; Moved = $false; FullName = $null; Archived = $null; PushedAt = $null; DefaultBranch = $null; Error = '' }
     $api = Invoke-AuditGitHubApi -Uri "https://api.github.com/repos/$Owner/$Repo" -Headers $Headers -Gate $Gate -Description "repository lookup for $Owner/$Repo"
     if ($api.Ok -and $null -ne $api.Data) {
         $state.Ok = $true
@@ -243,6 +252,13 @@ function Get-GitHubRepoState {
     elseif (Test-GitHubNotFound -Api $api) {
         $state.Missing = $true
         $state.Error = "repository $Owner/$Repo not found (HTTP $($api.StatusCode))"
+    }
+    elseif ($api.StatusCode -eq 403 -and -not $api.RateLimited) {
+        # Refused without a rate-limit signal (access blocked, or a token not authorized for the owner's SSO):
+        # retrying will not help, so warn instead of reporting transient forever. A rate-limited 403 or 429
+        # has RateLimited set, trips the gate and stays transient below.
+        $state.Blocked = $true
+        $state.Error = "repository $Owner/$Repo refused (HTTP 403, not the rate limit): access blocked or the token is not authorized for it"
     }
     else {
         $state.Transient = $true
@@ -460,7 +476,7 @@ function Get-EntryAudit {
     $repoUrl = ([string]$Entry['RepoUrl']).Trim()
     # The fields Get-AuditStatus folds into a status; DownloadMethod drives its latestRelease rule.
     $flags = @{
-        SkipDownload = $Skipped; Transient = $false; RepoMissing = $false; BranchMissing = $false; Moved = $false
+        SkipDownload = $Skipped; Transient = $false; RepoMissing = $false; BranchMissing = $false; Blocked = $false; Moved = $false
         Archived = $false; Selected = $null; Ambiguous = $false; SignatureFirst = $false; HttpStatus = $null
         ContentType = $null; ExpectBinary = $false; VersionLocked = $null; DownloadMethod = $method
     }
@@ -485,6 +501,10 @@ function Get-EntryAudit {
             }
             elseif ($repo.Missing) {
                 $flags.RepoMissing = $true
+                $notes.Add($repo.Error)
+            }
+            elseif ($repo.Blocked) {
+                $flags.Blocked = $true
                 $notes.Add($repo.Error)
             }
             else {
@@ -723,11 +743,22 @@ foreach ($placeholder in $placeholders.Values) {
             FinalUrl = $null; Length = $null; LastModified = $null; ContentType = $null; VersionLocked = $null; Transient = $false
         })
 }
+$transientCount = @($records | Where-Object { $_.Status -eq 'transient' }).Count
+$degraded = [System.Collections.Generic.List[string]]::new()
 if ($gate.Tripped) {
-    Write-Warning 'GitHub API rate limit reached: the GitHub-backed entries after it were not queried and are reported as transient.'
+    $degraded.Add('GitHub API rate limit reached: the GitHub-backed entries after it were not queried and are reported as transient.')
 }
 if ($script:AuditUnauthorized) {
-    Write-Warning 'GitHub answered 401 (bad credentials): the token is invalid or expired, and the GitHub-backed entries are reported as transient.'
+    $degraded.Add('GitHub answered 401 (bad credentials): the token is invalid or expired, and the GitHub-backed entries are reported as transient.')
+}
+foreach ($message in $degraded) { Write-Warning $message }
+# A degraded run still exits 0 (only broken fails it), so on GitHub Actions it is also raised as a warning
+# annotation, which shows on the run page.
+if (-not [string]::IsNullOrEmpty($env:GITHUB_ACTIONS)) {
+    if ($transientCount -gt 0) {
+        $degraded.Add("$transientCount entries are transient and were not verified this run; their Detail gives the cause.")
+    }
+    foreach ($message in $degraded) { Write-Host "::warning::$message" }
 }
 
 # ---- Report ----
@@ -762,11 +793,14 @@ if ($runDownloads) {
 
 if (-not [string]::IsNullOrEmpty($reportPath)) {
     $report = [ordered]@{
-        Generated     = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ', [System.Globalization.CultureInfo]::InvariantCulture)
-        Authenticated = -not [string]::IsNullOrEmpty($token)
-        ToolsFiles    = $fileLabels
-        Records       = $records.ToArray()
-        Downloads     = $downloads.ToArray()
+        Generated      = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ', [System.Globalization.CultureInfo]::InvariantCulture)
+        Authenticated  = -not [string]::IsNullOrEmpty($token)
+        RateLimited    = [bool]$gate.Tripped
+        Unauthorized   = [bool]$script:AuditUnauthorized
+        TransientCount = $transientCount
+        ToolsFiles     = $fileLabels
+        Records        = $records.ToArray()
+        Downloads      = $downloads.ToArray()
     }
     $json = Protect-AuditText -Text ($report | ConvertTo-Json -Depth 6)
     $reportFolder = Split-Path -Parent $reportPath

@@ -103,20 +103,22 @@ function Test-VersionLockedUrl {
 
 # Folds one probe record into ok | warn | broken | skipped | transient. Precedence: skipped, transient,
 # broken, warn, ok. A record is a hashtable or object; absent fields read as $null (falsy). Beyond the
-# fields listed in the plan, DownloadMethod is read to apply the latestRelease-without-Selected rule.
+# fields listed in the plan, DownloadMethod is read to apply the latestRelease-without-Selected rule, and
+# Blocked (the repository lookup was refused with HTTP 403 outside the rate limit) maps to warn; it also
+# lifts the latestRelease rule, because a blocked repository's release was never queried.
 function Get-AuditStatus {
     param ([Parameter(Mandatory)]$Record)
     if ($Record.SkipDownload) { return 'skipped' }
     if ($Record.Transient) { return 'transient' }
     $isLatest = ([string]$Record.DownloadMethod) -eq 'latestRelease'
     if ($Record.RepoMissing -or $Record.BranchMissing -or
-        ($isLatest -and -not $Record.Selected) -or
+        ($isLatest -and -not $Record.Selected -and -not $Record.Blocked) -or
         $Record.SignatureFirst -or
         ($null -ne $Record.HttpStatus -and [int]$Record.HttpStatus -ge 400) -or
         ($Record.ExpectBinary -and [string]$Record.ContentType -like 'text/html*')) {
         return 'broken'
     }
-    if ($Record.Moved -or $Record.Archived -or $Record.Ambiguous -or $Record.VersionLocked) { return 'warn' }
+    if ($Record.Moved -or $Record.Archived -or $Record.Ambiguous -or $Record.VersionLocked -or $Record.Blocked) { return 'warn' }
     return 'ok'
 }
 
