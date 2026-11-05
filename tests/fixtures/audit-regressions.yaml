@@ -1,0 +1,32 @@
+# Regression fixture for build/Test-ToolDefinitions.ps1 (the upstream audit).
+# Every entry below is intentionally broken or fragile: each one reproduces a breakage the
+# project has hit in the past, and the audit must keep reporting the status in its comment.
+# Do not "fix" these entries and do not merge them into tools.yaml or tool_groups.
+
+tooldirectory: ""
+category: "audit-regressions"
+tools:
+  - Name: "EZ-net9" # expected: broken (the net9 build folder was removed upstream)
+    RepoUrl: "https://download.ericzimmermanstools.com/net9/PECmd.zip"
+    DownloadMethod: "specificFile"
+    DownloadName: "PECmd.zip"
+
+  - Name: "APT-Hunter-zip" # expected: broken (releases ship a .7z or .exe, no APT-Hunter.zip asset)
+    RepoUrl: "https://github.com/ahmedkhlief/APT-Hunter"
+    DownloadMethod: "latestRelease"
+    DownloadName: "APT-Hunter.zip"
+
+  - Name: "Forensic-Timeliner-old" # expected: broken (repository no longer has a main branch at this URL)
+    RepoUrl: "https://github.com/acquiredsecurity/forensic-timeliner"
+    DownloadMethod: "branchZip"
+    Branch: "main"
+
+  - Name: "Loki2-old" # expected: warn (repository moved, GitHub redirects the old URL)
+    RepoUrl: "https://github.com/Neo23x0/Loki2"
+    DownloadMethod: "latestRelease"
+    AssetFilename: "loki-windows-x86_64-v.*\\.zip$"
+
+  - Name: "ExifTool-13.59" # expected: warn (version-locked URL, goes stale at the next release)
+    RepoUrl: "https://sourceforge.net/projects/exiftool/files/exiftool-13.59_64.zip/download"
+    DownloadMethod: "specificFile"
+    DownloadName: "exiftool-13.59_64.zip"
