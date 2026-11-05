@@ -25,6 +25,10 @@ Describe 'New-Release' -Tag Build {
         Get-Content "$clone\CHANGELOG.md" | Should -Contain '## [9.9.9] - 2026-01-02'
         Test-Path $r.ZipPath | Should -BeTrue; Test-Path $r.NotesPath | Should -BeTrue
         (Get-Content $r.NotesPath -Raw) | Should -Match 'Full changelog: https://github.com/kev365/ToolFetcher/blob/main/CHANGELOG.md'
+        # The commit carries a bullet body: one -m per bullet line of the new CHANGELOG section.
+        $r.Commands[0] | Should -BeLike "git commit -m `"Release 9.9.9`" -m '- *' -- ToolFetcher.ps1 README.md CHANGELOG.md"
+        $bullets = @([regex]::Split((Get-ChangelogSection -RepoRoot $clone -Version 9.9.9), '\r?\n') -cmatch '^- ')
+        [regex]::Matches($r.Commands[0], " -m '- ").Count | Should -Be $bullets.Count
         ($r.Commands -join "`n") | Should -Match 'git tag -a v9\.9\.9 -m "ToolFetcher 9\.9\.9"'
         ($r.Commands -join "`n") | Should -Match 'gh release create v9\.9\.9'
         # Only dry-runs are printed: no command line may push for real, and both dry-run lines are present.

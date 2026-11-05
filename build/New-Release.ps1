@@ -22,7 +22,9 @@
       - verifies the zip: the entry list equals that file set, every entry's CR-stripped SHA256 equals
         the working-tree file's, and the script inside carries the new version;
       - writes dist/release-notes-X.Y.Z.md: the new CHANGELOG section and the "Full changelog" link;
-      - prints the commit, merge (when not on main), tag, push --dry-run and gh release create commands.
+      - prints the commit (subject 'Release X.Y.Z', one -m per bullet of the new CHANGELOG section as the
+        body), merge (when not on main), tag, push --dry-run and gh release create commands, quoted for
+        PowerShell.
 
     The script never commits, tags, pushes or publishes. Under -WhatIf nothing is written (dist/
     included); the notes text then comes from the Unreleased section and the printed paths do not exist.
@@ -230,10 +232,12 @@ function Update-ReleaseVersion {
         $path = Join-Path $root $edit.File
         $bytes = [System.IO.File]::ReadAllBytes($path)
         $hasBom = ($bytes.Length -ge 3 -and $bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF)
-        $encoding = [System.Text.UTF8Encoding]::new($hasBom)
+        # throwOnInvalidBytes: an invalid byte fails the bump instead of being rewritten as U+FFFD.
+        $encoding = [System.Text.UTF8Encoding]::new($hasBom, $true)
         $skip = 0
         if ($hasBom) { $skip = 3 }
-        $text = $encoding.GetString($bytes, $skip, $bytes.Length - $skip)
+        try { $text = $encoding.GetString($bytes, $skip, $bytes.Length - $skip) }
+        catch { throw "$($edit.File) is not valid UTF-8, so the version bump does not rewrite it: $($_.Exception.Message)" }
         $regex = [regex]::new($edit.Pattern)
         $found = $regex.Matches($text).Count
         if ($found -ne 1) { throw "$($edit.File): expected exactly one $($edit.What), found $found" }
@@ -281,11 +285,25 @@ function Get-ReleaseCommands {
         [Parameter(Mandatory)][string]$RepoRoot,
         [Parameter(Mandatory)][ValidatePattern('^\d+\.\d+\.\d+$')][string]$Version,
         [Parameter(Mandatory)][string]$ZipPath,
-        [Parameter(Mandatory)][string]$NotesPath
+        [Parameter(Mandatory)][string]$NotesPath,
+        # The CHANGELOG section whose bullets become the commit body; defaults to -Version. The main flow
+        # passes 'Unreleased' under -WhatIf, where the heading has not been renamed.
+        [ValidatePattern('^(\d+\.\d+\.\d+|Unreleased)$')][string]$ChangelogSection = ''
     )
+    $sectionName = $ChangelogSection
+    if (-not $sectionName) { $sectionName = $Version }
     $branch = "$(& git -C $RepoRoot branch --show-current 2>$null)".Trim()
     $commands = [System.Collections.Generic.List[string]]::new()
-    $commands.Add("git commit -m `"Release $Version`" -- ToolFetcher.ps1 README.md CHANGELOG.md")
+    # One -m per CHANGELOG bullet line gives the bullet body CLAUDE.md asks for (git puts a blank line between
+    # -m values). The bullets are single-quoted for PowerShell, so backticks and $ stay literal; every
+    # character PowerShell treats as a single quote (' and the curly forms) is doubled.
+    $commit = "git commit -m `"Release $Version`""
+    foreach ($line in [regex]::Split((Get-ChangelogSection -RepoRoot $RepoRoot -Version $sectionName), '\r?\n')) {
+        if ($line -cmatch '^- ') {
+            $commit += " -m '" + [regex]::Replace($line.TrimEnd(), '[''\u2018\u2019\u201A\u201B]', '$0$0') + "'"
+        }
+    }
+    $commands.Add("$commit -- ToolFetcher.ps1 README.md CHANGELOG.md")
     if ($branch -cne 'main') {
         if (-not $branch) {
             Write-Warning "HEAD is detached in $RepoRoot; replace <branch> with the branch that holds the release commit."
@@ -423,7 +441,7 @@ if ($PSCmdlet.ShouldProcess($notesPath, 'Write the release notes')) {
     Write-Host "  wrote $notesPath" -ForegroundColor Green
 }
 
-$commands = [string[]](Get-ReleaseCommands -RepoRoot $RepoRoot -Version $Version -ZipPath $zipPath -NotesPath $notesPath)
+$commands = [string[]](Get-ReleaseCommands -RepoRoot $RepoRoot -Version $Version -ZipPath $zipPath -NotesPath $notesPath -ChangelogSection $sectionName)
 Write-Host ''
 if ($WhatIfPreference) {
     Write-Host '-WhatIf: no file was changed or written; the zip and notes paths below do not exist.' -ForegroundColor Yellow
@@ -431,7 +449,6 @@ if ($WhatIfPreference) {
 Write-Host "Nothing has been committed, tagged, pushed or published. From $RepoRoot run:" -ForegroundColor Cyan
 foreach ($command in $commands) { Write-Host "  $command" }
 Write-Host 'When both dry runs look right, push main and the tag without --dry-run before the gh release line.' -ForegroundColor Cyan
-Write-Host 'The commit command sets the subject only: add a bullet body of what changed and why (CLAUDE.md), for example with git commit --amend before the merge.' -ForegroundColor Cyan
 
 [pscustomobject]@{
     Version   = $Version
