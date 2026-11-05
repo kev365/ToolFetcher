@@ -16,7 +16,7 @@ tools:
     DownloadMethod: "latestRelease"
     DownloadName: "APT-Hunter.zip"
 
-  - Name: "Forensic-Timeliner-old" # expected: broken (repository no longer has a main branch at this URL)
+  - Name: "Forensic-Timeliner-old" # expected: broken (repository deleted upstream, the GitHub API answers 404)
     RepoUrl: "https://github.com/acquiredsecurity/forensic-timeliner"
     DownloadMethod: "branchZip"
     Branch: "main"
