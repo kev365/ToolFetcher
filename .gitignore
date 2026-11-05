@@ -3,6 +3,9 @@
 .cursorrules
 *.mdc
 CLAUDE.md
+checks.json
+audit.json
+testResults.xml
 
 
 # Folders

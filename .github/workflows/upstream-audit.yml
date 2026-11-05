@@ -1,0 +1,33 @@
+name: upstream-audit
+
+on:
+  schedule:
+    - cron: '0 6 1 * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dev modules
+        shell: pwsh
+        run: ./build/Install-DevModules.ps1 -Edition pwsh
+
+      - name: Audit tool definitions against upstream
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./build/Test-ToolDefinitions.ps1 -OutFile audit.json
+
+      - name: Upload audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: upstream-audit
+          path: audit.json
+          if-no-files-found: ignore
