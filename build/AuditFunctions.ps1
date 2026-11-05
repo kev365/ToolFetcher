@@ -1,4 +1,4 @@
-#Requires -Version 7
+#Requires -Version 7.4
 # Network-free logic for build/Test-ToolDefinitions.ps1 (the upstream audit).
 # Expects the product script (ToolFetcher.ps1 -SourceOnly: Select-ReleaseAsset, $script:AssetPatterns)
 # and build/DevCommon.ps1 to be dot-sourced first. This file dot-sources nothing and makes no network calls.

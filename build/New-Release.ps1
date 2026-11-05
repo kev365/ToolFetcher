@@ -1,4 +1,4 @@
-#Requires -Version 7
+#Requires -Version 7.4
 <#
 .SYNOPSIS
     Bumps the version, builds and verifies the release zip and notes, and prints the publish commands.

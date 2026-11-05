@@ -1,4 +1,4 @@
-#Requires -Version 7
+#Requires -Version 7.4
 # Shared helpers dot-sourced by the scripts under build/ and by the Build-tagged tests.
 
 function Get-RepoRoot {

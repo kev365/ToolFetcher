@@ -1,4 +1,4 @@
-#Requires -Version 7
+#Requires -Version 7.4
 <#
 .SYNOPSIS
     Runs the ToolFetcher verification steps and prints a pass/fail table.
