@@ -275,8 +275,9 @@ Add-Type -AssemblyName System.IO.Compression.FileSystem -ErrorAction SilentlyCon
 $script:Version = "2.2.2"
 
 # Pin powershell-yaml to a known-good version. PSGallery is the trusted
-# default, but pinning protects against supply-chain compromise of the module.
-$script:RequiredYamlVersion = "0.4.7"
+# default, but pinning protects against supply-chain compromise of the module. The import
+# below passes -RequiredVersion, so other installed versions are never loaded.
+$script:RequiredYamlVersion = "0.4.12"
 
 # Per-process staging folder under the system temp path. Each download writes
 # transient files here, then copies the final result into $ToolsDirectory.
@@ -946,10 +947,10 @@ $defaultToolsFileUrl = "https://raw.githubusercontent.com/kev365/ToolFetcher/ref
 # Import first; Get-Module -ListAvailable walks every module path and is only needed when the
 # import fails (module not installed).
 $yamlImported = $false
-try { Import-Module -Name powershell-yaml -ErrorAction Stop; $yamlImported = $true } catch { $yamlImported = $false }
+try { Import-Module -Name powershell-yaml -RequiredVersion $script:RequiredYamlVersion -ErrorAction Stop; $yamlImported = $true } catch { $yamlImported = $false }
 if (-not $yamlImported) {
-    Write-LogInfo "The 'powershell-yaml' module is required to parse YAML configuration files."
-    $choice = Read-Host "Would you like to install the 'powershell-yaml' module? (Y/N)"
+    Write-LogInfo "The 'powershell-yaml' module version $script:RequiredYamlVersion is required to parse YAML configuration files."
+    $choice = Read-Host "Would you like to install 'powershell-yaml' $script:RequiredYamlVersion for the current user? (Y/N)"
     if ($choice -match '^(?i:Y(es)?)$') {
         Write-LogInfo "Attempting to install the 'powershell-yaml' module (pinned to $script:RequiredYamlVersion)..."
         try {
@@ -965,7 +966,8 @@ if (-not $yamlImported) {
         exit 1
     }
 }
-if (-not $yamlImported) { Import-Module -Name powershell-yaml -ErrorAction Stop }
+if (-not $yamlImported) { Import-Module -Name powershell-yaml -RequiredVersion $script:RequiredYamlVersion -ErrorAction Stop }
+Write-LogDebug "powershell-yaml $((Get-Module -Name powershell-yaml).Version) loaded"
 
 $mergedTools     = New-Object System.Collections.Generic.List[object]
 $mergedToolDir   = ""

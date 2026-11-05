@@ -52,7 +52,7 @@ ToolFetcher is a PowerShell tool designed to fetch and manage a collection of DF
 - **PowerShell:** Windows PowerShell 5.1 or PowerShell 7+
 - **Internet Connection:** Required for downloading tools and GitHub API access
 - **powershell-yaml Module:**  
-  This module is required to parse the YAML configuration files. The script imports it if installed and otherwise offers to install a pinned version (0.4.7).
+  This module is required to parse the YAML configuration files. The script imports exactly the pinned version (0.4.12) and otherwise offers to install it for the current user, side by side with any other version.
 - **.NET 10 runtime:** the Eric Zimmerman tools in the shipped configuration are the .NET 10 builds (the `net/` folder on download.ericzimmermanstools.com).
 
 ## Getting Started
@@ -287,9 +287,10 @@ configuration files you supply. A few things to keep in mind:
 - **Plaintext HTTP warning.** `RepoUrl` or `-ToolsFile` values starting with
   `http://` produce a warning at validation time. They still work but are
   vulnerable to tampering in transit.
-- **Pinned dependency.** The `powershell-yaml` module is installed at a
+- **Pinned dependency.** The `powershell-yaml` module is installed and imported at a
   specific version (see `$script:RequiredYamlVersion` in the script) to
-  protect against supply-chain compromise of that module.
+  protect against supply-chain compromise of that module; a different version present on the
+  machine is never loaded.
 
 ## Future Considerations
 

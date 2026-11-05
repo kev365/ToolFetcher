@@ -7,6 +7,7 @@ All notable changes to ToolFetcher. The format follows [Keep a Changelog](https:
 ### Changed
 
 - File hashing (`Get-FileHashHex`) reads through a 64 KB stream buffer instead of 1 MB. Hash output is unchanged; manifests after extraction and the managed-file checks on `-UpdateAll` are about 2x faster on PowerShell 7 and 5x to 6x faster on Windows PowerShell 5.1 for many-file tools (5,084-file tree: 12.3 s to about 2 s on 5.1).
+- `powershell-yaml` is pinned to 0.4.12 (cloudbase, published 2025-01-23) instead of 0.4.7, and the pin is now enforced: the module is imported with `-RequiredVersion`, where before any installed version was loaded and the pin only applied to a fresh install. The newer build imports about 1 s faster on PowerShell 7. When the pinned version is missing the script offers to install it for the current user, side by side with other versions.
 
 ## [2.2.2] - 2026-11-03
 
