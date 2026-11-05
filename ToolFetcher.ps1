@@ -2165,6 +2165,40 @@ function Get-MarkerRemoteArgs {
     return $splat
 }
 
+# Picks the release asset for the latestRelease method. Rules, first that applies: DownloadName
+# matches the asset name with -eq (case-insensitive), AssetFilename is a regex (-match), AssetType
+# looks up its regex in $script:AssetPatterns (an unknown type logs a warning and leaves the list
+# unfiltered), otherwise every asset qualifies. Returns the first qualifying asset in release
+# order, or $null; with -All, an array of every qualifying asset (empty when none).
+function Select-ReleaseAsset {
+    param (
+        [Parameter(Mandatory=$true)]$ToolConfig,
+        [Parameter(Mandatory=$true)][AllowNull()][AllowEmptyCollection()][object[]]$Assets,
+        [Parameter(Mandatory=$false)][switch]$All
+    )
+    $candidates = $Assets
+    if (-not [string]::IsNullOrEmpty($ToolConfig.DownloadName)) {
+        $candidates = $candidates | Where-Object { $_.name -eq $ToolConfig.DownloadName }
+    }
+    elseif (-not [string]::IsNullOrEmpty($ToolConfig.AssetFilename)) {
+        $candidates = $candidates | Where-Object { $_.name -match $ToolConfig.AssetFilename }
+    }
+    elseif (-not [string]::IsNullOrEmpty($ToolConfig.AssetType)) {
+        if ($script:AssetPatterns.ContainsKey($ToolConfig.AssetType)) {
+            $pattern = $script:AssetPatterns[$ToolConfig.AssetType]
+            $candidates = $candidates | Where-Object { $_.name -match $pattern }
+        }
+        else {
+            Write-LogWarning "No pattern defined for AssetType '$($ToolConfig.AssetType)' for $($ToolConfig.Name)."
+        }
+    }
+    if ($All) {
+        # The leading comma keeps a single match (or none) an array for the caller.
+        return , @($candidates)
+    }
+    return ($candidates | Select-Object -First 1)
+}
+
 # One metadata fetch per tool: everything the dispatcher and the Save-* functions need
 # (download URL, version/commit, ETags). With -Marker, GitHub API calls are conditional
 # (If-None-Match on the stored ApiETag); a 304 means "unchanged upstream", costs no
@@ -2216,23 +2250,7 @@ function Resolve-ToolRemote {
             }
             $releaseInfo = $api.Data
             Write-LogDebug "Retrieved release info. Assets count: $($releaseInfo.assets.Count)"
-            $assets = $releaseInfo.assets
-            if (-not [string]::IsNullOrEmpty($ToolConfig.DownloadName)) {
-                $assets = $assets | Where-Object { $_.name -eq $ToolConfig.DownloadName }
-            }
-            elseif (-not [string]::IsNullOrEmpty($ToolConfig.AssetFilename)) {
-                $assets = $assets | Where-Object { $_.name -match $ToolConfig.AssetFilename }
-            }
-            elseif (-not [string]::IsNullOrEmpty($ToolConfig.AssetType)) {
-                if ($script:AssetPatterns.ContainsKey($ToolConfig.AssetType)) {
-                    $pattern = $script:AssetPatterns[$ToolConfig.AssetType]
-                    $assets = $assets | Where-Object { $_.name -match $pattern }
-                }
-                else {
-                    Write-LogWarning "No pattern defined for AssetType '$($ToolConfig.AssetType)' for $name."
-                }
-            }
-            $asset = $assets | Select-Object -First 1
+            $asset = Select-ReleaseAsset -ToolConfig $ToolConfig -Assets $releaseInfo.assets
             if ($null -eq $asset) {
                 Write-LogWarning "No matching asset found for $name."
                 $remote.Error = "No matching asset found for $name."
