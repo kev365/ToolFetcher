@@ -1,4 +1,4 @@
-#Requires -Version 7
+#Requires -Version 7.4
 <#
 .SYNOPSIS
     Audits every tool definition against its upstream and reports what is broken, moved, archived,
@@ -23,7 +23,9 @@
     Status per entry (rules in build/AuditFunctions.ps1, Get-AuditStatus):
       broken     repository, branch or asset missing; a selector that matches nothing; a signature or
                  checksum file picked first; HTTP 400 or above; an HTML page where a binary was expected.
-      warn       repository moved or renamed; archived; more than one asset matches; a version-locked URL.
+      warn       repository moved or renamed; archived; more than one asset matches; a version-locked URL;
+                 a redirect that does not resolve (still 3xx after 10 redirects, a redirect loop, or an
+                 HTTPS-to-HTTP downgrade), which is permanent and therefore not transient.
       transient  network error, HTTP 5xx or 429 after a retry, or the GitHub rate limit; never fails the run.
       skipped    SkipDownload: true in every file that defines the entry, or a placeholder; never fails the run.
       ok         none of the above.
@@ -83,6 +85,10 @@
     pwsh -NoProfile -File build/Test-ToolDefinitions.ps1 -GitHubPAT (gh auth token) -Download
 
     Local end-to-end check: the static audit, then a real ToolFetcher download run per tools file.
+
+.NOTES
+    Requires PowerShell 7.4 or later: the direct URL probes pass Invoke-WebRequest -OperationTimeoutSeconds,
+    which 7.0 to 7.3 do not have (every probe would fail to bind and come back transient).
 #>
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingWriteHost', '', Justification = 'Console UI: headings, summary and download lines for a developer script')]
 [CmdletBinding()]
@@ -301,10 +307,11 @@ function Get-BranchState {
 }
 
 # Ranged GET of a download URL with ToolFetcher's User-Agent and no token. A network error, 5xx or 429 is
-# retried once and then reported as transient. Never throws.
+# retried once and then reported as transient; a redirect that does not resolve is reported as Unresolved
+# (warn). Never throws.
 function Get-DirectUrlState {
     param([Parameter(Mandatory)][string]$Url)
-    $state = [pscustomobject]@{ Responded = $false; Transient = $false; HttpStatus = $null; FinalUrl = $null; ContentType = $null; Length = $null; LastModified = $null; Error = '' }
+    $state = [pscustomobject]@{ Responded = $false; Transient = $false; Unresolved = $false; HttpStatus = $null; FinalUrl = $null; ContentType = $null; Length = $null; LastModified = $null; Error = '' }
     $request = @{
         Uri                     = $Url
         UseBasicParsing         = $true
@@ -318,14 +325,25 @@ function Get-DirectUrlState {
     }
     $response = $null
     $failure = ''
+    $insecureRedirect = $false
     foreach ($attempt in 1, 2) {
         $response = $null
         $failure = ''
         try { $response = Invoke-WebRequest @request }
-        catch { $failure = $_.Exception.Message }
+        catch {
+            # PowerShell 7.4+ refuses an HTTPS-to-HTTP redirect with this error instead of returning the 3xx.
+            if ([string]$_.FullyQualifiedErrorId -like 'InsecureRedirection*') { $insecureRedirect = $true }
+            $failure = $_.Exception.Message
+        }
+        if ($insecureRedirect) { break }
         $retry = ($null -eq $response) -or ([int]$response.StatusCode -ge 500) -or ([int]$response.StatusCode -eq 429)
         if (-not $retry) { break }
         if ($attempt -eq 1) { Start-Sleep -Seconds 2 }
+    }
+    if ($insecureRedirect) {
+        $state.Unresolved = $true
+        $state.Error = 'redirect not resolved: HTTPS to HTTP downgrade refused'
+        return $state
     }
     if ($null -eq $response) {
         $state.Transient = $true
@@ -352,8 +370,11 @@ function Get-DirectUrlState {
         $state.Error = "HTTP $status after a retry"
     }
     elseif ($status -ge 300 -and $status -lt 400) {
-        $state.Transient = $true
-        $state.Error = "HTTP $status after 10 redirects"
+        # Still redirecting after the 10-hop limit (a long chain or a loop): permanent, so warn, not transient.
+        $state.Unresolved = $true
+        $state.Error = "HTTP $status, redirect not resolved after 10 redirects (redirect limit or loop)"
+        $location = [string](Get-ResponseHeader -Headers $response.Headers -Name 'Location')
+        if (-not [string]::IsNullOrEmpty($location)) { $state.Error += "; next Location $(($location -split '\?')[0])" }
     }
     return $state
 }
@@ -405,6 +426,13 @@ function Add-DirectUrlResult {
     $Record.ContentType = $Direct.ContentType
     $Flags.HttpStatus = $Direct.HttpStatus
     $Flags.ContentType = $Direct.ContentType
+    if ($Direct.Unresolved) {
+        # Get-AuditStatus has no field for an unresolved redirect; Moved is its redirect flag and maps to warn.
+        # The 3xx body's Content-Type says nothing about the download, so it must not trigger the HTML rule.
+        $Flags.Moved = $true
+        $Flags.ContentType = $null
+        return $Direct.Error
+    }
     if ($Direct.Transient) {
         $Flags.Transient = $true
         return "transient: $($Direct.Error)"
