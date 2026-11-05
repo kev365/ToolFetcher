@@ -44,3 +44,22 @@ function New-FakeAsset {
     param ([Parameter(Mandatory)][string]$Name)
     [pscustomobject]@{ name = $Name; browser_download_url = "https://example.invalid/$Name" }
 }
+
+# Stand-in for the exception Invoke-WebRequest throws on an HTTP error. Get-HttpErrorInfo only reads
+# Exception.Response.StatusCode and Response.Headers (Get-ResponseHeader accepts an IDictionary), so a
+# PowerShell class with a Response property drives it identically on Windows PowerShell 5.1 and 7+.
+class FakeHttpException : System.Exception {
+    [object]$Response
+    FakeHttpException([string]$Message, [object]$Response) : base($Message) { $this.Response = $Response }
+}
+
+function New-FakeHttpException {
+    param (
+        [Parameter(Mandatory)][int]$StatusCode,
+        [string]$RetryAfter = $null
+    )
+    $headers = @{}
+    if ($RetryAfter) { $headers['Retry-After'] = $RetryAfter }
+    $response = [pscustomobject]@{ StatusCode = $StatusCode; Headers = $headers }
+    return [FakeHttpException]::new("HTTP $StatusCode", $response)
+}
