@@ -4,6 +4,10 @@ All notable changes to ToolFetcher. The format follows [Keep a Changelog](https:
 
 ## [Unreleased]
 
+### Added
+
+- Development tooling under `build/`: `Invoke-Checks.ps1` runs the verification steps on both editions, `New-Release.ps1` bumps, packages and verifies a release and prints the publish commands, `Test-ToolDefinitions.ps1` audits every tool entry against its upstream; a Pester suite under `tests/`; GitHub Actions run the checks on every push and the audit monthly. `Select-ReleaseAsset` is extracted from `Resolve-ToolRemote` with unchanged behavior.
+
 ### Changed
 
 - File hashing (`Get-FileHashHex`) reads through a 64 KB stream buffer instead of 1 MB. Hash output is unchanged; manifests after extraction and the managed-file checks on `-UpdateAll` are about 2x faster on PowerShell 7 and 5x to 6x faster on Windows PowerShell 5.1 for many-file tools (5,084-file tree: 12.3 s to about 2 s on 5.1).

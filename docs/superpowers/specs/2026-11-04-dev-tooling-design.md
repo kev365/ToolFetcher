@@ -1,6 +1,6 @@
 # ToolFetcher development tooling: checks, release, upstream audit, tests, CI
 
-Date: 2026-11-04. Status: draft for approval. Item 6 of the efficiency pass agreed on 2026-11-04.
+Date: 2026-11-04. Status: implemented 2026-11-05 on branch dev-tooling. Item 6 of the efficiency pass agreed on 2026-11-04.
 
 ## Intent
 
