@@ -2,6 +2,12 @@
 
 All notable changes to ToolFetcher. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Changed
+
+- File hashing (`Get-FileHashHex`) reads through a 64 KB stream buffer instead of 1 MB. Hash output is unchanged; manifests after extraction and the managed-file checks on `-UpdateAll` are about 2x faster on PowerShell 7 and 5x to 6x faster on Windows PowerShell 5.1 for many-file tools (5,084-file tree: 12.3 s to about 2 s on 5.1).
+
 ## [2.2.2] - 2026-11-03
 
 ### Tool definitions
