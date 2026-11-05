@@ -330,6 +330,7 @@ GitHub Actions run the same checks on every push and pull request
 dispatch (`.github/workflows/upstream-audit.yml`). Tests tagged `Network` call
 live services and tests tagged `Build` cover the `build/` scripts; the rest cover
 the product script.
+
 ## Future Considerations
 
 - **Additional Archive Formats:**  

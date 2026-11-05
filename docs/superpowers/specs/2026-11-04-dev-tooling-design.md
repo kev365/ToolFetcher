@@ -173,7 +173,7 @@ Pester 5, one file per area, each dot-sourcing `ToolFetcher.ps1 -SourceOnly` in 
 ## Acceptance
 
 - `pwsh -File build/Invoke-Checks.ps1 -Pester` passes on the branch it is built on and on `main` once merged, and replaces the manual CLAUDE.md steps.
-- A rehearsal `New-Release.ps1 -Version X.Y.Z -WhatIf` on a throwaway branch produces a zip whose entry list and CR-stripped hashes match what the hand-built 2.2.2 process produced for the same tree, leaves `[Unreleased]` intact, and prints commands that, when a human runs them, reproduce the 2.2.2 release flow exactly.
+- The release zip is accepted through the clone-based build-and-verify test (`tests/Build.NewRelease.Tests.ps1` builds the zip from a clone with `New-ReleaseZip` and verifies it with `Test-ReleaseZip`) together with a comparison of the zip's entry list and CR-stripped hashes against the published 2.2.2 asset for the same tree. A rehearsal `New-Release.ps1 -Version X.Y.Z -WhatIf` on a throwaway branch writes nothing (no zip, no notes, no version edits), leaves `[Unreleased]` intact, and prints commands that, when a human runs them, reproduce the 2.2.2 release flow exactly.
 - `Test-ToolDefinitions.ps1` reports every entry in `tests/fixtures/audit-regressions.yaml` with its expected status and reports all 78 current entries as `ok`, `warn` or `skipped`.
 - The Pester suite is green under pwsh 7.6 and Windows PowerShell 5.1 locally and in Actions.
 - PSScriptAnalyzer still reports 0 findings for `ToolFetcher.ps1` and for every script under `build/`.
