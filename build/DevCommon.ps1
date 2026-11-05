@@ -14,7 +14,7 @@ function Get-ScriptSetting {
         [string]$ScriptPath = (Join-Path (Get-RepoRoot) 'ToolFetcher.ps1')
     )
     $pattern = '^\$script:' + [regex]::Escape($Name) + '\s*=\s*"([^"]+)"'
-    foreach ($line in [System.IO.File]::ReadLines($ScriptPath)) {
+    foreach ($line in [System.IO.File]::ReadAllLines($ScriptPath)) {
         $m = [regex]::Match($line, $pattern)
         if ($m.Success) { return $m.Groups[1].Value }
     }
