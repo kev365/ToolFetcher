@@ -7,9 +7,12 @@ CLAUDE.md
 
 # Folders
 tmp/
+dist/
+tests/TestResults/
 .cursor/
 .vscode/
-docs/
+docs/*
+!docs/superpowers/
 
 # Editor / assistant state
 .remember/
