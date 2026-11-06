@@ -3,6 +3,19 @@ Describe 'New-Release' -Tag Build {
         . "$PSScriptRoot\..\build\New-Release.ps1" -AsLibrary
         $clone = Join-Path $TestDrive 'clone'; git clone -q (Resolve-Path "$PSScriptRoot\..") $clone
         git -C $clone config user.email 't@example.invalid'; git -C $clone config user.name 't'
+        # Right after a release the CHANGELOG has no Unreleased section, and New-Release refuses to run
+        # without one. Seed a minimal section in the clone and commit it there, so these tests do not
+        # depend on where the repo is in its release cycle.
+        $changelog = Join-Path $clone 'CHANGELOG.md'
+        $text = [IO.File]::ReadAllText($changelog)
+        if ($text -notmatch '(?m)^## \[Unreleased\]') {
+            $seed = "## [Unreleased]`r`n`r`n### Changed`r`n`r`n- Seeded by Build.NewRelease.Tests.ps1 so the release flow has an entry to release.`r`n`r`n"
+            $first = [regex]::Match($text, '(?m)^## \[\d')
+            if (-not $first.Success) { throw 'CHANGELOG.md has no version heading to seed before' }
+            [IO.File]::WriteAllText($changelog, $text.Insert($first.Index, $seed), [Text.UTF8Encoding]::new($false))
+            git -C $clone add CHANGELOG.md
+            git -C $clone commit -q -m 'Seed an Unreleased section for the release tests'
+        }
     }
     It 'lists exactly the shipped file set' { (Get-ReleaseFileList -RepoRoot $clone) | Should -Contain 'tool_groups\_tool_template.yaml'; (Get-ReleaseFileList -RepoRoot $clone).Count | Should -Be ((Get-ChildItem "$clone\tool_groups\*.yaml").Count + 5) }
     It 'builds and verifies a zip with the ToolFetcher/ prefix' {
