@@ -2,6 +2,21 @@
 
 All notable changes to ToolFetcher. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.2.3] - 2026-11-05
+
+### Added
+
+- Development tooling under `build/`: `Invoke-Checks.ps1` runs the verification steps on both editions, `New-Release.ps1` bumps, packages and verifies a release and prints the publish commands, `Test-ToolDefinitions.ps1` audits every tool entry against its upstream; a Pester suite under `tests/`; GitHub Actions run the checks on every push and the audit monthly. `Select-ReleaseAsset` is extracted from `Resolve-ToolRemote` with unchanged behavior.
+
+### Changed
+
+- File hashing (`Get-FileHashHex`) reads through a 64 KB stream buffer instead of 1 MB. Hash output is unchanged; manifests after extraction and the managed-file checks on `-UpdateAll` are about 2x faster on PowerShell 7 and 5x to 6x faster on Windows PowerShell 5.1 for many-file tools (5,084-file tree: 12.3 s to about 2 s on 5.1).
+- `powershell-yaml` is pinned to 0.4.12 (cloudbase, published 2025-01-23) instead of 0.4.7, and the pin is now enforced: the module is imported with `-RequiredVersion`, where before any installed version was loaded and the pin only applied to a fresh install. The newer build imports about 1 s faster on PowerShell 7. When the pinned version is missing the script offers to install it for the current user, side by side with other versions.
+
+### Tool definitions
+
+- aleapp and ileapp follow the `windows-x64-portable` release zips instead of the `main` branch zips; the ILEAPP branch zip had grown to 348 MB of source and test data, and the portable builds need no Python.
+
 ## [2.2.2] - 2026-11-03
 
 ### Tool definitions

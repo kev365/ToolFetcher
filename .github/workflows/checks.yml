@@ -1,0 +1,45 @@
+name: checks
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dev modules
+        shell: pwsh
+        run: ./build/Install-DevModules.ps1
+
+      - name: Product checks under both editions
+        shell: pwsh
+        run: ./build/Invoke-Checks.ps1 -Pester -OutJson checks.json
+
+      - name: Build tests
+        shell: pwsh
+        run: |
+          Import-Module Pester -MinimumVersion 5.5 -MaximumVersion 5.99.99
+          $c = New-PesterConfiguration
+          $c.Run.Path = 'tests'
+          $c.Filter.Tag = 'Build'
+          $c.Filter.ExcludeTag = 'Network'
+          $c.Run.Exit = $true
+          $c.TestResult.Enabled = $true
+          $c.TestResult.OutputPath = 'tests/TestResults/build.xml'
+          Invoke-Pester -Configuration $c
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: check-results
+          path: |
+            checks.json
+            tests/TestResults/
+          if-no-files-found: ignore

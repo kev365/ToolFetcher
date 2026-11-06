@@ -1,4 +1,4 @@
-# ToolFetcher (v2.2.2)
+# ToolFetcher (v2.2.3)
 
 ToolFetcher is a PowerShell tool designed to fetch and manage a collection of DFIR and other GitHub tools. It streamlines the process of downloading, extracting, and organizing forensic utilities from various sources—whether by cloning Git repositories, downloading the latest releases via the GitHub API, or pulling specific files directly.
 
@@ -52,7 +52,7 @@ ToolFetcher is a PowerShell tool designed to fetch and manage a collection of DF
 - **PowerShell:** Windows PowerShell 5.1 or PowerShell 7+
 - **Internet Connection:** Required for downloading tools and GitHub API access
 - **powershell-yaml Module:**  
-  This module is required to parse the YAML configuration files. The script imports it if installed and otherwise offers to install a pinned version (0.4.7).
+  This module is required to parse the YAML configuration files. The script imports exactly the pinned version (0.4.12) and otherwise offers to install it for the current user, side by side with any other version.
 - **.NET 10 runtime:** the Eric Zimmerman tools in the shipped configuration are the .NET 10 builds (the `net/` folder on download.ericzimmermanstools.com).
 
 ## Getting Started
@@ -287,9 +287,49 @@ configuration files you supply. A few things to keep in mind:
 - **Plaintext HTTP warning.** `RepoUrl` or `-ToolsFile` values starting with
   `http://` produce a warning at validation time. They still work but are
   vulnerable to tampering in transit.
-- **Pinned dependency.** The `powershell-yaml` module is installed at a
+- **Pinned dependency.** The `powershell-yaml` module is installed and imported at a
   specific version (see `$script:RequiredYamlVersion` in the script) to
-  protect against supply-chain compromise of that module.
+  protect against supply-chain compromise of that module; a different version present on the
+  machine is never loaded.
+
+## Development
+
+Maintainer tooling lives under `build/` and `tests/`. It needs PowerShell 7.4 or
+later; the script itself still runs on Windows PowerShell 5.1 and PowerShell 7+.
+
+1. **Install the dev modules** (once per machine; installs `powershell-yaml` at the
+   script's pin, PSScriptAnalyzer 1.25.0 and Pester 5.x for the current user):
+   ```powershell
+   pwsh -NoProfile -File .\build\Install-DevModules.ps1
+   ```
+   Pass `-Edition pwsh` or `-Edition desktop` to install for one edition only.
+2. **Run the checks** before every commit. This parses and lints the script, checks
+   encoding, runs `-ListTools` and `-DryRun` on both editions, confirms the working
+   tree is unchanged, and with `-Pester` runs the test suite. It prints a result
+   table and exits non-zero if any row fails:
+   ```powershell
+   pwsh -NoProfile -File .\build\Invoke-Checks.ps1 -Pester
+   ```
+3. **Audit the tool definitions** against their upstream (GitHub releases and vendor
+   download URLs). The audit makes many GitHub API calls, so give it a token. In a
+   local shell, use the GitHub CLI; elsewhere set the `GH_TOKEN` environment
+   variable (`GITHUB_TOKEN` also works) instead of putting a token on the command line:
+   ```powershell
+   pwsh -NoProfile -File .\build\Test-ToolDefinitions.ps1 -GitHubPAT (gh auth token)
+   ```
+   `-OutFile <path>` writes a JSON report. `-Download` also downloads and verifies
+   every tool; it is for local use only and is not run by the workflows.
+4. **Cut a release** with `build\New-Release.ps1 -Version X.Y.Z`. It runs the checks,
+   bumps the script version and README title, dates the CHANGELOG heading, builds
+   and verifies `dist\ToolFetcher-X.Y.Z.zip`, and writes release notes. It then
+   prints the commit, tag, push dry-run and `gh release create` commands; it runs
+   none of them, so you review and run each yourself.
+
+GitHub Actions run the same checks on every push and pull request
+(`.github/workflows/checks.yml`) and the upstream audit monthly and on manual
+dispatch (`.github/workflows/upstream-audit.yml`). Tests tagged `Network` call
+live services and tests tagged `Build` cover the `build/` scripts; the rest cover
+the product script.
 
 ## Future Considerations
 

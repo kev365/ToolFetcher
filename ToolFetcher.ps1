@@ -272,11 +272,12 @@ param (
 Add-Type -AssemblyName System.IO.Compression.FileSystem -ErrorAction SilentlyContinue
 
 # Script version - centralized for easy updates
-$script:Version = "2.2.2"
+$script:Version = "2.2.3"
 
 # Pin powershell-yaml to a known-good version. PSGallery is the trusted
-# default, but pinning protects against supply-chain compromise of the module.
-$script:RequiredYamlVersion = "0.4.7"
+# default, but pinning protects against supply-chain compromise of the module. The import
+# below passes -RequiredVersion, so other installed versions are never loaded.
+$script:RequiredYamlVersion = "0.4.12"
 
 # Per-process staging folder under the system temp path. Each download writes
 # transient files here, then copies the final result into $ToolsDirectory.
@@ -946,10 +947,10 @@ $defaultToolsFileUrl = "https://raw.githubusercontent.com/kev365/ToolFetcher/ref
 # Import first; Get-Module -ListAvailable walks every module path and is only needed when the
 # import fails (module not installed).
 $yamlImported = $false
-try { Import-Module -Name powershell-yaml -ErrorAction Stop; $yamlImported = $true } catch { $yamlImported = $false }
+try { Import-Module -Name powershell-yaml -RequiredVersion $script:RequiredYamlVersion -ErrorAction Stop; $yamlImported = $true } catch { $yamlImported = $false }
 if (-not $yamlImported) {
-    Write-LogInfo "The 'powershell-yaml' module is required to parse YAML configuration files."
-    $choice = Read-Host "Would you like to install the 'powershell-yaml' module? (Y/N)"
+    Write-LogInfo "The 'powershell-yaml' module version $script:RequiredYamlVersion is required to parse YAML configuration files."
+    $choice = Read-Host "Would you like to install 'powershell-yaml' $script:RequiredYamlVersion for the current user? (Y/N)"
     if ($choice -match '^(?i:Y(es)?)$') {
         Write-LogInfo "Attempting to install the 'powershell-yaml' module (pinned to $script:RequiredYamlVersion)..."
         try {
@@ -965,7 +966,8 @@ if (-not $yamlImported) {
         exit 1
     }
 }
-if (-not $yamlImported) { Import-Module -Name powershell-yaml -ErrorAction Stop }
+if (-not $yamlImported) { Import-Module -Name powershell-yaml -RequiredVersion $script:RequiredYamlVersion -ErrorAction Stop }
+Write-LogDebug "powershell-yaml $((Get-Module -Name powershell-yaml).Version) loaded"
 
 $mergedTools     = New-Object System.Collections.Generic.List[object]
 $mergedToolDir   = ""
@@ -1334,7 +1336,9 @@ function Test-ExpectedHash {
 # -----------------------------------------------
 # .NET hashing: no per-file cmdlet overhead and no dependence on module autoloading
 # (Get-FileHash is a script function in Windows PowerShell's Utility module). Output is
-# uppercase hex, identical to Get-FileHash.
+# uppercase hex, identical to Get-FileHash. The 64 KB stream buffer is the measured sweet spot on
+# both editions: 1 MB made 5,000 small files take 12 s on 5.1 (buffer allocation per file) and
+# anything below 16 KB slows large files; 64 KB hashes both in under a second per 5,000 files.
 function Get-FileHashHex {
     param (
         [Parameter(Mandatory=$true)][string]$Path,
@@ -1343,7 +1347,7 @@ function Get-FileHashHex {
     $hasher = [System.Security.Cryptography.HashAlgorithm]::Create($Algorithm)
     $stream = $null
     try {
-        $stream = [System.IO.FileStream]::new($Path, [System.IO.FileMode]::Open, [System.IO.FileAccess]::Read, [System.IO.FileShare]::ReadWrite, 1MB)
+        $stream = [System.IO.FileStream]::new($Path, [System.IO.FileMode]::Open, [System.IO.FileAccess]::Read, [System.IO.FileShare]::ReadWrite, 64KB)
         return ([System.BitConverter]::ToString($hasher.ComputeHash($stream)) -replace '-', '')
     }
     finally {
@@ -2161,6 +2165,40 @@ function Get-MarkerRemoteArgs {
     return $splat
 }
 
+# Picks the release asset for the latestRelease method. Rules, first that applies: DownloadName
+# matches the asset name with -eq (case-insensitive), AssetFilename is a regex (-match), AssetType
+# looks up its regex in $script:AssetPatterns (an unknown type logs a warning and leaves the list
+# unfiltered), otherwise every asset qualifies. Returns the first qualifying asset in release
+# order, or $null; with -All, an array of every qualifying asset (empty when none).
+function Select-ReleaseAsset {
+    param (
+        [Parameter(Mandatory=$true)]$ToolConfig,
+        [Parameter(Mandatory=$true)][AllowNull()][AllowEmptyCollection()][object[]]$Assets,
+        [Parameter(Mandatory=$false)][switch]$All
+    )
+    $candidates = $Assets
+    if (-not [string]::IsNullOrEmpty($ToolConfig.DownloadName)) {
+        $candidates = $candidates | Where-Object { $_.name -eq $ToolConfig.DownloadName }
+    }
+    elseif (-not [string]::IsNullOrEmpty($ToolConfig.AssetFilename)) {
+        $candidates = $candidates | Where-Object { $_.name -match $ToolConfig.AssetFilename }
+    }
+    elseif (-not [string]::IsNullOrEmpty($ToolConfig.AssetType)) {
+        if ($script:AssetPatterns.ContainsKey($ToolConfig.AssetType)) {
+            $pattern = $script:AssetPatterns[$ToolConfig.AssetType]
+            $candidates = $candidates | Where-Object { $_.name -match $pattern }
+        }
+        else {
+            Write-LogWarning "No pattern defined for AssetType '$($ToolConfig.AssetType)' for $($ToolConfig.Name)."
+        }
+    }
+    if ($All) {
+        # The leading comma keeps a single match (or none) an array for the caller.
+        return , @($candidates)
+    }
+    return ($candidates | Select-Object -First 1)
+}
+
 # One metadata fetch per tool: everything the dispatcher and the Save-* functions need
 # (download URL, version/commit, ETags). With -Marker, GitHub API calls are conditional
 # (If-None-Match on the stored ApiETag); a 304 means "unchanged upstream", costs no
@@ -2212,23 +2250,7 @@ function Resolve-ToolRemote {
             }
             $releaseInfo = $api.Data
             Write-LogDebug "Retrieved release info. Assets count: $($releaseInfo.assets.Count)"
-            $assets = $releaseInfo.assets
-            if (-not [string]::IsNullOrEmpty($ToolConfig.DownloadName)) {
-                $assets = $assets | Where-Object { $_.name -eq $ToolConfig.DownloadName }
-            }
-            elseif (-not [string]::IsNullOrEmpty($ToolConfig.AssetFilename)) {
-                $assets = $assets | Where-Object { $_.name -match $ToolConfig.AssetFilename }
-            }
-            elseif (-not [string]::IsNullOrEmpty($ToolConfig.AssetType)) {
-                if ($script:AssetPatterns.ContainsKey($ToolConfig.AssetType)) {
-                    $pattern = $script:AssetPatterns[$ToolConfig.AssetType]
-                    $assets = $assets | Where-Object { $_.name -match $pattern }
-                }
-                else {
-                    Write-LogWarning "No pattern defined for AssetType '$($ToolConfig.AssetType)' for $name."
-                }
-            }
-            $asset = $assets | Select-Object -First 1
+            $asset = Select-ReleaseAsset -ToolConfig $ToolConfig -Assets $releaseInfo.assets
             if ($null -eq $asset) {
                 Write-LogWarning "No matching asset found for $name."
                 $remote.Error = "No matching asset found for $name."
