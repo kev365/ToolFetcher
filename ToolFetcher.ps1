@@ -657,6 +657,22 @@ function Test-ToolConfiguration {
 }
 
 # -----------------------------------------------
+# Function: Test Folder Segment Name
+# -----------------------------------------------
+# True when a single folder name reaches the file system as written: no path separators, not
+# only dots or whitespace, no leading whitespace and no trailing dot or space. Windows strips
+# trailing dots and spaces from a path segment, so '...' or '.. ' resolve to the parent folder
+# itself and 'x.' to 'x'. Used by Test-ToolEntry at load time and Initialize-OutputFolder at
+# write time.
+function Test-FolderSegmentName {
+    param ([Parameter(Mandatory=$true)][AllowEmptyString()][string]$Segment)
+    if ($Segment -match '[/\\]') { return $false }
+    if ($Segment -match '^[\s.]*$') { return $false }
+    if ($Segment -match '^\s' -or $Segment -match '[\s.]$') { return $false }
+    return $true
+}
+
+# -----------------------------------------------
 # Function: Test Tool Entry
 # -----------------------------------------------
 function Test-ToolEntry {
@@ -672,21 +688,32 @@ function Test-ToolEntry {
     }
     else {
         # Reject path-traversal attempts in Name. Name becomes a directory under
-        # $ToolsDirectory; '..' or absolute path components could escape it, and a bare
-        # '.' or '..' would resolve to the parent folder itself.
-        if ($Tool.name -match '(\.\.[/\\]|^[/\\]|^[A-Za-z]:)' -or $Tool.name -match '[/\\]' -or $Tool.name -match '^\.{1,2}$') {
+        # $ToolsDirectory; '..' or absolute path components could escape it, and a segment
+        # Windows rewrites ('.', '..', '...', 'x.', 'x ') would resolve somewhere else.
+        if ($Tool.name -match '(\.\.[/\\]|^[/\\]|^[A-Za-z]:)' -or -not (Test-FolderSegmentName -Segment ([string]$Tool.name))) {
             $isValid = $false
-            $errors += "Name '$($Tool.name)' contains path separators or traversal sequences (must be a single folder name, not '.' or '..')"
+            $errors += "Name '$($Tool.name)' is not a single folder name (no path separators, drive prefix or '..'; not only dots or spaces; no leading space or trailing dot or space)"
         }
     }
 
     if ($Tool.ContainsKey("OutputFolder") -and -not [string]::IsNullOrWhiteSpace($Tool.OutputFolder)) {
-        $of = $Tool.OutputFolder
+        $of = [string]$Tool.OutputFolder
         # OutputFolder is appended to $ToolsDirectory, so reject absolute paths
         # and any path components that would escape via '..'.
         if ($of -match '(^[/\\]|^[A-Za-z]:)' -or ($of -split '[/\\]') -contains '..') {
             $isValid = $false
             $errors += "OutputFolder '$of' must be a relative path under the tools directory (no '..' or drive prefix)"
+        }
+        else {
+            # Every segment must survive Windows normalization (see Test-FolderSegmentName);
+            # a trailing separator is allowed.
+            foreach ($segment in @($of.TrimEnd([char]'\', [char]'/') -split '[/\\]')) {
+                if (-not (Test-FolderSegmentName -Segment $segment)) {
+                    $isValid = $false
+                    $errors += "OutputFolder '$of' has a segment '$segment' that is not a plain folder name (empty, only dots or spaces, leading space, or trailing dot or space)"
+                    break
+                }
+            }
         }
     }
 
@@ -1770,28 +1797,38 @@ function Initialize-OutputFolder {
     }
 
     try {
+        # Defense-in-depth (Test-ToolEntry rejects these first): Name and every OutputFolder
+        # segment must be plain folder names, and OutputFolder must be relative without '..'.
+        # A rooted OutputFolder must never reach Join-Path, which on a missing drive raises
+        # only a non-terminating error and would hand back the tools root.
+        $name = [string]$ToolConfig.Name
+        if (-not (Test-FolderSegmentName -Segment $name)) {
+            Write-LogError "Refusing tool name '$name': it must be a single folder name (no separators, not only dots or spaces, no leading space or trailing dot or space)."
+            return $null
+        }
         if (-not [string]::IsNullOrEmpty($ToolConfig.OutputFolder)) {
-            # Defense-in-depth (Test-ToolEntry rejects these first): a rooted or drive-prefixed
-            # OutputFolder, or one with a '..' segment, must never reach Join-Path, which on a
-            # missing drive raises only a non-terminating error and would hand back the tools root.
             $of = [string]$ToolConfig.OutputFolder
-            if ([System.IO.Path]::IsPathRooted($of) -or $of -match '^[A-Za-z]:' -or (($of -split '[/\\]') -contains '..')) {
-                Write-LogError "Refusing OutputFolder '$of' for $($ToolConfig.Name): it must be a relative path under the tools directory (no drive prefix, no '..')."
+            $badSegment = $null
+            foreach ($segment in @($of.TrimEnd([char]'\', [char]'/') -split '[/\\]')) {
+                if (-not (Test-FolderSegmentName -Segment $segment)) { $badSegment = $segment; break }
+            }
+            if ([System.IO.Path]::IsPathRooted($of) -or $of -match '^[A-Za-z]:' -or $null -ne $badSegment) {
+                Write-LogError "Refusing OutputFolder '$of' for ${name}: it must be a relative path of plain folder names under the tools directory (no drive prefix or '..', no segment of only dots or spaces or with a trailing dot or space)."
                 return $null
             }
-            $outputFolder = Join-Path -Path $ToolsDirectory -ChildPath (Join-Path $of $ToolConfig.Name -ErrorAction Stop) -ErrorAction Stop
+            $outputFolder = Join-Path -Path $ToolsDirectory -ChildPath (Join-Path $of $name -ErrorAction Stop) -ErrorAction Stop
         }
         else {
-            $outputFolder = Join-Path -Path $ToolsDirectory -ChildPath $ToolConfig.Name -ErrorAction Stop
+            $outputFolder = Join-Path -Path $ToolsDirectory -ChildPath $name -ErrorAction Stop
         }
 
-        # Defense-in-depth: validation in Test-ToolEntry should prevent this,
-        # but verify the resolved path stays within $ToolsDirectory before
-        # creating it.
+        # Defense-in-depth: the resolved path must be strictly below $ToolsDirectory. A name
+        # Windows rewrites would otherwise resolve to the tools directory itself.
         $rootFull = [System.IO.Path]::GetFullPath($ToolsDirectory).TrimEnd([char]'\', [char]'/') + [System.IO.Path]::DirectorySeparatorChar
         $outFull  = [System.IO.Path]::GetFullPath($outputFolder)
-        if (-not $outFull.StartsWith($rootFull, [System.StringComparison]::OrdinalIgnoreCase)) {
-            Write-LogError "Refusing to create output folder outside the tools directory: '$outFull' (root='$rootFull')"
+        if (-not $outFull.StartsWith($rootFull, [System.StringComparison]::OrdinalIgnoreCase) -or
+            $outFull.TrimEnd([char]'\', [char]'/').Length -lt $rootFull.Length) {
+            Write-LogError "Refusing to create an output folder outside or at the tools directory: '$outFull' (root='$rootFull')"
             return $null
         }
 

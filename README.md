@@ -274,9 +274,10 @@ configuration files you supply. A few things to keep in mind:
   anything that doesn't match, for every download method.
 - **Path traversal is rejected.** Tool `Name` and `OutputFolder` are validated
   at load time and again at write time — entries containing `..`, absolute or
-  drive-prefixed paths, or path separators in `Name` (a bare `.` or `..` counts)
-  are refused so downloads can't escape your `-ToolsDirectory`. A configuration
-  with such an entry is refused as a whole.
+  drive-prefixed paths, or path separators in `Name` are refused, as are names
+  Windows would silently rewrite (only dots or spaces, or a trailing dot or
+  space), so downloads can't escape your `-ToolsDirectory` or land in it
+  directly. A configuration with such an entry is refused as a whole.
 - **Zip-Slip safe extraction.** Every archive entry must resolve inside the
   staging folder before it is written.
 - **TLS 1.2+ enforced.** The script raises `[Net.ServicePointManager]::SecurityProtocol`

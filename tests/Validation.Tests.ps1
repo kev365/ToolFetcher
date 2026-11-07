@@ -16,6 +16,12 @@ Describe 'Test-ToolEntry' {
     It 'rejects a name with a path separator'  { (Test-ToolEntry -Tool @{ Name = 'a\b'; RepoUrl = 'https://github.com/o/r'; DownloadMethod = 'branchZip' }).IsValid | Should -BeFalse }
     It 'rejects a name with ..'                 { (Test-ToolEntry -Tool @{ Name = '..'; RepoUrl = 'https://github.com/o/r'; DownloadMethod = 'branchZip' }).IsValid | Should -BeFalse }
     It 'rejects a name that is a single dot'    { (Test-ToolEntry -Tool @{ Name = '.'; RepoUrl = 'https://github.com/o/r'; DownloadMethod = 'branchZip' }).IsValid | Should -BeFalse }
+    # Windows strips trailing dots and spaces from a path segment, so '...' or '.. ' resolve to the parent
+    # folder itself and 'x.' to 'x'; such names must never reach the file system.
+    It 'rejects a name Windows would normalize away: [<_>]' -ForEach '...', '.. ', '   ', 'name.', 'name ', ' name' { (Test-ToolEntry -Tool @{ Name = $_; RepoUrl = 'https://github.com/o/r'; DownloadMethod = 'branchZip' }).IsValid | Should -BeFalse }
+    It 'accepts a name with an inner or leading dot' { (Test-ToolEntry -Tool @{ Name = 'tool.v2'; RepoUrl = 'https://github.com/o/r'; DownloadMethod = 'branchZip' }).IsValid | Should -BeTrue; (Test-ToolEntry -Tool @{ Name = '.hidden'; RepoUrl = 'https://github.com/o/r'; DownloadMethod = 'branchZip' }).IsValid | Should -BeTrue }
+    It 'rejects an OutputFolder segment Windows would normalize away: [<_>]' -ForEach 'a\...', 'a\.. \b', 'a.\b', 'a \b', '.\a' { (Test-ToolEntry -Tool @{ Name = 'a'; RepoUrl = 'https://github.com/o/r'; DownloadMethod = 'branchZip'; OutputFolder = $_ }).IsValid | Should -BeFalse }
+    It 'accepts a nested OutputFolder with a trailing separator' { (Test-ToolEntry -Tool @{ Name = 'a'; RepoUrl = 'https://github.com/o/r'; DownloadMethod = 'branchZip'; OutputFolder = 'x.y\z/' }).IsValid | Should -BeTrue }
     It 'rejects an unknown AssetType'           { (Test-ToolEntry -Tool @{ Name = 'a'; RepoUrl = 'https://github.com/o/r'; DownloadMethod = 'latestRelease'; AssetType = 'amiga' }).IsValid | Should -BeFalse }
     It 'accepts a known AssetType in any case'  { (Test-ToolEntry -Tool @{ Name = 'a'; RepoUrl = 'https://github.com/o/r'; DownloadMethod = 'latestRelease'; AssetType = 'Win64' }).IsValid | Should -BeTrue }
     It 'rejects an absolute OutputFolder'       { (Test-ToolEntry -Tool @{ Name = 'a'; RepoUrl = 'https://github.com/o/r'; DownloadMethod = 'branchZip'; OutputFolder = 'C:\x' }).IsValid | Should -BeFalse }
