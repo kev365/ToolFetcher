@@ -14,6 +14,7 @@ All notable changes to ToolFetcher. The format follows [Keep a Changelog](https:
 ### Changed
 
 - `build/New-Release.ps1` refuses to run when the local `main` branch is missing or is not an ancestor of HEAD, because the printed merge would otherwise tag a tree the zip was not built from. A version bump declined at a `-Confirm` prompt now stops the run with nothing changed, and a write that fails after an earlier file was rewritten names the files to restore with `git checkout`. `Get-ToolEntryCount` in `build/DevCommon.ps1` throws on a YAML file without a top-level `tools` key instead of reporting zero entries.
+- Test suite: the retry tests mock `Start-Sleep` and prove the chosen delay instead of waiting for it, thrown messages are asserted exactly, and new cases cover the audit status precedence, the rate-limit gate, entry dedupe order, lookalike GitHub hosts and the audit's URL probe (HTTPS-to-HTTP downgrade, redirect limit, 503 retry, network failure, ranged 206).
 
 ## [2.2.3] - 2026-11-05
 

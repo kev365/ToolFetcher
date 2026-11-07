@@ -11,12 +11,14 @@ Describe 'Expand-ZipSafely' {
     }
     It 'refuses an entry that escapes with ..' {
         $z = New-TestZip "$TestDrive\slip.zip" @{ '../evil.txt' = 'X' }
-        { Expand-ZipSafely -ZipPath $z -DestinationPath "$TestDrive\out2" } | Should -Throw
+        { Expand-ZipSafely -ZipPath $z -DestinationPath "$TestDrive\out2" } | Should -Throw -ExpectedMessage '*Zip-Slip*'
         Test-Path "$TestDrive\evil.txt" | Should -BeFalse
     }
     It 'refuses an absolute entry path' {
         $z = New-TestZip "$TestDrive\abs.zip" @{ 'C:/Windows/evil.txt' = 'X' }
-        { Expand-ZipSafely -ZipPath $z -DestinationPath "$TestDrive\out3" } | Should -Throw
+        { Expand-ZipSafely -ZipPath $z -DestinationPath "$TestDrive\out3" } | Should -Throw -ExpectedMessage '*Zip-Slip*'
+        Get-ChildItem "$TestDrive\out3" -Recurse -File -ErrorAction SilentlyContinue | Should -BeNullOrEmpty
+        Test-Path 'C:\Windows\evil.txt' | Should -BeFalse
     }
     It 'handles backslash separators and directory entries' {
         $z = New-TestZip "$TestDrive\bs.zip" @{ 'dir\' = $null; 'dir\c.txt' = 'C' }
