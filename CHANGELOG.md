@@ -6,7 +6,7 @@ All notable changes to ToolFetcher. The format follows [Keep a Changelog](https:
 
 ### Fixed
 
-- `Test-ToolEntry` rejects a tool `Name` of `.` or `..` (either would resolve to the tools directory itself or its parent) and a `latestRelease` entry whose `AssetType` matches none of the known patterns; before, an unknown type passed validation and silently selected the first asset of the release.
+- `Test-ToolEntry` rejects a tool `Name` or `OutputFolder` segment that Windows would rewrite: `.`, `..`, anything made only of dots or spaces, a leading space, or a trailing dot or space (such names resolve to the tools directory itself, its parent, or a different folder). It also rejects a `latestRelease` entry whose `AssetType` matches none of the known patterns; before, an unknown type passed validation and silently selected the first asset of the release. `Initialize-OutputFolder` applies the same checks at write time and requires the resolved path to be strictly below the tools directory.
 - `Select-ReleaseAsset` selects nothing for an unknown `AssetType`, and `-All` returns an empty array for a null or empty asset list instead of a one-element array holding `$null`.
 - `Initialize-OutputFolder` refuses a rooted or drive-prefixed `OutputFolder`, or one with a `..` segment, before building the path. Validation already rejects such entries; as a second line of defense the old path build on a missing drive raised only a non-terminating error and returned the tools directory itself as the output folder.
 - `-DryRun` no longer rewrites up-to-date `.downloaded.json` markers. The ETag refresh that turns later checks into conditional requests now happens only on real runs, as documented.
