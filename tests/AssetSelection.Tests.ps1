@@ -12,6 +12,9 @@ Describe 'Select-ReleaseAsset' {
     It 'win64 picks the Windows x64 build only' { (Select-ReleaseAsset -ToolConfig @{ AssetType = 'win64' } -Assets $assets -All).name | Should -Be @('tool-1.0-win-x64.zip', 'tool-1.0-win-x64.zip.asc') }
     It 'returns null when nothing matches' { Select-ReleaseAsset -ToolConfig @{ DownloadName = 'nope.zip' } -Assets $assets | Should -BeNullOrEmpty }
     It 'returns the first asset when no selector is set' { (Select-ReleaseAsset -ToolConfig @{} -Assets $assets).name | Should -Be 'tool-1.0-win-x64.zip' }
-    # Known gap: Select-ReleaseAsset keeps today's behavior for an unknown AssetType (line 2192 warns, the list stays unfiltered, the first asset is returned); tracked as a follow-up fix.
-    It 'returns null for an unknown AssetType' -Skip:$true { Select-ReleaseAsset -ToolConfig @{ AssetType = 'amiga' } -Assets $assets | Should -BeNullOrEmpty }
+    It 'returns null for an unknown AssetType' { Select-ReleaseAsset -ToolConfig @{ AssetType = 'amiga' } -Assets $assets | Should -BeNullOrEmpty }
+    It '-All returns an empty array for an unknown AssetType' { (Select-ReleaseAsset -ToolConfig @{ AssetType = 'amiga' } -Assets $assets -All).Count | Should -Be 0 }
+    It '-All returns an empty array for null assets' { (Select-ReleaseAsset -ToolConfig @{} -Assets $null -All).Count | Should -Be 0 }
+    It '-All returns an empty array for an empty asset list' { (Select-ReleaseAsset -ToolConfig @{} -Assets @() -All).Count | Should -Be 0 }
+    It '-All keeps a single match as a one-element array' { (Select-ReleaseAsset -ToolConfig @{ DownloadName = 'tool-1.0-linux-x64.tar.gz' } -Assets $assets -All).Count | Should -Be 1 }
 }

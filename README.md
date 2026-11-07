@@ -100,7 +100,7 @@ ToolFetcher uses a parameter-based approach for flexibility. Key parameters incl
   Only process entries whose `Category` matches one of the given tags. Each shipped `tool_groups/*.yaml` file carries a file-level `category:` (its file name), and entries can set their own `Category` (a string or a list).
 
 - **`-DryRun` (alias `-dry`):**  
-  Show what would be downloaded or updated without writing anything. In update mode this still asks upstream whether a tool changed, so the preview is accurate.
+  Show what would be downloaded or updated without writing anything, not even the `.downloaded.json` markers. In update mode this still asks upstream whether a tool changed, so the preview is accurate.
 
 - **`-ForceDownload` (alias `-force`):**  
   Re-download a tool even if it is installed and up to date. Managed files are replaced; modified managed files are kept as `.saveN` backups; user-added files are never touched.
@@ -160,7 +160,7 @@ tools:
     ExpectedSha256: ""    # Optional. Refuse to install anything whose SHA256 differs
 ```
 
-Entries with a `Name` but no `RepoUrl` or no `DownloadMethod` are treated as placeholders (wishlist items, or tools with no automated download): they are listed as `[PLACEHOLDER]` and skipped. `AssetType` picks the first release asset whose name carries a marker for that platform and architecture (for example `win64` needs `win` plus `x64`/`amd64`/`x86_64` and rejects `arm64`, `linux` and `darwin` builds); when a release ships several matching builds, use `AssetFilename` to name the one you want.
+Entries with a `Name` but no `RepoUrl` or no `DownloadMethod` are treated as placeholders (wishlist items, or tools with no automated download): they are listed as `[PLACEHOLDER]` and skipped. `AssetType` picks the first release asset whose name carries a marker for that platform and architecture (for example `win64` needs `win` plus `x64`/`amd64`/`x86_64` and rejects `arm64`, `linux` and `darwin` builds); when a release ships several matching builds, use `AssetFilename` to name the one you want. An `AssetType` outside the list above is rejected when the configuration loads, so a typo cannot silently select the wrong asset.
 
 ## Usage Examples
 
@@ -273,9 +273,10 @@ configuration files you supply. A few things to keep in mind:
   known-good SHA256 in the YAML entry; ToolFetcher will refuse to install
   anything that doesn't match, for every download method.
 - **Path traversal is rejected.** Tool `Name` and `OutputFolder` are validated
-  at load time and at write time — entries containing `..`, absolute paths,
-  or path separators in `Name` are refused so downloads can't escape your
-  `-ToolsDirectory`. A configuration with such an entry is refused as a whole.
+  at load time and again at write time — entries containing `..`, absolute or
+  drive-prefixed paths, or path separators in `Name` (a bare `.` or `..` counts)
+  are refused so downloads can't escape your `-ToolsDirectory`. A configuration
+  with such an entry is refused as a whole.
 - **Zip-Slip safe extraction.** Every archive entry must resolve inside the
   staging folder before it is written.
 - **TLS 1.2+ enforced.** The script raises `[Net.ServicePointManager]::SecurityProtocol`
@@ -319,8 +320,9 @@ later; the script itself still runs on Windows PowerShell 5.1 and PowerShell 7+.
    ```
    `-OutFile <path>` writes a JSON report. `-Download` also downloads and verifies
    every tool; it is for local use only and is not run by the workflows.
-4. **Cut a release** with `build\New-Release.ps1 -Version X.Y.Z`. It runs the checks,
-   bumps the script version and README title, dates the CHANGELOG heading, builds
+4. **Cut a release** with `build\New-Release.ps1 -Version X.Y.Z`. It confirms the tree
+   is clean and that `main` is an ancestor of the branch, runs the checks, bumps the
+   script version and README title, dates the CHANGELOG heading, builds
    and verifies `dist\ToolFetcher-X.Y.Z.zip`, and writes release notes. It then
    prints the commit, tag, push dry-run and `gh release create` commands; it runs
    none of them, so you review and run each yourself.

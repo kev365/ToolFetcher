@@ -2,6 +2,20 @@
 
 All notable changes to ToolFetcher. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Fixed
+
+- `Test-ToolEntry` rejects a tool `Name` of `.` or `..` (either would resolve to the tools directory itself or its parent) and a `latestRelease` entry whose `AssetType` matches none of the known patterns; before, an unknown type passed validation and silently selected the first asset of the release.
+- `Select-ReleaseAsset` selects nothing for an unknown `AssetType`, and `-All` returns an empty array for a null or empty asset list instead of a one-element array holding `$null`.
+- `Initialize-OutputFolder` refuses a rooted or drive-prefixed `OutputFolder`, or one with a `..` segment, before building the path. Validation already rejects such entries; as a second line of defense the old path build on a missing drive raised only a non-terminating error and returned the tools directory itself as the output folder.
+- `-DryRun` no longer rewrites up-to-date `.downloaded.json` markers. The ETag refresh that turns later checks into conditional requests now happens only on real runs, as documented.
+
+### Changed
+
+- `build/New-Release.ps1` refuses to run when the local `main` branch is missing or is not an ancestor of HEAD, because the printed merge would otherwise tag a tree the zip was not built from. A version bump declined at a `-Confirm` prompt now stops the run with nothing changed, and a write that fails after an earlier file was rewritten names the files to restore with `git checkout`. `Get-ToolEntryCount` in `build/DevCommon.ps1` throws on a YAML file without a top-level `tools` key instead of reporting zero entries.
+- Test suite: the retry tests mock `Start-Sleep` and prove the chosen delay instead of waiting for it, thrown messages are asserted exactly, and new cases cover the audit status precedence, the rate-limit gate, entry dedupe order, lookalike GitHub hosts and the audit's URL probe (HTTPS-to-HTTP downgrade, redirect limit, 503 retry, network failure, ranged 206).
+
 ## [2.2.3] - 2026-11-05
 
 ### Added

@@ -10,6 +10,9 @@ Describe 'Initialize-OutputFolder' {
         Test-Path $p | Should -BeTrue
     }
     It 'returns null for a traversal OutputFolder' { Initialize-OutputFolder -ToolConfig @{ Name = 'T'; OutputFolder = '..\x' } -ToolsDirectory "$TestDrive\tools" | Should -BeNullOrEmpty }
-    # Known gap: Initialize-OutputFolder line 1768 continues after a non-terminating Join-Path error on a missing drive; tracked as a follow-up fix.
-    It 'returns null for a drive-prefixed OutputFolder' -Skip:$true { Initialize-OutputFolder -ToolConfig @{ Name = 'T'; OutputFolder = 'D:\x' } -ToolsDirectory "$TestDrive\tools" | Should -BeNullOrEmpty }
+    It 'returns null for a drive-prefixed OutputFolder' { Initialize-OutputFolder -ToolConfig @{ Name = 'T'; OutputFolder = 'D:\x' } -ToolsDirectory "$TestDrive\tools" | Should -BeNullOrEmpty }
+    It 'creates nothing for a drive-prefixed OutputFolder' {
+        $null = Initialize-OutputFolder -ToolConfig @{ Name = 'T'; OutputFolder = 'D:\x' } -ToolsDirectory "$TestDrive\tools2"
+        Get-ChildItem "$TestDrive\tools2" -Recurse -Directory -ErrorAction SilentlyContinue | Should -BeNullOrEmpty
+    }
 }

@@ -14,8 +14,10 @@ Describe 'Test-ToolConfiguration on shipped files' {
 }
 Describe 'Test-ToolEntry' {
     It 'rejects a name with a path separator'  { (Test-ToolEntry -Tool @{ Name = 'a\b'; RepoUrl = 'https://github.com/o/r'; DownloadMethod = 'branchZip' }).IsValid | Should -BeFalse }
-    # Known gap: Test-ToolEntry line 686 only rejects '..' followed by a separator; tracked as a follow-up fix.
-    It 'rejects a name with ..' -Skip:$true               { (Test-ToolEntry -Tool @{ Name = '..'; RepoUrl = 'https://github.com/o/r'; DownloadMethod = 'branchZip' }).IsValid | Should -BeFalse }
+    It 'rejects a name with ..'                 { (Test-ToolEntry -Tool @{ Name = '..'; RepoUrl = 'https://github.com/o/r'; DownloadMethod = 'branchZip' }).IsValid | Should -BeFalse }
+    It 'rejects a name that is a single dot'    { (Test-ToolEntry -Tool @{ Name = '.'; RepoUrl = 'https://github.com/o/r'; DownloadMethod = 'branchZip' }).IsValid | Should -BeFalse }
+    It 'rejects an unknown AssetType'           { (Test-ToolEntry -Tool @{ Name = 'a'; RepoUrl = 'https://github.com/o/r'; DownloadMethod = 'latestRelease'; AssetType = 'amiga' }).IsValid | Should -BeFalse }
+    It 'accepts a known AssetType in any case'  { (Test-ToolEntry -Tool @{ Name = 'a'; RepoUrl = 'https://github.com/o/r'; DownloadMethod = 'latestRelease'; AssetType = 'Win64' }).IsValid | Should -BeTrue }
     It 'rejects an absolute OutputFolder'       { (Test-ToolEntry -Tool @{ Name = 'a'; RepoUrl = 'https://github.com/o/r'; DownloadMethod = 'branchZip'; OutputFolder = 'C:\x' }).IsValid | Should -BeFalse }
     It 'rejects an unknown DownloadMethod'      { (Test-ToolEntry -Tool @{ Name = 'a'; RepoUrl = 'https://github.com/o/r'; DownloadMethod = 'wget' }).IsValid | Should -BeFalse }
     It 'requires SpecificFilePath or DownloadName for specificFile on GitHub' { (Test-ToolEntry -Tool @{ Name = 'a'; RepoUrl = 'https://github.com/o/r'; DownloadMethod = 'specificFile' }).IsValid | Should -BeFalse }

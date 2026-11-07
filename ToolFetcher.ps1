@@ -672,10 +672,11 @@ function Test-ToolEntry {
     }
     else {
         # Reject path-traversal attempts in Name. Name becomes a directory under
-        # $ToolsDirectory; '..' or absolute path components could escape it.
-        if ($Tool.name -match '(\.\.[/\\]|^[/\\]|^[A-Za-z]:)' -or $Tool.name -match '[/\\]') {
+        # $ToolsDirectory; '..' or absolute path components could escape it, and a bare
+        # '.' or '..' would resolve to the parent folder itself.
+        if ($Tool.name -match '(\.\.[/\\]|^[/\\]|^[A-Za-z]:)' -or $Tool.name -match '[/\\]' -or $Tool.name -match '^\.{1,2}$') {
             $isValid = $false
-            $errors += "Name '$($Tool.name)' contains path separators or traversal sequences (must be a single folder name)"
+            $errors += "Name '$($Tool.name)' contains path separators or traversal sequences (must be a single folder name, not '.' or '..')"
         }
     }
 
@@ -722,7 +723,12 @@ function Test-ToolEntry {
                 # Branch is optional, defaults to master/main
             }
             "latestRelease" {
-                # AssetType or AssetFilename is recommended but not required
+                # AssetType or AssetFilename is recommended but not required; an AssetType that
+                # names no pattern would otherwise select the first asset of the release.
+                if (-not [string]::IsNullOrWhiteSpace([string]$Tool.AssetType) -and -not $script:AssetPatterns.ContainsKey([string]$Tool.AssetType)) {
+                    $isValid = $false
+                    $errors += "Unknown AssetType '$($Tool.AssetType)'. Must be one of: $(($script:AssetPatterns.Keys | Sort-Object) -join ', ')"
+                }
             }
             "specificFile" {
                 # Don't require SpecificFilePath or DownloadName if SkipDownload is true
@@ -1765,10 +1771,18 @@ function Initialize-OutputFolder {
 
     try {
         if (-not [string]::IsNullOrEmpty($ToolConfig.OutputFolder)) {
-            $outputFolder = Join-Path -Path $ToolsDirectory -ChildPath (Join-Path $ToolConfig.OutputFolder $ToolConfig.Name)
+            # Defense-in-depth (Test-ToolEntry rejects these first): a rooted or drive-prefixed
+            # OutputFolder, or one with a '..' segment, must never reach Join-Path, which on a
+            # missing drive raises only a non-terminating error and would hand back the tools root.
+            $of = [string]$ToolConfig.OutputFolder
+            if ([System.IO.Path]::IsPathRooted($of) -or $of -match '^[A-Za-z]:' -or (($of -split '[/\\]') -contains '..')) {
+                Write-LogError "Refusing OutputFolder '$of' for $($ToolConfig.Name): it must be a relative path under the tools directory (no drive prefix, no '..')."
+                return $null
+            }
+            $outputFolder = Join-Path -Path $ToolsDirectory -ChildPath (Join-Path $of $ToolConfig.Name -ErrorAction Stop) -ErrorAction Stop
         }
         else {
-            $outputFolder = Join-Path -Path $ToolsDirectory -ChildPath $ToolConfig.Name
+            $outputFolder = Join-Path -Path $ToolsDirectory -ChildPath $ToolConfig.Name -ErrorAction Stop
         }
 
         # Defense-in-depth: validation in Test-ToolEntry should prevent this,
@@ -2167,15 +2181,16 @@ function Get-MarkerRemoteArgs {
 
 # Picks the release asset for the latestRelease method. Rules, first that applies: DownloadName
 # matches the asset name with -eq (case-insensitive), AssetFilename is a regex (-match), AssetType
-# looks up its regex in $script:AssetPatterns (an unknown type logs a warning and leaves the list
-# unfiltered), otherwise every asset qualifies. Returns the first qualifying asset in release
-# order, or $null; with -All, an array of every qualifying asset (empty when none).
+# looks up its regex in $script:AssetPatterns (an unknown type logs a warning and selects nothing;
+# Test-ToolEntry rejects it earlier), otherwise every asset qualifies. Returns the first qualifying
+# asset in release order, or $null; with -All, an array of every qualifying asset (empty when none).
 function Select-ReleaseAsset {
     param (
         [Parameter(Mandatory=$true)]$ToolConfig,
         [Parameter(Mandatory=$true)][AllowNull()][AllowEmptyCollection()][object[]]$Assets,
         [Parameter(Mandatory=$false)][switch]$All
     )
+    if ($null -eq $Assets) { $Assets = @() }
     $candidates = $Assets
     if (-not [string]::IsNullOrEmpty($ToolConfig.DownloadName)) {
         $candidates = $candidates | Where-Object { $_.name -eq $ToolConfig.DownloadName }
@@ -2189,7 +2204,8 @@ function Select-ReleaseAsset {
             $candidates = $candidates | Where-Object { $_.name -match $pattern }
         }
         else {
-            Write-LogWarning "No pattern defined for AssetType '$($ToolConfig.AssetType)' for $($ToolConfig.Name)."
+            Write-LogWarning "No pattern defined for AssetType '$($ToolConfig.AssetType)' for $($ToolConfig.Name); no asset selected."
+            $candidates = @()
         }
     }
     if ($All) {
@@ -2789,8 +2805,10 @@ function Get-ToolPlan {
                 }
                 Write-LogInfo "$($Tool.Name) is up to date ($what); skipping."
                 # Markers written before ETags were recorded get them now, so later checks are
-                # conditional requests that cost no rate-limit quota.
-                Update-MarkerRemoteState -OutputFolder $toolOutputFolder -Marker $marker -Remote $remote
+                # conditional requests that cost no rate-limit quota. -DryRun writes nothing.
+                if (-not $DryRun) {
+                    Update-MarkerRemoteState -OutputFolder $toolOutputFolder -Marker $marker -Remote $remote
+                }
                 Write-Host "===========================================" -ForegroundColor White
                 $plan.Action = 'up-to-date'
                 $plan.Status = 'up-to-date'
