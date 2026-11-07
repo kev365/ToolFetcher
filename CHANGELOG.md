@@ -11,6 +11,10 @@ All notable changes to ToolFetcher. The format follows [Keep a Changelog](https:
 - `Initialize-OutputFolder` refuses a rooted or drive-prefixed `OutputFolder`, or one with a `..` segment, before building the path. Validation already rejects such entries; as a second line of defense the old path build on a missing drive raised only a non-terminating error and returned the tools directory itself as the output folder.
 - `-DryRun` no longer rewrites up-to-date `.downloaded.json` markers. The ETag refresh that turns later checks into conditional requests now happens only on real runs, as documented.
 
+### Changed
+
+- `build/New-Release.ps1` refuses to run when the local `main` branch is missing or is not an ancestor of HEAD, because the printed merge would otherwise tag a tree the zip was not built from. A version bump declined at a `-Confirm` prompt now stops the run with nothing changed, and a write that fails after an earlier file was rewritten names the files to restore with `git checkout`. `Get-ToolEntryCount` in `build/DevCommon.ps1` throws on a YAML file without a top-level `tools` key instead of reporting zero entries.
+
 ## [2.2.3] - 2026-11-05
 
 ### Added

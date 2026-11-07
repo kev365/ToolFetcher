@@ -76,5 +76,9 @@ function Get-ToolEntryCount {
     param([Parameter(Mandatory)][string]$YamlPath)
     Import-PinnedYaml
     $data = Get-Content -LiteralPath $YamlPath -Raw | ConvertFrom-Yaml
+    # A missing key must not read as an empty file: the listing checks would compare against 0 and pass.
+    if (-not ($data -is [System.Collections.IDictionary]) -or -not $data.Contains('tools')) {
+        throw "$YamlPath has no top-level 'tools' key, so its entries cannot be counted"
+    }
     return [int]$data['tools'].Count
 }
