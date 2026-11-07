@@ -6,12 +6,15 @@
 .DESCRIPTION
     Preconditions, checked in this order:
       1. -Version looks like X.Y.Z.
-      2. git status --porcelain is empty (skipped under -WhatIf).
+      2. git status --porcelain is empty (skipped under -WhatIf), a local 'main' branch exists and is an
+         ancestor of HEAD (the printed merge is then a fast-forward whose tree is the one in the zip).
       3. $script:Version in ToolFetcher.ps1 equals the version in the README title.
       4. CHANGELOG.md has a '## [Unreleased]' section whose text up to the next '## [' heading holds at
          least one line starting with '- ', and no '## [X.Y.Z]' section yet.
       5. build/Invoke-Checks.ps1 passes with the analyzer row included (left out with -SkipChecks).
     Failures of 2 to 4 are reported together in one error; 5 runs only when they all pass.
+    A declined confirmation prompt (-Confirm) at the version bump stops the run with nothing changed; a
+    write that fails after an earlier file was rewritten names the files to restore with git checkout.
 
     Then, under -RepoRoot:
       - sets $script:Version and the README title to X.Y.Z and renames '## [Unreleased]' in CHANGELOG.md
@@ -199,8 +202,10 @@ function Test-ReleaseZip {
 
 function Update-ReleaseVersion {
     # Sets $script:Version and the README title to $Version and renames '## [Unreleased]' to
-    # '## [<Version>] - <Date>'. All three edits are prepared first, then written together.
+    # '## [<Version>] - <Date>'. All three edits are prepared first, then written together. Returns $true
+    # when the files were written and $false when ShouldProcess declined (-WhatIf or a refused prompt).
     [CmdletBinding(SupportsShouldProcess)]
+    [OutputType([bool])]
     param(
         [Parameter(Mandatory)][string]$RepoRoot,
         [Parameter(Mandatory)][ValidatePattern('^\d+\.\d+\.\d+$')][string]$Version,
@@ -244,11 +249,23 @@ function Update-ReleaseVersion {
         $updates.Add([pscustomobject]@{ Path = $path; Text = $regex.Replace($text, $edit.Replacement, 1); Encoding = $encoding })
     }
     $targets = ($edits | ForEach-Object { $_.File }) -join ', '
-    if ($PSCmdlet.ShouldProcess($targets, "Set version $Version and CHANGELOG date $Date")) {
-        foreach ($update in $updates) {
-            [System.IO.File]::WriteAllText($update.Path, $update.Text, $update.Encoding)
+    if (-not $PSCmdlet.ShouldProcess($targets, "Set version $Version and CHANGELOG date $Date")) { return $false }
+    $written = [System.Collections.Generic.List[string]]::new()
+    foreach ($update in $updates) {
+        $name = [System.IO.Path]::GetFileName($update.Path)
+        try { [System.IO.File]::WriteAllText($update.Path, $update.Text, $update.Encoding) }
+        catch {
+            $reason = $_.Exception.Message
+            if ($null -ne $_.Exception.InnerException) { $reason = $_.Exception.InnerException.Message }
+            $hint = 'no file was rewritten'
+            if ($written.Count -gt 0) {
+                $hint = "already rewritten: $($written -join ', '); undo them with: git checkout -- $($written -join ' ')"
+            }
+            throw "$name could not be written ($reason); $hint"
         }
+        $written.Add($name)
     }
+    return $true
 }
 
 function Get-ChangelogSection {
@@ -357,6 +374,21 @@ else {
     }
 }
 
+# 2b. main is an ancestor of HEAD. The printed commands merge this branch into main with --no-ff; only a
+# fast-forwardable branch gives that merge commit the tree the zip was built from, so the tag matches the zip.
+$mainCommit = "$(& git -C $RepoRoot rev-parse --verify --quiet 'main^{commit}' 2>$null)".Trim()
+if (-not $mainCommit) {
+    $problems.Add("no local 'main' branch in ${RepoRoot}; the release flow merges into main")
+}
+else {
+    & git -C $RepoRoot merge-base --is-ancestor main HEAD 2>$null
+    if ($LASTEXITCODE -ne 0) {
+        $head = "$(& git -C $RepoRoot branch --show-current 2>$null)".Trim()
+        if (-not $head) { $head = 'detached HEAD' }
+        $problems.Add("main is not an ancestor of HEAD ($head): merge or rebase main into this branch first, or the tag would land on a merge commit whose tree differs from the zip")
+    }
+}
+
 # 3. $script:Version and the README title agree.
 try {
     $scriptVersion = Get-ScriptSetting -Name Version -ScriptPath $scriptPath
@@ -409,8 +441,12 @@ else {
     }
 }
 
-# Bump the three files, then make sure the script still parses.
-Update-ReleaseVersion -RepoRoot $RepoRoot -Version $Version -Date $Date
+# Bump the three files, then make sure the script still parses. Under -WhatIf nothing is written and the
+# flow goes on as a rehearsal; a refused -Confirm prompt stops here with nothing changed.
+$bumped = Update-ReleaseVersion -RepoRoot $RepoRoot -Version $Version -Date $Date
+if (-not $bumped -and -not $WhatIfPreference) {
+    throw 'The version bump was declined at the confirmation prompt; nothing was changed.'
+}
 $parseErrors = $null
 $null = [System.Management.Automation.Language.Parser]::ParseFile($scriptPath, [ref]$null, [ref]$parseErrors)
 if (@($parseErrors).Count -gt 0) {

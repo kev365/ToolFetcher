@@ -320,8 +320,9 @@ later; the script itself still runs on Windows PowerShell 5.1 and PowerShell 7+.
    ```
    `-OutFile <path>` writes a JSON report. `-Download` also downloads and verifies
    every tool; it is for local use only and is not run by the workflows.
-4. **Cut a release** with `build\New-Release.ps1 -Version X.Y.Z`. It runs the checks,
-   bumps the script version and README title, dates the CHANGELOG heading, builds
+4. **Cut a release** with `build\New-Release.ps1 -Version X.Y.Z`. It confirms the tree
+   is clean and that `main` is an ancestor of the branch, runs the checks, bumps the
+   script version and README title, dates the CHANGELOG heading, builds
    and verifies `dist\ToolFetcher-X.Y.Z.zip`, and writes release notes. It then
    prints the commit, tag, push dry-run and `gh release create` commands; it runs
    none of them, so you review and run each yourself.
